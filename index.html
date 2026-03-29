@@ -1370,10 +1370,10 @@
         <div class="tour-sidebar" id="tourSidebar">
           <div class="tour-sidebar-brand">Steuer<em>Cockpit</em></div>
           <!-- Mandant nav items -->
-          <div class="tour-nav-item show" data-view="mandant" id="tnOverview"><span class="tour-nav-icon">&#128202;</span> Ueberblick</div>
+          <div class="tour-nav-item show" data-view="mandant" id="tnOverview"><span class="tour-nav-icon">&#128202;</span> Überblick</div>
           <div class="tour-nav-item show" data-view="mandant" id="tnDocs"><span class="tour-nav-icon">&#129534;</span> Dokumente</div>
           <div class="tour-nav-item show" data-view="mandant" id="tnNumbers"><span class="tour-nav-icon">&#128200;</span> Meine Zahlen</div>
-          <div class="tour-nav-item show" data-view="mandant"><span class="tour-nav-icon">&#127970;</span> Steuerbuero</div>
+          <div class="tour-nav-item show" data-view="mandant"><span class="tour-nav-icon">&#127970;</span> Steuerbüro</div>
           <!-- STB nav items (hidden initially) -->
           <div class="tour-nav-item" data-view="stb" id="tnCommand"><span class="tour-nav-icon">&#127919;</span> Kommandozentrale</div>
           <div class="tour-nav-item" data-view="stb"><span class="tour-nav-icon">&#9888;&#65039;</span> Ausnahmen</div>
@@ -1405,7 +1405,7 @@
                 <div class="tf-input" id="tf3"></div>
                 <div class="tf-dropdown-menu" id="tfDropdown">
                   <div class="tf-dropdown-item">Telefon &amp; Internet</div>
-                  <div class="tf-dropdown-item highlight">Buerobedarf</div>
+                  <div class="tf-dropdown-item highlight">Bürobedarf</div>
                   <div class="tf-dropdown-item">Reisekosten</div>
                   <div class="tf-dropdown-item">Software &amp; Lizenzen</div>
                 </div>
@@ -1424,7 +1424,7 @@
 
           <!-- STEP 2: Dashboard -->
           <div class="tour-panel" id="tPanel2">
-            <div class="tp-title">Ueberblick &ndash; Maerz 2026</div>
+            <div class="tp-title">Überblick &ndash; März 2026</div>
 
             <div class="td-grid">
               <div class="td-card" id="tdCard1">
@@ -1461,7 +1461,7 @@
 
             <div class="td-warning" id="tdWarning">
               <div class="td-warning-dot"></div>
-              UStVA faellig in 8 Tagen
+              UStVA fällig in 8 Tagen
             </div>
           </div>
 
@@ -1472,13 +1472,13 @@
             <div class="te-rows">
               <div class="te-row" id="teRow1">
                 <div class="te-kz">Kz. 81</div>
-                <div class="te-desc">Umsaetze 19%</div>
+                <div class="te-desc">Umsätze 19%</div>
                 <div class="te-bar-wrap"><div class="te-bar blue" style="--bar-w: 85%"></div></div>
                 <div class="te-val">9.840,00 &euro;</div>
               </div>
               <div class="te-row" id="teRow2">
                 <div class="te-kz">Kz. 86</div>
-                <div class="te-desc">Umsaetze 7%</div>
+                <div class="te-desc">Umsätze 7%</div>
                 <div class="te-bar-wrap"><div class="te-bar blue" style="--bar-w: 45%"></div></div>
                 <div class="te-val">2.610,00 &euro;</div>
               </div>
@@ -1505,7 +1505,7 @@
 
           <!-- STEP 4: DATEV Export -->
           <div class="tour-panel" id="tPanel4">
-            <div class="tp-title">DATEV-Export &ndash; Maerz 2026</div>
+            <div class="tp-title">DATEV-Export &ndash; März 2026</div>
 
             <ul class="tc-list">
               <li class="tc-item" id="tcItem1">
@@ -1545,7 +1545,7 @@
 
   <!-- Navigation Controls -->
   <div class="tour-nav-controls">
-    <button class="tour-btn-back hidden" id="tourBtnBack">&#8592; Zurueck</button>
+    <button class="tour-btn-back hidden" id="tourBtnBack">&#8592; Zurück</button>
 
     <div class="tour-dots-wrap">
       <button class="tour-dot-btn active" data-step="0"></button>
@@ -1879,14 +1879,14 @@ window.addEventListener('scroll', () => {
                     delay(function() {
                       dropdown.classList.add('open');
                       delay(function() {
-                        f3.textContent = 'Buerobedarf';
+                        f3.textContent = 'Bürobedarf';
                         f3.classList.remove('glow');
                         f3.classList.add('done');
                         dropdown.classList.remove('open');
 
                         // 4. SKR03 auto-fills
                         delay(function() {
-                          f4.textContent = '4930 \u2013 Bueromaterial';
+                          f4.textContent = '4930 \u2013 Büromaterial';
                           f4.classList.add('auto');
                           delay(function() {
                             autoTag.classList.add('show');
