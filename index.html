@@ -830,6 +830,428 @@
   @media (max-width: 768px) {
     .mobile-menu-btn { display: block; }
   }
+
+  /* --- App Showcase / Mockup Section --- */
+  .app-showcase {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+  }
+  .app-showcase .section-label { text-align: center; }
+  .app-showcase .section-title { text-align: center; margin: 0 auto 40px; }
+
+  /* Tab Switcher */
+  .mockup-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .mockup-tab {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .mockup-tab:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .mockup-tab.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+  }
+
+  /* App Window Frame */
+  .mockup-window {
+    background: #1e2433;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+    max-width: 960px;
+    margin: 0 auto;
+    border: 1px solid #e2e8f0;
+  }
+  .mockup-titlebar {
+    background: #161b27;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mockup-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  .mockup-dot.red { background: #ef4444; }
+  .mockup-dot.yellow { background: #eab308; }
+  .mockup-dot.green { background: #22c55e; }
+  .mockup-titlebar-text {
+    color: #64748b;
+    font-size: 12px;
+    margin-left: 12px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .mockup-body {
+    display: flex;
+    min-height: 380px;
+  }
+
+  /* Sidebar */
+  .mockup-sidebar {
+    width: 200px;
+    background: #1a1f2e;
+    padding: 20px 0;
+    flex-shrink: 0;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .mockup-sidebar-logo {
+    padding: 0 16px 16px;
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 12px;
+  }
+  .mockup-sidebar-logo span { color: #3b82f6; }
+  .mockup-nav-item {
+    padding: 10px 16px;
+    font-size: 13px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+    cursor: default;
+    border-left: 3px solid transparent;
+  }
+  .mockup-nav-item.active {
+    background: rgba(37,99,235,0.12);
+    color: #93c5fd;
+    border-left-color: #3b82f6;
+    font-weight: 600;
+  }
+  .mockup-nav-icon {
+    width: 18px;
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.8;
+  }
+
+  /* Content Area */
+  .mockup-content {
+    flex: 1;
+    padding: 24px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Screen panels - fade animation */
+  .mockup-screen {
+    display: none;
+    animation: mockupFadeIn 0.45s ease both;
+  }
+  .mockup-screen.active {
+    display: block;
+  }
+  @keyframes mockupFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Content title */
+  .mockup-page-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 20px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Stat cards */
+  .mockup-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .mockup-stat-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .mockup-stat-label {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+  .mockup-stat-value {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .mockup-stat-value.green { color: #10b981; }
+  .mockup-stat-value.red { color: #ef4444; }
+  .mockup-stat-value.blue { color: #3b82f6; }
+
+  /* Warning bar */
+  .mockup-warning {
+    background: rgba(234,179,8,0.12);
+    border: 1px solid rgba(234,179,8,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Form mockup */
+  .mockup-form-group {
+    margin-bottom: 14px;
+  }
+  .mockup-form-label {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .mockup-form-input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #e2e8f0;
+    width: 100%;
+    display: block;
+    font-family: inherit;
+  }
+  .mockup-form-input.auto-filled {
+    border-color: rgba(16,185,129,0.4);
+    background: rgba(16,185,129,0.08);
+  }
+  .mockup-form-auto-badge {
+    font-size: 10px;
+    color: #10b981;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .mockup-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .mockup-btn-green {
+    background: #059669;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: default;
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+
+  /* Table mockup */
+  .mockup-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .mockup-table th {
+    font-size: 11px;
+    color: #64748b;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .mockup-table td {
+    font-size: 13px;
+    color: #cbd5e1;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .mockup-table .value-right {
+    text-align: right;
+    font-weight: 600;
+    font-family: 'DM Sans', monospace;
+  }
+
+  /* Export buttons */
+  .mockup-export-btns {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .mockup-export-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #94a3b8;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: default;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .mockup-export-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #e2e8f0;
+  }
+
+  /* Ampel dots */
+  .ampel-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .ampel-dot.gruen { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+  .ampel-dot.gelb { background: #eab308; box-shadow: 0 0 6px rgba(234,179,8,0.4); }
+  .ampel-dot.rot { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+
+  /* Ampel overview */
+  .mockup-ampel-overview {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+  .mockup-ampel-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 10px 16px;
+  }
+  .mockup-ampel-count {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e2e8f0;
+  }
+  .mockup-ampel-label {
+    font-size: 11px;
+    color: #94a3b8;
+  }
+
+  /* Checklist */
+  .mockup-checklist {
+    list-style: none;
+    margin-bottom: 20px;
+  }
+  .mockup-checklist li {
+    padding: 10px 0;
+    font-size: 14px;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .mockup-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: rgba(16,185,129,0.15);
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .mockup-btn-blue {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: default;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    margin-bottom: 16px;
+  }
+  .mockup-result {
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #10b981;
+    font-weight: 600;
+  }
+
+  /* Row slide-in animation */
+  .mockup-screen.active .mockup-row-anim {
+    opacity: 0;
+    transform: translateX(-8px);
+    animation: mockupRowSlide 0.4s ease forwards;
+  }
+  .mockup-screen.active .mockup-row-anim:nth-child(1) { animation-delay: 0.1s; }
+  .mockup-screen.active .mockup-row-anim:nth-child(2) { animation-delay: 0.2s; }
+  .mockup-screen.active .mockup-row-anim:nth-child(3) { animation-delay: 0.3s; }
+  .mockup-screen.active .mockup-row-anim:nth-child(4) { animation-delay: 0.4s; }
+  .mockup-screen.active .mockup-row-anim:nth-child(5) { animation-delay: 0.5s; }
+
+  @keyframes mockupRowSlide {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Auto-rotation indicator */
+  .mockup-auto-indicator {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 12px;
+    color: #94a3b8;
+    opacity: 0.6;
+  }
+
+  /* Responsive mockup */
+  @media (max-width: 768px) {
+    .app-showcase { padding-left: 20px; padding-right: 20px; }
+    .mockup-sidebar { display: none; }
+    .mockup-stats { grid-template-columns: repeat(2, 1fr); }
+    .mockup-form-row { grid-template-columns: 1fr; }
+    .mockup-ampel-overview { flex-wrap: wrap; gap: 12px; }
+    .mockup-tabs { gap: 6px; }
+    .mockup-tab { padding: 8px 14px; font-size: 12px; }
+    .mockup-content { padding: 18px 16px; }
+    .mockup-window { border-radius: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -962,6 +1384,172 @@
       <p>Fertiger Buchungsstapel in 4 Schritten. ELSTER-XML, DATEV-CSV – alles dabei.</p>
     </div>
   </div>
+</section>
+
+<!-- App Showcase / Mockups -->
+<section class="app-showcase reveal" id="app-preview">
+  <div class="section-label">So sieht es aus</div>
+  <h2 class="section-title">Echte Einblicke ins Steuer-Cockpit</h2>
+
+  <!-- Tab Switcher -->
+  <div class="mockup-tabs">
+    <button class="mockup-tab active" data-screen="0">Dashboard</button>
+    <button class="mockup-tab" data-screen="1">Belegerfassung</button>
+    <button class="mockup-tab" data-screen="2">UStVA</button>
+    <button class="mockup-tab" data-screen="3">STB-Zentrale</button>
+    <button class="mockup-tab" data-screen="4">DATEV-Export</button>
+  </div>
+
+  <!-- App Window -->
+  <div class="mockup-window" id="mockupWindow">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot red"></div>
+      <div class="mockup-dot yellow"></div>
+      <div class="mockup-dot green"></div>
+      <span class="mockup-titlebar-text">app.steuer-cockpit.de</span>
+    </div>
+    <div class="mockup-body">
+      <!-- Sidebar Mandant (Screens 0-2) -->
+      <div class="mockup-sidebar" id="mockupSidebarMandant">
+        <div class="mockup-sidebar-logo">Steuer<span>Cockpit</span></div>
+        <div class="mockup-nav-item active" id="navMandant0"><span class="mockup-nav-icon">📊</span> Ueberblick</div>
+        <div class="mockup-nav-item" id="navMandant1"><span class="mockup-nav-icon">🧾</span> Dokumente</div>
+        <div class="mockup-nav-item" id="navMandant2"><span class="mockup-nav-icon">📈</span> Meine Zahlen</div>
+        <div class="mockup-nav-item"><span class="mockup-nav-icon">🏢</span> Steuerbuero</div>
+      </div>
+      <!-- Sidebar STB (Screens 3-4) -->
+      <div class="mockup-sidebar" id="mockupSidebarSTB" style="display:none;">
+        <div class="mockup-sidebar-logo">Steuer<span>Cockpit</span></div>
+        <div class="mockup-nav-item active" id="navSTB3"><span class="mockup-nav-icon">🎛️</span> Kommandozentrale</div>
+        <div class="mockup-nav-item"><span class="mockup-nav-icon">⚠️</span> Ausnahmen</div>
+        <div class="mockup-nav-item" id="navSTB4"><span class="mockup-nav-icon">📋</span> Monatsabschluss</div>
+        <div class="mockup-nav-item"><span class="mockup-nav-icon">⚙️</span> Verwaltung</div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="mockup-content">
+
+        <!-- Screen 0: Mandant Dashboard -->
+        <div class="mockup-screen active" id="mockupScreen0">
+          <div class="mockup-page-title">Ueberblick – Maerz 2026</div>
+          <div class="mockup-stats">
+            <div class="mockup-stat-card mockup-row-anim">
+              <div class="mockup-stat-label">Einnahmen</div>
+              <div class="mockup-stat-value green mockup-count-val" data-target="12450">0</div>
+            </div>
+            <div class="mockup-stat-card mockup-row-anim">
+              <div class="mockup-stat-label">Ausgaben</div>
+              <div class="mockup-stat-value red mockup-count-val" data-target="4230">0</div>
+            </div>
+            <div class="mockup-stat-card mockup-row-anim">
+              <div class="mockup-stat-label">Gewinn</div>
+              <div class="mockup-stat-value green mockup-count-val" data-target="8220">0</div>
+            </div>
+            <div class="mockup-stat-card mockup-row-anim">
+              <div class="mockup-stat-label">USt-Zahllast</div>
+              <div class="mockup-stat-value blue mockup-count-val" data-target="1562">0</div>
+            </div>
+          </div>
+          <div class="mockup-warning mockup-row-anim" style="animation-delay:0.5s;">
+            <span>⚠️</span> UStVA faellig in 8 Tagen – jetzt pruefen
+          </div>
+        </div>
+
+        <!-- Screen 1: Belegerfassung -->
+        <div class="mockup-screen" id="mockupScreen1">
+          <div class="mockup-page-title">Neuen Beleg erfassen</div>
+          <div class="mockup-form-group mockup-row-anim">
+            <div class="mockup-form-label">Rechnungsnummer</div>
+            <div class="mockup-form-input">RE-2026-0847</div>
+          </div>
+          <div class="mockup-form-row">
+            <div class="mockup-form-group mockup-row-anim">
+              <div class="mockup-form-label">Betrag (brutto)</div>
+              <div class="mockup-form-input">84,90 EUR</div>
+            </div>
+            <div class="mockup-form-group mockup-row-anim">
+              <div class="mockup-form-label">Kategorie</div>
+              <div class="mockup-form-input">Buerobedarf</div>
+            </div>
+          </div>
+          <div class="mockup-form-group mockup-row-anim">
+            <div class="mockup-form-label">SKR03-Konto</div>
+            <div class="mockup-form-input auto-filled">4930 – Buerobedarf</div>
+            <div class="mockup-form-auto-badge">&#10003; Automatisch zugeordnet</div>
+          </div>
+          <button class="mockup-btn-green mockup-row-anim">&#10003; Beleg speichern</button>
+        </div>
+
+        <!-- Screen 2: UStVA -->
+        <div class="mockup-screen" id="mockupScreen2">
+          <div class="mockup-page-title">UStVA – Q1 2026</div>
+          <table class="mockup-table">
+            <thead>
+              <tr class="mockup-row-anim"><th>ELSTER-Kennzahl</th><th>Bezeichnung</th><th class="value-right">Betrag</th></tr>
+            </thead>
+            <tbody>
+              <tr class="mockup-row-anim"><td>Kz. 81</td><td style="color:#94a3b8">Umsaetze 19%</td><td class="value-right" style="color:#e2e8f0">9.840,00 EUR</td></tr>
+              <tr class="mockup-row-anim"><td>Kz. 86</td><td style="color:#94a3b8">Umsaetze 7%</td><td class="value-right" style="color:#e2e8f0">2.610,00 EUR</td></tr>
+              <tr class="mockup-row-anim"><td>Kz. 66</td><td style="color:#94a3b8">Vorsteuer</td><td class="value-right" style="color:#10b981">-1.050,35 EUR</td></tr>
+              <tr class="mockup-row-anim" style="border-top:2px solid rgba(255,255,255,0.1)"><td><strong style="color:#e2e8f0">Kz. 83</strong></td><td style="color:#94a3b8"><strong>Zahllast</strong></td><td class="value-right" style="color:#e2e8f0;font-size:15px"><strong>1.562,85 EUR</strong></td></tr>
+            </tbody>
+          </table>
+          <div class="mockup-export-btns mockup-row-anim">
+            <button class="mockup-export-btn">PDF</button>
+            <button class="mockup-export-btn">XML</button>
+            <button class="mockup-export-btn">CSV</button>
+          </div>
+        </div>
+
+        <!-- Screen 3: STB Kommandozentrale -->
+        <div class="mockup-screen" id="mockupScreen3">
+          <div class="mockup-page-title">Kommandozentrale</div>
+          <div class="mockup-ampel-overview mockup-row-anim">
+            <div class="mockup-ampel-stat">
+              <span class="ampel-dot gruen"></span>
+              <span class="mockup-ampel-count">12</span>
+              <span class="mockup-ampel-label">Gruen</span>
+            </div>
+            <div class="mockup-ampel-stat">
+              <span class="ampel-dot gelb"></span>
+              <span class="mockup-ampel-count">3</span>
+              <span class="mockup-ampel-label">Gelb</span>
+            </div>
+            <div class="mockup-ampel-stat">
+              <span class="ampel-dot rot"></span>
+              <span class="mockup-ampel-count">1</span>
+              <span class="mockup-ampel-label">Rot</span>
+            </div>
+          </div>
+          <table class="mockup-table">
+            <thead>
+              <tr class="mockup-row-anim"><th>Status</th><th>Mandant</th><th>Offene Flags</th><th>Naechste Frist</th></tr>
+            </thead>
+            <tbody>
+              <tr class="mockup-row-anim"><td><span class="ampel-dot gruen"></span></td><td style="color:#e2e8f0">Mueller GmbH</td><td style="color:#94a3b8">0</td><td style="color:#94a3b8">15.04.2026</td></tr>
+              <tr class="mockup-row-anim"><td><span class="ampel-dot gelb"></span></td><td style="color:#e2e8f0">Schmidt Consulting</td><td style="color:#eab308">2 Belege offen</td><td style="color:#eab308">10.04.2026</td></tr>
+              <tr class="mockup-row-anim"><td><span class="ampel-dot rot"></span></td><td style="color:#e2e8f0">Meier Fotografie</td><td style="color:#ef4444">UStVA ueberfaellig</td><td style="color:#ef4444">01.04.2026</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Screen 4: DATEV Export -->
+        <div class="mockup-screen" id="mockupScreen4">
+          <div class="mockup-page-title">DATEV-Export – Maerz 2026</div>
+          <ul class="mockup-checklist">
+            <li class="mockup-row-anim"><span class="mockup-check">&#10003;</span> Alle Belege vollstaendig erfasst</li>
+            <li class="mockup-row-anim"><span class="mockup-check">&#10003;</span> Bankzuordnung abgeschlossen</li>
+            <li class="mockup-row-anim"><span class="mockup-check">&#10003;</span> SKR03-Konten geprueft</li>
+          </ul>
+          <button class="mockup-btn-blue mockup-row-anim">📤 DATEV CSV exportieren</button>
+          <div class="mockup-result mockup-row-anim">&#10003; 23 Belege als DATEV-CSV exportiert</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup-auto-indicator" id="mockupAutoIndicator">Wechselt automatisch alle 5 Sekunden</div>
 </section>
 
 <!-- Interactive Demo -->
@@ -1395,6 +1983,134 @@
       }
     });
   });
+
+  // === APP SHOWCASE MOCKUP TABS ===
+  (function() {
+    let mockupCurrent = 0;
+    let mockupTimer = null;
+    const MOCKUP_INTERVAL = 5000;
+    const tabs = document.querySelectorAll('.mockup-tab');
+    const screens = document.querySelectorAll('.mockup-screen');
+    const sidebarMandant = document.getElementById('mockupSidebarMandant');
+    const sidebarSTB = document.getElementById('mockupSidebarSTB');
+    const mandantNavItems = [
+      document.getElementById('navMandant0'),
+      document.getElementById('navMandant1'),
+      document.getElementById('navMandant2')
+    ];
+    const stbNavItems = [
+      document.getElementById('navSTB3'),
+      document.getElementById('navSTB4')
+    ];
+
+    function showMockupScreen(index) {
+      // Update tabs
+      tabs.forEach(t => t.classList.remove('active'));
+      tabs[index].classList.add('active');
+
+      // Update screens
+      screens.forEach(s => s.classList.remove('active'));
+      screens[index].classList.add('active');
+
+      // Switch sidebar
+      if (index <= 2) {
+        sidebarMandant.style.display = '';
+        sidebarSTB.style.display = 'none';
+        mandantNavItems.forEach(n => { if (n) n.classList.remove('active'); });
+        if (mandantNavItems[index]) mandantNavItems[index].classList.add('active');
+      } else {
+        sidebarMandant.style.display = 'none';
+        sidebarSTB.style.display = '';
+        stbNavItems.forEach(n => { if (n) n.classList.remove('active'); });
+        if (index === 3 && stbNavItems[0]) stbNavItems[0].classList.add('active');
+        if (index === 4 && stbNavItems[1]) stbNavItems[1].classList.add('active');
+      }
+
+      mockupCurrent = index;
+
+      // Animate count-up values in active screen
+      screens[index].querySelectorAll('.mockup-count-val').forEach(function(el) {
+        if (el.dataset.animated) return;
+        el.dataset.animated = 'true';
+        var target = parseInt(el.dataset.target);
+        var start = performance.now();
+        var duration = 1200;
+        function tick(now) {
+          var p = Math.min((now - start) / duration, 1);
+          var eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+          el.textContent = Math.round(eased * target).toLocaleString('de-DE') + ' \u20AC';
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    // Tab click handlers
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var idx = parseInt(this.dataset.screen);
+        showMockupScreen(idx);
+        resetMockupTimer();
+      });
+    });
+
+    // Auto-rotate
+    function startMockupTimer() {
+      mockupTimer = setInterval(function() {
+        var next = (mockupCurrent + 1) % screens.length;
+        showMockupScreen(next);
+      }, MOCKUP_INTERVAL);
+    }
+
+    function resetMockupTimer() {
+      clearInterval(mockupTimer);
+      startMockupTimer();
+    }
+
+    // Pause on hover
+    var mockupWindow = document.getElementById('mockupWindow');
+    if (mockupWindow) {
+      mockupWindow.addEventListener('mouseenter', function() {
+        clearInterval(mockupTimer);
+        var indicator = document.getElementById('mockupAutoIndicator');
+        if (indicator) indicator.textContent = 'Pausiert';
+      });
+      mockupWindow.addEventListener('mouseleave', function() {
+        startMockupTimer();
+        var indicator = document.getElementById('mockupAutoIndicator');
+        if (indicator) indicator.textContent = 'Wechselt automatisch alle 5 Sekunden';
+      });
+    }
+
+    // Start auto-rotation when section is visible
+    var showcaseObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          startMockupTimer();
+          // Trigger initial count-up
+          screens[0].querySelectorAll('.mockup-count-val').forEach(function(el) {
+            if (!el.dataset.animated) {
+              el.dataset.animated = 'true';
+              var target = parseInt(el.dataset.target);
+              var start = performance.now();
+              var duration = 1200;
+              function tick(now) {
+                var p = Math.min((now - start) / duration, 1);
+                var eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+                el.textContent = Math.round(eased * target).toLocaleString('de-DE') + ' \u20AC';
+                if (p < 1) requestAnimationFrame(tick);
+              }
+              requestAnimationFrame(tick);
+            }
+          });
+          showcaseObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    var showcaseSection = document.getElementById('app-preview');
+    if (showcaseSection) showcaseObserver.observe(showcaseSection);
+  })();
 
   // Nav background on scroll
   const nav = document.querySelector('nav');
