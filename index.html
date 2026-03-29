@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steuer-Cockpit – Das Klienten-Portal für Steuerkanzleien</title>
+<meta name="description" content="Ihre Mandanten erfassen Belege selbst – Sie bekommen fertige DATEV-Buchungsstapel. Ab 5€ pro Mandant.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #ffffff;
+    --navy-light: #f8fafc;
+    --navy-mid: #f1f5f9;
+    --blue: #2563eb;
+    --blue-light: #1d4ed8;
+    --blue-glow: rgba(37, 99, 235, 0.08);
+    --mint: #059669;
+    --mint-glow: rgba(5, 150, 105, 0.08);
+    --slate: #64748b;
+    --slate-light: #475569;
+    --white: #0f172a;
+    --warm: #d97706;
+    --card-border: #e2e8f0;
+    --card-hover-border: #cbd5e1;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #ffffff;
+    color: #1e293b;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- Background Atmosphere --- */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%; left: -20%;
+    width: 80vw; height: 80vw;
+    background: radial-gradient(circle, rgba(37,99,235,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -30%; right: -10%;
+    width: 60vw; height: 60vw;
+    background: radial-gradient(circle, rgba(5,150,105,0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  section, header, footer { position: relative; z-index: 1; }
+
+  /* --- Nav --- */
+  nav {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background 0.3s, backdrop-filter 0.3s, border-bottom 0.3s;
+  }
+  .nav-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+  }
+  .nav-logo span { color: var(--blue); }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-links a {
+    color: var(--slate);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: #0f172a; }
+  .nav-cta {
+    background: var(--blue) !important;
+    color: #fff !important;
+    padding: 10px 22px !important;
+    border-radius: 8px;
+    font-weight: 600 !important;
+    transition: background 0.2s, transform 0.15s !important;
+  }
+  .nav-cta:hover { background: var(--blue-light) !important; transform: translateY(-1px); }
+
+  /* --- Hero --- */
+  .hero {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 80px 32px 60px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--blue-glow);
+    border: 1px solid rgba(37,99,235,0.25);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--blue-light);
+    font-weight: 500;
+    margin-bottom: 28px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 7px; height: 7px;
+    background: var(--mint);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: #0f172a;
+    max-width: 800px;
+    margin: 0 auto 24px;
+    letter-spacing: -1px;
+    animation: fadeUp 0.8s ease 0.1s both;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--blue);
+  }
+  .hero p {
+    font-size: 18px;
+    color: var(--slate);
+    max-width: 560px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s ease 0.3s both;
+  }
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary:hover { background: var(--blue-light); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,99,235,0.3); }
+  .btn-secondary {
+    background: transparent;
+    color: #334155;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-secondary:hover { border-color: #94a3b8; color: #0f172a; background: #f8fafc; }
+
+  /* --- Trust Bar --- */
+  .trust-bar {
+    max-width: 700px;
+    margin: 48px auto 0;
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--slate);
+  }
+  .trust-dot {
+    width: 8px; height: 8px;
+    background: var(--mint);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* --- Problem Section --- */
+  .problems {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 100px 32px 80px;
+  }
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-light);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(28px, 3.5vw, 38px);
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 48px;
+    letter-spacing: -0.5px;
+    max-width: 600px;
+  }
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .problem-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 28px 24px;
+    transition: transform 0.2s, border-color 0.3s, box-shadow 0.3s;
+  }
+  .problem-card:hover { transform: translateY(-4px); border-color: #fca5a5; box-shadow: 0 4px 20px rgba(239,68,68,0.08); }
+  .problem-icon {
+    width: 44px; height: 44px;
+    background: #fef2f2;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .problem-card h3 { font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 8px; }
+  .problem-card p { font-size: 14px; color: #64748b; line-height: 1.6; }
+
+  /* --- Solution --- */
+  .solution {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+  }
+  .solution-box {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 20px;
+    padding: 60px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .solution-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 300px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  }
+  .solution-box h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(24px, 3vw, 32px);
+    color: #0f172a;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+  .solution-box p {
+    font-size: 17px;
+    color: #475569;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+  .solution-box strong { color: var(--blue); font-weight: 600; }
+
+  /* --- Features --- */
+  .features {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+  }
+  .features .section-title { text-align: center; margin: 0 auto 48px; }
+  .features .section-label { text-align: center; }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .feature-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 28px 24px;
+    transition: transform 0.2s, border-color 0.3s, box-shadow 0.3s;
+  }
+  .feature-card:hover { transform: translateY(-3px); border-color: #93c5fd; box-shadow: 0 4px 20px rgba(37,99,235,0.08); }
+  .feature-icon {
+    width: 44px; height: 44px;
+    background: #eff6ff;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .feature-card h3 { font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 8px; }
+  .feature-card p { font-size: 13px; color: #64748b; line-height: 1.6; }
+
+  /* --- Interactive Demo --- */
+  .video-section {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+    text-align: center;
+  }
+  .video-section .section-title { margin: 0 auto 40px; }
+  .video-section .section-label { text-align: center; }
+
+  .demo-player {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+
+  /* Startscreen */
+  .demo-start {
+    aspect-ratio: 16/9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .demo-start:hover { background: rgba(37,99,235,0.03); }
+  .play-btn {
+    width: 80px; height: 80px;
+    background: var(--blue);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+  .play-btn:hover { transform: scale(1.1); box-shadow: 0 0 40px rgba(37,99,235,0.4); }
+  .play-btn svg { margin-left: 4px; }
+  .demo-start-text { color: #334155; font-size: 15px; font-weight: 500; }
+  .demo-start-sub { color: #94a3b8; font-size: 12px; }
+
+  /* Slide area */
+  .demo-slides {
+    display: none;
+    position: relative;
+    min-height: 500px;
+  }
+  .demo-slides.active { display: block; }
+
+  .demo-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+  }
+  .demo-slide.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Slide content types */
+  .slide-icon {
+    font-size: 56px;
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+  }
+  .slide-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .slide-text {
+    font-size: 17px;
+    color: #475569;
+    max-width: 560px;
+    text-align: center;
+    line-height: 1.7;
+  }
+  .slide-highlight {
+    color: var(--blue);
+    font-weight: 600;
+  }
+  .slide-number {
+    font-family: 'Fraunces', serif;
+    font-size: 72px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .slide-number.red { color: #ef4444; }
+  .slide-number.green { color: var(--mint); }
+  .slide-number.blue { color: var(--blue); }
+
+  /* Mock UI elements */
+  .slide-mock {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .mock-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+    color: #475569;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .demo-slide.active .mock-row { opacity: 1; transform: translateX(0); }
+  .demo-slide.active .mock-row:nth-child(1) { transition-delay: 0.3s; }
+  .demo-slide.active .mock-row:nth-child(2) { transition-delay: 0.5s; }
+  .demo-slide.active .mock-row:nth-child(3) { transition-delay: 0.7s; }
+  .demo-slide.active .mock-row:nth-child(4) { transition-delay: 0.9s; }
+  .mock-row .label { color: #64748b; }
+  .mock-row .value { font-weight: 600; color: #0f172a; }
+  .mock-row .value.green { color: #059669; }
+  .mock-row .value.red { color: #dc2626; }
+
+  /* Mock bar chart */
+  .mock-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    height: 120px;
+    margin-top: 20px;
+  }
+  .mock-bar {
+    width: 40px;
+    border-radius: 6px 6px 0 0;
+    transition: height 1s ease;
+  }
+  .mock-bar.income { background: var(--mint); }
+  .mock-bar.expense { background: #ef4444; opacity: 0.7; }
+  .mock-bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .mock-bar-label { font-size: 10px; color: var(--slate); }
+
+  /* Progress bar */
+  .demo-progress {
+    height: 3px;
+    background: #e2e8f0;
+    position: relative;
+  }
+  .demo-progress-bar {
+    height: 100%;
+    background: var(--blue);
+    transition: width 0.3s ease;
+    border-radius: 3px;
+  }
+
+  /* Controls */
+  .demo-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .demo-step { font-size: 12px; color: #94a3b8; }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .demo-btn:hover { background: #e2e8f0; color: #0f172a; }
+  .demo-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .demo-btn.primary:hover { background: #3b82f6; }
+
+
+  /* --- Pricing --- */
+  .pricing {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+  }
+  .pricing .section-label { text-align: center; }
+  .pricing .section-title { text-align: center; margin: 0 auto 48px; }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .price-card {
+    background: var(--navy-light);
+    border: 1px solid rgba(148,163,184,0.08);
+    border-radius: 16px;
+    padding: 32px 28px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .price-card:hover { transform: translateY(-4px); }
+  .price-card.featured {
+    border-color: var(--blue);
+    background: linear-gradient(180deg, var(--navy-mid), var(--navy-light));
+    position: relative;
+  }
+  .price-badge {
+    position: absolute;
+    top: -12px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--blue);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 100px;
+    letter-spacing: 0.5px;
+  }
+  .price-card h3 { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .price-amount {
+    font-family: 'Fraunces', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .price-amount span { font-size: 16px; font-weight: 400; color: var(--slate); }
+  .price-sub { font-size: 13px; color: var(--slate); margin-bottom: 24px; }
+  .price-features { list-style: none; text-align: left; margin-bottom: 28px; }
+  .price-features li {
+    font-size: 14px;
+    color: var(--slate-light);
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(148,163,184,0.06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .price-features li::before {
+    content: '✓';
+    color: var(--mint);
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .price-card .btn-primary { width: 100%; justify-content: center; }
+  .price-card .btn-secondary { width: 100%; justify-content: center; }
+
+  /* --- CTA --- */
+  .cta-section {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+  }
+  .cta-box {
+    background: linear-gradient(135deg, var(--blue) 0%, #1d4ed8 100%);
+    border-radius: 20px;
+    padding: 60px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-box::after {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-box h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(26px, 3vw, 34px);
+    color: #fff;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .cta-box p {
+    font-size: 17px;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .cta-box .btn-primary {
+    background: #fff;
+    color: var(--blue);
+    position: relative;
+  }
+  .cta-box .btn-primary:hover { background: var(--white); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+
+  /* --- Footer --- */
+  footer {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 32px;
+    border-top: 1px solid rgba(148,163,184,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-left { font-size: 13px; color: var(--slate); }
+  .footer-left a { color: var(--slate); text-decoration: none; }
+  .footer-left a:hover { color: #fff; }
+  .footer-right { display: flex; gap: 24px; }
+  .footer-right a { font-size: 13px; color: var(--slate); text-decoration: none; }
+  .footer-right a:hover { color: #fff; }
+
+  /* --- Animations --- */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+  @keyframes countPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(37,99,235,0.1); }
+    50% { box-shadow: 0 0 40px rgba(37,99,235,0.25); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Staggered children */
+  .reveal.visible .stagger { opacity: 0; animation: fadeUp 0.5s ease forwards; }
+  .reveal.visible .stagger:nth-child(1) { animation-delay: 0.05s; }
+  .reveal.visible .stagger:nth-child(2) { animation-delay: 0.12s; }
+  .reveal.visible .stagger:nth-child(3) { animation-delay: 0.19s; }
+  .reveal.visible .stagger:nth-child(4) { animation-delay: 0.26s; }
+  .reveal.visible .stagger:nth-child(5) { animation-delay: 0.33s; }
+  .reveal.visible .stagger:nth-child(6) { animation-delay: 0.40s; }
+
+  /* Kosten-Counter */
+  .cost-number {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: #ef4444;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .cost-number.green { color: var(--mint); }
+  .cost-number.counted { animation: countPulse 0.4s ease; }
+
+  /* Floating feature icons */
+  .feature-card:hover .feature-icon {
+    animation: float 2s ease-in-out infinite;
+  }
+
+  /* Guarantee badge shimmer */
+  .guarantee-badge {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.25);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--mint);
+    font-weight: 600;
+    margin-top: 32px;
+    animation: fadeUp 0.8s ease 0.5s both, glowPulse 3s ease-in-out infinite 1s;
+  }
+  .guarantee-badge::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    animation: shimmer 4s ease-in-out infinite 2s;
+  }
+
+  /* Solution box glow */
+  .solution-box {
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+
+  /* Cost comparison bar */
+  .cost-compare {
+    max-width: 900px;
+    margin: 48px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: center;
+  }
+  .cost-box {
+    background: var(--navy-light);
+    border-radius: 16px;
+    padding: 32px 28px;
+    text-align: center;
+    border: 1px solid rgba(148,163,184,0.08);
+    transition: transform 0.3s ease;
+  }
+  .cost-box:hover { transform: scale(1.03); }
+  .cost-box.bad { border-color: rgba(239,68,68,0.2); }
+  .cost-box.good { border-color: rgba(16,185,129,0.2); }
+  .cost-box .cost-label { font-size: 14px; color: var(--slate); margin-bottom: 8px; }
+  .cost-box .cost-sub { font-size: 12px; color: var(--slate); margin-top: 6px; }
+  .cost-arrow {
+    text-align: center;
+    font-size: 28px;
+    color: var(--blue-light);
+    animation: float 2s ease-in-out infinite;
+  }
+
+  /* Price card hover glow */
+  .price-card.featured {
+    animation: glowPulse 3s ease-in-out infinite;
+  }
+
+  /* --- Mobile --- */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .hero { padding: 50px 20px 40px; }
+    .hero-actions { flex-direction: column; align-items: center; }
+    .trust-bar { gap: 20px; }
+    .problems, .solution, .features, .video-section, .pricing, .cta-section { padding-left: 20px; padding-right: 20px; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; max-width: 360px; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .solution-box { padding: 40px 24px; }
+    .cta-box { padding: 40px 24px; }
+    footer { flex-direction: column; text-align: center; }
+    .footer-right { justify-content: center; }
+  }
+
+  /* --- Hamburger Mobile --- */
+  .mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  @media (max-width: 768px) {
+    .mobile-menu-btn { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <a href="#" class="nav-logo">Steuer<span>Cockpit</span></a>
+  <div class="nav-links">
+    <a href="#funktionen">Funktionen</a>
+    <a href="#demo">Demo</a>
+    <a href="#preise">Preise</a>
+    <a href="#kontakt" class="nav-cta">Kostenlos testen</a>
+  </div>
+  <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').style.display=document.querySelector('.nav-links').style.display==='flex'?'none':'flex'">&#9776;</button>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">Nur noch 5 Plätze in Hannover</div>
+  <h1>5 Stunden weniger Beleg-Chaos. <em>Jede Woche.</em></h1>
+  <p>Ihre Mandanten erfassen Belege selbst im Steuer-Cockpit. Sie bekommen fertige DATEV-Buchungsstapel. Keine Rückfragen, keine fehlenden Belege.</p>
+  <div class="hero-actions">
+    <a href="#kontakt" class="btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      90 Tage kostenlos testen
+    </a>
+    <a href="#demo" class="btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Demo ansehen
+    </a>
+  </div>
+  <div class="guarantee-badge">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    90-Tage-Garantie: Spart es nicht 5h/Woche, zahlen Sie nichts.
+  </div>
+  <div class="trust-bar">
+    <div class="trust-item"><div class="trust-dot"></div> DSGVO-konform</div>
+    <div class="trust-item"><div class="trust-dot"></div> EU-Server</div>
+    <div class="trust-item"><div class="trust-dot"></div> DATEV-kompatibel</div>
+    <div class="trust-item"><div class="trust-dot"></div> Persönliches Onboarding</div>
+  </div>
+</section>
+
+<!-- Problems -->
+<section class="problems reveal">
+  <div class="section-label">Das Problem</div>
+  <h2 class="section-title">Was Kanzleien jeden Tag kostet – Zeit, Nerven und Geld</h2>
+  <div class="problem-grid">
+    <div class="problem-card stagger">
+      <div class="problem-icon">📄</div>
+      <h3>Belege kommen zu spät</h3>
+      <p>Mandanten liefern Unterlagen unvollständig oder erst kurz vor der Frist. Ihre Mitarbeiter rennen hinterher.</p>
+    </div>
+    <div class="problem-card stagger">
+      <div class="problem-icon">📞</div>
+      <h3>Ständige Rückfragen</h3>
+      <p>„Was ist mein Gewinn?" „Muss ich USt zahlen?" – Fragen, die Ihre Fachkräfte aufhalten.</p>
+    </div>
+    <div class="problem-card stagger">
+      <div class="problem-icon">⏱️</div>
+      <h3>Stunden für Sortierung</h3>
+      <p>Steuerfachangestellte verbringen wertvolle Zeit damit, Belege zu sortieren und nachzufordern.</p>
+    </div>
+    <div class="problem-card stagger">
+      <div class="problem-icon">🔍</div>
+      <h3>Null Transparenz</h3>
+      <p>Mandanten haben keinen Einblick in ihre eigenen Finanzen – bis der Jahresabschluss kommt.</p>
+    </div>
+  </div>
+
+  <!-- Kosten-Vergleich mit animierten Zahlen -->
+  <div class="cost-compare">
+    <div class="cost-box bad">
+      <div class="cost-label">Versteckte Kosten / Monat</div>
+      <span class="cost-number count-up" data-target="750" data-suffix="€">0€</span>
+      <div class="cost-sub">Personalkosten für Beleg-Chaos</div>
+    </div>
+    <div class="cost-arrow">→</div>
+    <div class="cost-box good">
+      <div class="cost-label">Steuer-Cockpit / Monat</div>
+      <span class="cost-number green count-up" data-target="210" data-suffix="€">0€</span>
+      <div class="cost-sub">bei 30 Mandanten (Gründer-Preis)</div>
+    </div>
+  </div>
+</section>
+
+<!-- Solution -->
+<section class="solution reveal">
+  <div class="solution-box">
+    <h2>Mandanten werden selbstständig. Sie bekommen Ergebnisse.</h2>
+    <p>
+      Ihre Mandanten nutzen das Steuer-Cockpit als <strong>einfaches Online-Portal</strong>: Belege erfassen, Bankbuchungen zuordnen, Zahlen verstehen. Am Ende exportieren sie alles als <strong>fertigen DATEV-Buchungsstapel</strong>. Kein Schuhkarton. Keine fehlenden Belege. Keine Rückfragen.
+    </p>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features reveal" id="funktionen">
+  <div class="section-label">Funktionen</div>
+  <h2 class="section-title">Alles was Ihre Mandanten brauchen – nichts was sie überfordert</h2>
+  <div class="feature-grid">
+    <div class="feature-card stagger">
+      <div class="feature-icon">📊</div>
+      <h3>Live-Dashboard</h3>
+      <p>Einnahmen, Ausgaben, Gewinn und USt-Zahllast auf einen Blick. Mit Frist-Warnung.</p>
+    </div>
+    <div class="feature-card stagger">
+      <div class="feature-icon">🧾</div>
+      <h3>Belegerfassung</h3>
+      <p>Einzeln, per CSV-Import oder OCR. Automatische SKR03-Zuordnung und Steuerberechnung.</p>
+    </div>
+    <div class="feature-card stagger">
+      <div class="feature-icon">🏦</div>
+      <h3>Bankzuordnung</h3>
+      <p>Automatisches Matching von Bankbuchungen zu Belegen. Offene Posten sofort sichtbar.</p>
+    </div>
+    <div class="feature-card stagger">
+      <div class="feature-icon">📋</div>
+      <h3>UStVA mit ELSTER</h3>
+      <p>Automatische Berechnung aller Kennzahlen. Export als PDF, XML oder CSV.</p>
+    </div>
+    <div class="feature-card stagger">
+      <div class="feature-icon">📈</div>
+      <h3>EÜR & BWA</h3>
+      <p>Einnahmen-Überschuss-Rechnung und betriebswirtschaftliche Auswertung mit Diagrammen.</p>
+    </div>
+    <div class="feature-card stagger">
+      <div class="feature-icon">📤</div>
+      <h3>DATEV-Export</h3>
+      <p>Fertiger Buchungsstapel in 4 Schritten. ELSTER-XML, DATEV-CSV – alles dabei.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Interactive Demo -->
+<section class="video-section reveal" id="demo">
+  <div class="section-label">Demo</div>
+  <h2 class="section-title">Sehen Sie selbst – in 2 Minuten</h2>
+
+  <div class="demo-player" id="demoPlayer">
+
+    <!-- Startscreen -->
+    <div class="demo-start" id="demoStart" onclick="startDemo()">
+      <div class="play-btn">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><polygon points="8 5 19 12 8 19"/></svg>
+      </div>
+      <div class="demo-start-text">Demo starten</div>
+      <div class="demo-start-sub">Interaktive Präsentation · ca. 2 Minuten</div>
+    </div>
+
+    <!-- Slides -->
+    <div class="demo-slides" id="demoSlides">
+
+      <!-- Slide 1: Problem -->
+      <div class="demo-slide" data-voice="Kennen Sie das? Montag, 9 Uhr. Ihre Steuerfachangestellte ruft den dritten Mandanten an, weil Belege fehlen. Freitagnachmittag dasselbe. Jede Woche gehen so 5 bis 10 Stunden verloren – nur fürs Hinterherrennen.">
+        <div class="slide-icon">📞</div>
+        <div class="slide-title">Das kennt jede Kanzlei</div>
+        <div class="slide-text">Montag, 9 Uhr. Ihre Fachangestellte ruft den dritten Mandanten an – <span class="slide-highlight">schon wieder fehlen Belege.</span></div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">Beleg nachfordern: Müller GmbH</span><span class="value red">offen</span></div>
+          <div class="mock-row"><span class="label">Beleg nachfordern: Schmidt Consulting</span><span class="value red">offen</span></div>
+          <div class="mock-row"><span class="label">Rückruf: Meier Fotografie</span><span class="value red">3. Versuch</span></div>
+          <div class="mock-row"><span class="label">Zeitaufwand diese Woche</span><span class="value red">7,5 Stunden</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Kosten -->
+      <div class="demo-slide" data-voice="Was das kostet? Rechnen Sie mal: 7 Stunden pro Woche mal 25 Euro Stundensatz – das sind 700 Euro im Monat. Nur fürs Belege-Hinterherrennen. Dazu kommen Rückfragen, verspätete UStVAs und der Stress.">
+        <div class="slide-icon">💸</div>
+        <div class="slide-title">Was das Ihre Kanzlei wirklich kostet</div>
+        <div class="slide-number red demo-count" data-target="750" data-suffix=" €/Monat">0 €/Monat</div>
+        <div class="slide-text">Personalkosten nur für Beleg-Nachforderung und Mandanten-Rückfragen. <span class="slide-highlight">Jeden Monat.</span></div>
+      </div>
+
+      <!-- Slide 3: Lösung Intro -->
+      <div class="demo-slide" data-voice="Jetzt stellen Sie sich vor: Ihre Mandanten öffnen morgens ihr Steuer-Cockpit, tragen ihren Beleg ein – Betrag, Kategorie, fertig. 30 Sekunden. Kein Anruf nötig. Kein Schuhkarton.">
+        <div class="slide-icon">💡</div>
+        <div class="slide-title">Was wäre, wenn Ihre Mandanten <span class="slide-highlight">selbst</span> erfassen?</div>
+        <div class="slide-text">Ein einfaches Online-Portal. Ihr Mandant trägt den Beleg ein – Betrag, Kategorie, fertig. <span class="slide-highlight">30 Sekunden statt 30 Minuten Telefon.</span></div>
+      </div>
+
+      <!-- Slide 4: Dashboard -->
+      <div class="demo-slide" data-voice="So sieht das Dashboard Ihres Mandanten aus. Einnahmen, Ausgaben, Gewinn – alles auf einen Blick. Und die USt-Zahllast berechnet sich automatisch. Das bedeutet: Ihr Mandant kennt seine Zahlen – und ruft Sie nicht mehr deswegen an.">
+        <div class="slide-icon">📊</div>
+        <div class="slide-title">Das Mandanten-Dashboard</div>
+        <div class="slide-text">Ihr Mandant sieht <span class="slide-highlight">seine Zahlen in Echtzeit</span> – keine Rückfragen mehr.</div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">Einnahmen (März)</span><span class="value green">12.450 €</span></div>
+          <div class="mock-row"><span class="label">Ausgaben (März)</span><span class="value red">4.230 €</span></div>
+          <div class="mock-row"><span class="label">Gewinn</span><span class="value green">8.220 €</span></div>
+          <div class="mock-row"><span class="label">USt-Zahllast Q1</span><span class="value">1.562,85 €</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 5: Belegerfassung -->
+      <div class="demo-slide" data-voice="Die Belegerfassung ist absichtlich simpel gehalten. Ihr Mandant gibt den Betrag ein, wählt die Kategorie – und das System ordnet automatisch das richtige SKR03-Konto zu. Keine Buchhaltungskenntnisse nötig.">
+        <div class="slide-icon">🧾</div>
+        <div class="slide-title">Belegerfassung – so einfach wie eine SMS</div>
+        <div class="slide-text">Betrag eingeben, Kategorie wählen – <span class="slide-highlight">SKR03-Konto wird automatisch zugeordnet.</span></div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">Beleg</span><span class="value">Büromaterial Amazon</span></div>
+          <div class="mock-row"><span class="label">Betrag</span><span class="value">84,90 € brutto</span></div>
+          <div class="mock-row"><span class="label">Kategorie</span><span class="value">Bürobedarf</span></div>
+          <div class="mock-row"><span class="label">SKR03-Konto</span><span class="value green">4930 – automatisch</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 6: UStVA -->
+      <div class="demo-slide" data-voice="Die Umsatzsteuer-Voranmeldung? Ein Klick. Alle ELSTER-Kennzahlen werden automatisch berechnet. Export als PDF oder XML – fertig für die Abgabe. Keine manuelle Berechnung mehr.">
+        <div class="slide-icon">📋</div>
+        <div class="slide-title">UStVA auf Knopfdruck</div>
+        <div class="slide-text">Alle ELSTER-Kennzahlen automatisch. <span class="slide-highlight">Export als PDF, XML oder CSV.</span></div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">KZ 81 – Umsätze 19%</span><span class="value">9.840,00 €</span></div>
+          <div class="mock-row"><span class="label">KZ 86 – Umsätze 7%</span><span class="value">2.610,00 €</span></div>
+          <div class="mock-row"><span class="label">KZ 66 – Vorsteuer</span><span class="value green">-1.050,35 €</span></div>
+          <div class="mock-row"><span class="label">KZ 83 – Zahllast</span><span class="value">1.562,85 €</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 7: DATEV Export -->
+      <div class="demo-slide" data-voice="Und jetzt das Wichtigste für Sie: Am Ende klicken Sie auf DATEV-Export – und bekommen einen fertigen Buchungsstapel. Den importieren Sie in DATEV und fertig. Ihre Arbeitsweise ändert sich nicht. Nur die Qualität der Daten.">
+        <div class="slide-icon">📤</div>
+        <div class="slide-title">DATEV-Export: 4 Klicks, fertig</div>
+        <div class="slide-text">Fertiger Buchungsstapel für Ihre Kanzlei-Software. <span class="slide-highlight">Ihre Arbeitsweise ändert sich nicht.</span></div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">Schritt 1</span><span class="value green">Zeitraum wählen ✓</span></div>
+          <div class="mock-row"><span class="label">Schritt 2</span><span class="value green">Buchungen prüfen ✓</span></div>
+          <div class="mock-row"><span class="label">Schritt 3</span><span class="value green">Format: DATEV-CSV ✓</span></div>
+          <div class="mock-row"><span class="label">Schritt 4</span><span class="value green">Download starten ✓</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 8: Ergebnis -->
+      <div class="demo-slide" data-voice="Das Ergebnis? Statt 750 Euro versteckte Kosten im Monat zahlen Sie 210 Euro für das Steuer-Cockpit – bei 30 Mandanten. Und sparen nebenbei 20 Stunden Mitarbeiter-Zeit im Monat. Für echte Arbeit.">
+        <div class="slide-icon">🎯</div>
+        <div class="slide-title">Das Ergebnis für Ihre Kanzlei</div>
+        <div class="slide-number green demo-count" data-target="540" data-suffix=" €" data-prefix="+">+0 €</div>
+        <div class="slide-text"><span class="slide-highlight">Netto-Ersparnis pro Monat</span> – und 20 Stunden mehr für echte Arbeit.</div>
+      </div>
+
+      <!-- Slide 9: Angebot -->
+      <div class="demo-slide" data-voice="Mein Angebot an Sie: 90 Tage kostenlos testen, mit bis zu 10 Mandanten. Ich richte alles persönlich für Sie ein – Onboarding, Daten-Migration, alles inklusive. Und wenn es Ihnen nicht mindestens 5 Stunden pro Woche spart – zahlen Sie nichts. Kein Kleingedrucktes. Ich nehme aktuell nur 5 Kanzleien in Hannover auf. Rufen Sie mich an oder schreiben Sie mir eine E-Mail.">
+        <div class="slide-icon">🤝</div>
+        <div class="slide-title">90 Tage kostenlos. Null Risiko.</div>
+        <div class="slide-mock" style="text-align:left;">
+          <div class="mock-row"><span class="label">Testphase</span><span class="value green">90 Tage, 10 Mandanten</span></div>
+          <div class="mock-row"><span class="label">Onboarding</span><span class="value green">Persönlich, durch den Gründer</span></div>
+          <div class="mock-row"><span class="label">Daten-Migration</span><span class="value green">Komplett inklusive</span></div>
+          <div class="mock-row"><span class="label">Garantie</span><span class="value green">Spart es nicht 5h/Woche → 0€</span></div>
+        </div>
+        <div style="margin-top:24px;">
+          <a href="#kontakt" class="btn-primary" style="font-size:16px; padding:16px 36px;">
+            Jetzt Termin vereinbaren
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- Fortschritt + Controls -->
+    <div class="demo-progress" id="demoProgressWrap" style="display:none;">
+      <div class="demo-progress-bar" id="demoProgress" style="width:0%"></div>
+    </div>
+    <div class="demo-controls" id="demoControls" style="display:none;">
+      <div class="demo-step" id="demoStep">1 / 9</div>
+      <div class="demo-btns">
+        <button class="demo-btn" onclick="prevSlide()">← Zurück</button>
+        <button class="demo-btn" onclick="toggleAutoplay()" id="demoPauseBtn">⏸ Pause</button>
+        <button class="demo-btn primary" onclick="nextSlide()" id="demoNextBtn">Weiter →</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing reveal" id="preise">
+  <div class="section-label">Preise</div>
+  <h2 class="section-title">Transparent. Pro Mandant. Ohne Überraschungen.</h2>
+  <div class="pricing-grid">
+    <div class="price-card stagger">
+      <h3>Starter</h3>
+      <div class="price-amount">5€ <span>/Monat</span></div>
+      <div class="price-sub">pro Mandant</div>
+      <ul class="price-features">
+        <li>Belegerfassung</li>
+        <li>Dashboard</li>
+        <li>CSV-Export</li>
+        <li>Kassenbuch</li>
+      </ul>
+      <a href="#kontakt" class="btn-secondary">Auswählen</a>
+    </div>
+    <div class="price-card featured stagger">
+      <div class="price-badge">GRÜNDER-KANZLEI</div>
+      <h3>Professional</h3>
+      <div class="price-amount">7€ <span>/Monat</span></div>
+      <div class="price-sub">pro Mandant · dauerhafter Sonderpreis</div>
+      <ul class="price-features">
+        <li>Alles aus Starter</li>
+        <li>DATEV-Export</li>
+        <li>UStVA + EÜR + BWA</li>
+        <li>SKR03-Kontenrahmen</li>
+        <li>Bankzuordnung</li>
+        <li>Persönliches Onboarding</li>
+        <li>Daten-Migration inklusive</li>
+        <li>Direkter Draht zum Gründer</li>
+      </ul>
+      <a href="#kontakt" class="btn-primary">90 Tage kostenlos testen</a>
+    </div>
+    <div class="price-card stagger">
+      <h3>Enterprise</h3>
+      <div class="price-amount" style="font-size:28px; padding-top: 8px;">Auf Anfrage</div>
+      <div class="price-sub">&nbsp;</div>
+      <ul class="price-features">
+        <li>Alles aus Professional</li>
+        <li>API-Zugang</li>
+        <li>Eigenes Kanzlei-Branding</li>
+        <li>Persönlicher Support</li>
+        <li>Individuelle Anpassungen</li>
+      </ul>
+      <a href="#kontakt" class="btn-secondary">Kontakt aufnehmen</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section reveal" id="kontakt">
+  <div class="cta-box">
+    <h2>90 Tage kostenlos. 10 Mandanten. Null Risiko.</h2>
+    <p>Ich richte alles persönlich für Sie ein. Wenn es Ihre Kanzlei nicht entlastet, zahlen Sie nichts.</p>
+    <a href="mailto:matejrezo@icloud.com?subject=Steuer-Cockpit%20testen&body=Hallo%20Herr%20Rezo%2C%0A%0Aich%20interessiere%20mich%20f%C3%BCr%20das%20Steuer-Cockpit%20und%20w%C3%BCrde%20es%20gerne%20testen.%0A%0AKanzlei%3A%20%0AAnzahl%20Mandanten%3A%20%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen" class="btn-primary">
+      Jetzt Demo anfordern
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    &copy; 2026 MR-Dienstleistungen &middot; Matej Rezo &middot;
+    <a href="mailto:matejrezo@icloud.com">matejrezo@icloud.com</a> &middot;
+    +49 151 70857052
+  </div>
+  <div class="footer-right">
+    <a href="https://konto-blick.vercel.app/impressum" target="_blank">Impressum</a>
+    <a href="https://konto-blick.vercel.app/datenschutz" target="_blank">Datenschutz</a>
+  </div>
+</footer>
+
+<!-- Scroll Reveal + Counter Animation + Parallax -->
+<script>
+  // Scroll Reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Counter Animation
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const duration = 1500;
+    const start = performance.now();
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutExpo
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = Math.round(eased * target);
+      el.textContent = current.toLocaleString('de-DE') + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      } else {
+        el.classList.add('counted');
+      }
+    }
+    requestAnimationFrame(update);
+  }
+
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !entry.target.dataset.animated) {
+        entry.target.dataset.animated = 'true';
+        animateCounter(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.count-up').forEach(el => counterObserver.observe(el));
+
+  // Subtle parallax on scroll for background elements
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const scrolled = window.pageYOffset;
+        const hero = document.querySelector('.hero');
+        if (hero && scrolled < window.innerHeight) {
+          hero.style.transform = 'translateY(' + (scrolled * 0.15) + 'px)';
+          hero.style.opacity = 1 - (scrolled / (window.innerHeight * 0.8));
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // === DEMO PLAYER ===
+  let currentSlide = 0;
+  let autoplayTimer = null;
+  let isPlaying = false;
+  const SLIDE_DURATION = 8000; // 8 Sekunden pro Slide
+
+  function startDemo() {
+    document.getElementById('demoStart').style.display = 'none';
+    document.getElementById('demoSlides').classList.add('active');
+    document.getElementById('demoSubtitle').style.display = 'block';
+    document.getElementById('demoProgressWrap').style.display = 'block';
+    document.getElementById('demoControls').style.display = 'flex';
+    currentSlide = 0;
+    showSlide(0);
+    startAutoplay();
+  }
+
+  function showSlide(index) {
+    const slides = document.querySelectorAll('.demo-slide');
+    if (index < 0 || index >= slides.length) return;
+
+    slides.forEach(s => s.classList.remove('active'));
+    currentSlide = index;
+    slides[index].classList.add('active');
+
+
+    // Update progress
+    const pct = ((index + 1) / slides.length) * 100;
+    document.getElementById('demoProgress').style.width = pct + '%';
+    document.getElementById('demoStep').textContent = (index + 1) + ' / ' + slides.length;
+
+    // Update button text on last slide
+    const nextBtn = document.getElementById('demoNextBtn');
+    if (index === slides.length - 1) {
+      nextBtn.textContent = '↻ Nochmal';
+    } else {
+      nextBtn.textContent = 'Weiter →';
+    }
+
+    // Animate counters in this slide
+    slides[index].querySelectorAll('.demo-count').forEach(el => {
+      if (!el.dataset.animated) {
+        el.dataset.animated = 'true';
+        animateDemoCount(el);
+      }
+    });
+
+    // Animate mock bars if present
+    setTimeout(() => {
+      slides[index].querySelectorAll('.mock-bar').forEach(bar => {
+        bar.style.height = bar.dataset.height;
+      });
+    }, 400);
+  }
+
+  function animateDemoCount(el) {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const prefix = el.dataset.prefix || '';
+    const duration = 1200;
+    const start = performance.now();
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = Math.round(eased * target);
+      el.textContent = prefix + current.toLocaleString('de-DE') + suffix;
+
+      if (progress < 1) requestAnimationFrame(update);
+      else el.classList.add('counted');
+    }
+    requestAnimationFrame(update);
+  }
+
+  function nextSlide() {
+    const slides = document.querySelectorAll('.demo-slide');
+    if (currentSlide >= slides.length - 1) {
+      // Restart
+      currentSlide = -1;
+      document.querySelectorAll('.demo-count').forEach(el => el.dataset.animated = '');
+    }
+    showSlide(currentSlide + 1);
+    if (isPlaying) restartAutoplay();
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      showSlide(currentSlide - 1);
+      if (isPlaying) restartAutoplay();
+    }
+  }
+
+  function startAutoplay() {
+    isPlaying = true;
+    document.getElementById('demoPauseBtn').textContent = '⏸ Pause';
+    autoplayTimer = setInterval(() => {
+      const slides = document.querySelectorAll('.demo-slide');
+      if (currentSlide < slides.length - 1) {
+        nextSlide();
+      } else {
+        stopAutoplay();
+      }
+    }, SLIDE_DURATION);
+  }
+
+  function stopAutoplay() {
+    isPlaying = false;
+    clearInterval(autoplayTimer);
+    document.getElementById('demoPauseBtn').textContent = '▶ Abspielen';
+  }
+
+  function restartAutoplay() {
+    clearInterval(autoplayTimer);
+    autoplayTimer = setInterval(() => {
+      const slides = document.querySelectorAll('.demo-slide');
+      if (currentSlide < slides.length - 1) {
+        nextSlide();
+      } else {
+        stopAutoplay();
+      }
+    }, SLIDE_DURATION);
+  }
+
+  function toggleAutoplay() {
+    if (isPlaying) stopAutoplay();
+    else startAutoplay();
+  }
+
+  // Keyboard navigation for demo
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('demoSlides').classList.contains('active')) return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+    if (e.key === 'Escape') stopAutoplay();
+  });
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Nav background on scroll
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      nav.style.background = 'rgba(10, 22, 40, 0.95)';
+      nav.style.backdropFilter = 'blur(12px)';
+      nav.style.borderBottom = '1px solid rgba(148,163,184,0.08)';
+    } else {
+      nav.style.background = 'transparent';
+      nav.style.backdropFilter = 'none';
+      nav.style.borderBottom = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
