@@ -840,40 +840,10 @@
   .app-showcase .section-label { text-align: center; }
   .app-showcase .section-title { text-align: center; margin: 0 auto 40px; }
 
-  /* Tab Switcher */
-  .mockup-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 32px;
-  }
-  .mockup-tab {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    color: #475569;
-    padding: 10px 20px;
-    border-radius: 100px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    font-family: inherit;
-    white-space: nowrap;
-  }
-  .mockup-tab:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-  }
-  .mockup-tab.active {
-    background: var(--blue);
-    border-color: var(--blue);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(37,99,235,0.25);
-  }
+  /* === GUIDED TOUR === */
 
   /* App Window Frame */
-  .mockup-window {
+  .tour-window {
     background: #1e2433;
     border-radius: 16px;
     overflow: hidden;
@@ -882,375 +852,311 @@
     margin: 0 auto;
     border: 1px solid #e2e8f0;
   }
-  .mockup-titlebar {
+  .tour-titlebar {
     background: #161b27;
     padding: 12px 16px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .mockup-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+  .tour-dot {
+    width: 12px; height: 12px; border-radius: 50%;
   }
-  .mockup-dot.red { background: #ef4444; }
-  .mockup-dot.yellow { background: #eab308; }
-  .mockup-dot.green { background: #22c55e; }
-  .mockup-titlebar-text {
-    color: #64748b;
-    font-size: 12px;
-    margin-left: 12px;
-    font-family: 'DM Sans', sans-serif;
+  .tour-dot.red { background: #ef4444; }
+  .tour-dot.yellow { background: #eab308; }
+  .tour-dot.green { background: #22c55e; }
+  .tour-titlebar-text {
+    color: #64748b; font-size: 12px; margin-left: 12px; font-family: 'DM Sans', sans-serif;
   }
 
-  .mockup-body {
+  .tour-body {
     display: flex;
-    min-height: 380px;
+    min-height: 400px;
   }
 
   /* Sidebar */
-  .mockup-sidebar {
+  .tour-sidebar {
     width: 200px;
     background: #1a1f2e;
     padding: 20px 0;
     flex-shrink: 0;
     border-right: 1px solid rgba(255,255,255,0.06);
   }
-  .mockup-sidebar-logo {
+  .tour-sidebar-logo {
     padding: 0 16px 16px;
     font-family: 'Fraunces', serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: #e2e8f0;
+    font-size: 15px; font-weight: 700; color: #e2e8f0;
     border-bottom: 1px solid rgba(255,255,255,0.06);
     margin-bottom: 12px;
   }
-  .mockup-sidebar-logo span { color: #3b82f6; }
-  .mockup-nav-item {
-    padding: 10px 16px;
-    font-size: 13px;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.2s;
-    cursor: default;
-    border-left: 3px solid transparent;
+  .tour-sidebar-logo span { color: #3b82f6; }
+  .tour-nav-item {
+    padding: 10px 16px; font-size: 13px; color: #94a3b8;
+    display: flex; align-items: center; gap: 10px;
+    cursor: default; border-left: 3px solid transparent;
   }
-  .mockup-nav-item.active {
-    background: rgba(37,99,235,0.12);
-    color: #93c5fd;
-    border-left-color: #3b82f6;
-    font-weight: 600;
+  .tour-nav-item.active {
+    background: rgba(37,99,235,0.12); color: #93c5fd;
+    border-left-color: #3b82f6; font-weight: 600;
   }
-  .mockup-nav-icon {
-    width: 18px;
-    text-align: center;
-    font-size: 14px;
-    opacity: 0.8;
+  .tour-nav-icon {
+    width: 18px; text-align: center; font-size: 14px; opacity: 0.8;
   }
 
   /* Content Area */
-  .mockup-content {
-    flex: 1;
-    padding: 24px 28px;
-    position: relative;
-    overflow: hidden;
+  .tour-content {
+    flex: 1; padding: 24px 28px; position: relative; overflow: hidden;
   }
 
-  /* Screen panels - fade animation */
-  .mockup-screen {
+  /* Step panels */
+  .tour-step {
     display: none;
-    animation: mockupFadeIn 0.45s ease both;
+    animation: tourFadeIn 0.45s ease both;
   }
-  .mockup-screen.active {
-    display: block;
-  }
-  @keyframes mockupFadeIn {
+  .tour-step.active { display: block; }
+  @keyframes tourFadeIn {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* Step title label */
+  .tour-step-title {
+    font-size: 14px; font-weight: 600; color: #93c5fd;
+    margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+  }
+  .tour-step-title .step-num {
+    background: rgba(37,99,235,0.2); border-radius: 6px;
+    padding: 2px 8px; font-size: 12px; color: #60a5fa;
+  }
+
   /* Content title */
-  .mockup-page-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: #e2e8f0;
-    margin-bottom: 20px;
-    font-family: 'DM Sans', sans-serif;
+  .tour-page-title {
+    font-size: 17px; font-weight: 700; color: #e2e8f0;
+    margin-bottom: 20px; font-family: 'DM Sans', sans-serif;
   }
 
   /* Stat cards */
-  .mockup-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 18px;
+  .tour-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 18px;
   }
-  .mockup-stat-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 14px 12px;
-    text-align: center;
+  .tour-stat-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 14px 12px; text-align: center;
+    opacity: 0; transform: translateY(8px);
   }
-  .mockup-stat-label {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-bottom: 6px;
+  .tour-stat-card.visible {
+    animation: tourSlideUp 0.5s ease forwards;
   }
-  .mockup-stat-value {
-    font-family: 'Fraunces', serif;
-    font-size: 20px;
-    font-weight: 700;
+  .tour-stat-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; }
+  .tour-stat-value {
+    font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700;
   }
-  .mockup-stat-value.green { color: #10b981; }
-  .mockup-stat-value.red { color: #ef4444; }
-  .mockup-stat-value.blue { color: #3b82f6; }
+  .tour-stat-value.green { color: #10b981; }
+  .tour-stat-value.red { color: #ef4444; }
+  .tour-stat-value.blue { color: #3b82f6; }
+
+  @keyframes tourSlideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
 
   /* Warning bar */
-  .mockup-warning {
-    background: rgba(234,179,8,0.12);
-    border: 1px solid rgba(234,179,8,0.25);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 13px;
-    color: #fbbf24;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .tour-warning {
+    background: rgba(234,179,8,0.12); border: 1px solid rgba(234,179,8,0.25);
+    border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #fbbf24;
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0;
   }
+  .tour-warning.visible { animation: tourSlideUp 0.4s ease forwards; }
 
   /* Form mockup */
-  .mockup-form-group {
-    margin-bottom: 14px;
+  .tour-form-group { margin-bottom: 14px; }
+  .tour-form-label {
+    font-size: 11px; color: #94a3b8; margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.5px;
   }
-  .mockup-form-label {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  .tour-form-input {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #e2e8f0;
+    width: 100%; display: block; font-family: inherit;
+    min-height: 40px; transition: all 0.3s ease;
   }
-  .mockup-form-input {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 14px;
-    color: #e2e8f0;
-    width: 100%;
-    display: block;
-    font-family: inherit;
+  .tour-form-input.typing {
+    border-color: rgba(59,130,246,0.5);
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
   }
-  .mockup-form-input.auto-filled {
-    border-color: rgba(16,185,129,0.4);
+  .tour-form-input.auto-filled {
+    border-color: rgba(16,185,129,0.5);
     background: rgba(16,185,129,0.08);
+    animation: tourGreenFlash 0.6s ease;
   }
-  .mockup-form-auto-badge {
-    font-size: 10px;
-    color: #10b981;
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  @keyframes tourGreenFlash {
+    0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    50% { box-shadow: 0 0 12px 4px rgba(16,185,129,0.3); }
+    100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
   }
-  .mockup-form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+  .tour-form-auto-badge {
+    font-size: 10px; color: #10b981; margin-top: 4px;
+    display: flex; align-items: center; gap: 4px;
+    opacity: 0;
   }
-  .mockup-btn-green {
-    background: #059669;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: default;
-    margin-top: 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: inherit;
+  .tour-form-auto-badge.visible { animation: tourSlideUp 0.3s ease forwards; }
+  .tour-form-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
   }
+  .tour-success-msg {
+    background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 8px; padding: 12px 16px; font-size: 14px;
+    color: #10b981; font-weight: 600; margin-top: 14px;
+    opacity: 0; transform: translateY(6px);
+  }
+  .tour-success-msg.visible { animation: tourSlideUp 0.4s ease forwards; }
 
   /* Table mockup */
-  .mockup-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  .mockup-table th {
-    font-size: 11px;
-    color: #64748b;
-    text-align: left;
-    padding: 8px 12px;
+  .tour-table { width: 100%; border-collapse: collapse; }
+  .tour-table th {
+    font-size: 11px; color: #64748b; text-align: left; padding: 8px 12px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
   }
-  .mockup-table td {
-    font-size: 13px;
-    color: #cbd5e1;
-    padding: 10px 12px;
+  .tour-table td {
+    font-size: 13px; color: #cbd5e1; padding: 10px 12px;
     border-bottom: 1px solid rgba(255,255,255,0.04);
   }
-  .mockup-table .value-right {
-    text-align: right;
-    font-weight: 600;
-    font-family: 'DM Sans', monospace;
+  .tour-table .value-right {
+    text-align: right; font-weight: 600; font-family: 'DM Sans', monospace;
   }
-
-  /* Export buttons */
-  .mockup-export-btns {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
+  .tour-table tr.anim-row {
+    opacity: 0; transform: translateX(-10px);
   }
-  .mockup-export-btn {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: #94a3b8;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: default;
-    font-family: inherit;
-    transition: all 0.2s;
+  .tour-table tr.anim-row.visible {
+    animation: tourRowSlide 0.4s ease forwards;
   }
-  .mockup-export-btn:hover {
-    background: rgba(255,255,255,0.1);
-    color: #e2e8f0;
-  }
-
-  /* Ampel dots */
-  .ampel-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .ampel-dot.gruen { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.4); }
-  .ampel-dot.gelb { background: #eab308; box-shadow: 0 0 6px rgba(234,179,8,0.4); }
-  .ampel-dot.rot { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.4); }
-
-  /* Ampel overview */
-  .mockup-ampel-overview {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 20px;
-  }
-  .mockup-ampel-stat {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 10px 16px;
-  }
-  .mockup-ampel-count {
-    font-size: 20px;
-    font-weight: 700;
-    color: #e2e8f0;
-  }
-  .mockup-ampel-label {
-    font-size: 11px;
-    color: #94a3b8;
-  }
-
-  /* Checklist */
-  .mockup-checklist {
-    list-style: none;
-    margin-bottom: 20px;
-  }
-  .mockup-checklist li {
-    padding: 10px 0;
-    font-size: 14px;
-    color: #cbd5e1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-  }
-  .mockup-check {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    background: rgba(16,185,129,0.15);
-    color: #10b981;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .mockup-btn-blue {
-    background: #2563eb;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 14px 28px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: default;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: inherit;
-    margin-bottom: 16px;
-  }
-  .mockup-result {
-    background: rgba(16,185,129,0.1);
-    border: 1px solid rgba(16,185,129,0.25);
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 14px;
-    color: #10b981;
-    font-weight: 600;
-  }
-
-  /* Row slide-in animation */
-  .mockup-screen.active .mockup-row-anim {
-    opacity: 0;
-    transform: translateX(-8px);
-    animation: mockupRowSlide 0.4s ease forwards;
-  }
-  .mockup-screen.active .mockup-row-anim:nth-child(1) { animation-delay: 0.1s; }
-  .mockup-screen.active .mockup-row-anim:nth-child(2) { animation-delay: 0.2s; }
-  .mockup-screen.active .mockup-row-anim:nth-child(3) { animation-delay: 0.3s; }
-  .mockup-screen.active .mockup-row-anim:nth-child(4) { animation-delay: 0.4s; }
-  .mockup-screen.active .mockup-row-anim:nth-child(5) { animation-delay: 0.5s; }
-
-  @keyframes mockupRowSlide {
+  @keyframes tourRowSlide {
     to { opacity: 1; transform: translateX(0); }
   }
 
-  /* Auto-rotation indicator */
-  .mockup-auto-indicator {
-    text-align: center;
-    margin-top: 16px;
-    font-size: 12px;
-    color: #94a3b8;
-    opacity: 0.6;
+  /* Export buttons */
+  .tour-export-btns {
+    display: flex; gap: 8px; margin-top: 16px; opacity: 0;
+  }
+  .tour-export-btns.visible { animation: tourSlideUp 0.4s ease forwards; }
+  .tour-export-btn {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    color: #94a3b8; padding: 8px 16px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; cursor: default; font-family: inherit;
   }
 
-  /* Responsive mockup */
+  /* Checklist */
+  .tour-checklist { list-style: none; margin-bottom: 20px; }
+  .tour-checklist li {
+    padding: 10px 0; font-size: 14px; color: #cbd5e1;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    opacity: 0; transform: translateX(-8px);
+  }
+  .tour-checklist li.visible { animation: tourRowSlide 0.4s ease forwards; }
+  .tour-check {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: rgba(16,185,129,0.15); color: #10b981;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .tour-btn-datev {
+    background: #2563eb; color: #fff; border: none; border-radius: 8px;
+    padding: 14px 28px; font-size: 15px; font-weight: 600;
+    cursor: default; display: inline-flex; align-items: center; gap: 8px;
+    font-family: inherit; margin-bottom: 16px;
+    opacity: 0; transform: scale(0.95);
+    transition: all 0.3s ease;
+  }
+  .tour-btn-datev.visible {
+    opacity: 1; transform: scale(1);
+  }
+  .tour-btn-datev.clicked {
+    transform: scale(0.96);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.3);
+  }
+  .tour-result {
+    background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
+    border-radius: 8px; padding: 12px 16px; font-size: 14px;
+    color: #10b981; font-weight: 600;
+    opacity: 0;
+  }
+  .tour-result.visible { animation: tourSlideUp 0.4s ease forwards; }
+
+  /* Navigation controls */
+  .tour-controls {
+    max-width: 960px; margin: 24px auto 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .tour-btn-back, .tour-btn-next {
+    background: none; border: 1px solid #e2e8f0; color: #475569;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all 0.2s;
+  }
+  .tour-btn-back:hover, .tour-btn-next:hover {
+    border-color: #94a3b8; color: #0f172a; background: #f8fafc;
+  }
+  .tour-btn-next {
+    background: var(--blue); border-color: var(--blue); color: #fff;
+  }
+  .tour-btn-next:hover {
+    background: var(--blue-light); border-color: var(--blue-light); color: #fff;
+  }
+  .tour-btn-next:disabled, .tour-btn-back:disabled {
+    opacity: 0.4; cursor: not-allowed;
+  }
+  .tour-btn-back.hidden { visibility: hidden; }
+  .tour-btn-cta {
+    background: var(--blue); border: none; color: #fff;
+    padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all 0.2s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .tour-btn-cta:hover {
+    background: var(--blue-light); transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(37,99,235,0.3);
+  }
+  .tour-final-text {
+    font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600;
+    color: #0f172a; margin-right: 16px;
+  }
+
+  /* Step dots */
+  .tour-dots {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .tour-dot-step {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #e2e8f0; cursor: pointer; transition: all 0.25s;
+    border: none; padding: 0;
+  }
+  .tour-dot-step.active {
+    background: var(--blue); width: 28px; border-radius: 5px;
+  }
+  .tour-dot-step:hover:not(.active) { background: #cbd5e1; }
+
+  /* Progress bar */
+  .tour-progress {
+    max-width: 960px; margin: 12px auto 0;
+    height: 3px; background: #e2e8f0; border-radius: 3px; overflow: hidden;
+  }
+  .tour-progress-bar {
+    height: 100%; background: var(--blue); border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* Responsive tour */
   @media (max-width: 768px) {
     .app-showcase { padding-left: 20px; padding-right: 20px; }
-    .mockup-sidebar { display: none; }
-    .mockup-stats { grid-template-columns: repeat(2, 1fr); }
-    .mockup-form-row { grid-template-columns: 1fr; }
-    .mockup-ampel-overview { flex-wrap: wrap; gap: 12px; }
-    .mockup-tabs { gap: 6px; }
-    .mockup-tab { padding: 8px 14px; font-size: 12px; }
-    .mockup-content { padding: 18px 16px; }
-    .mockup-window { border-radius: 12px; }
+    .tour-sidebar { display: none; }
+    .tour-stats { grid-template-columns: repeat(2, 1fr); }
+    .tour-form-row { grid-template-columns: 1fr; }
+    .tour-content { padding: 18px 16px; }
+    .tour-window { border-radius: 12px; }
+    .tour-controls { flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .tour-btn-back.hidden { display: none; }
   }
 </style>
 </head>
@@ -1386,170 +1292,151 @@
   </div>
 </section>
 
-<!-- App Showcase / Mockups -->
+<!-- Guided Tour -->
 <section class="app-showcase reveal" id="app-preview">
-  <div class="section-label">So sieht es aus</div>
-  <h2 class="section-title">Echte Einblicke ins Steuer-Cockpit</h2>
-
-  <!-- Tab Switcher -->
-  <div class="mockup-tabs">
-    <button class="mockup-tab active" data-screen="0">Dashboard</button>
-    <button class="mockup-tab" data-screen="1">Belegerfassung</button>
-    <button class="mockup-tab" data-screen="2">UStVA</button>
-    <button class="mockup-tab" data-screen="3">STB-Zentrale</button>
-    <button class="mockup-tab" data-screen="4">DATEV-Export</button>
-  </div>
+  <div class="section-label">So funktioniert es</div>
+  <h2 class="section-title">In 4 Schritten vom Beleg zum DATEV-Export</h2>
 
   <!-- App Window -->
-  <div class="mockup-window" id="mockupWindow">
-    <div class="mockup-titlebar">
-      <div class="mockup-dot red"></div>
-      <div class="mockup-dot yellow"></div>
-      <div class="mockup-dot green"></div>
-      <span class="mockup-titlebar-text">app.steuer-cockpit.de</span>
+  <div class="tour-window" id="tourWindow">
+    <div class="tour-titlebar">
+      <div class="tour-dot red"></div>
+      <div class="tour-dot yellow"></div>
+      <div class="tour-dot green"></div>
+      <span class="tour-titlebar-text">app.steuer-cockpit.de</span>
     </div>
-    <div class="mockup-body">
-      <!-- Sidebar Mandant (Screens 0-2) -->
-      <div class="mockup-sidebar" id="mockupSidebarMandant">
-        <div class="mockup-sidebar-logo">Steuer<span>Cockpit</span></div>
-        <div class="mockup-nav-item active" id="navMandant0"><span class="mockup-nav-icon">📊</span> Ueberblick</div>
-        <div class="mockup-nav-item" id="navMandant1"><span class="mockup-nav-icon">🧾</span> Dokumente</div>
-        <div class="mockup-nav-item" id="navMandant2"><span class="mockup-nav-icon">📈</span> Meine Zahlen</div>
-        <div class="mockup-nav-item"><span class="mockup-nav-icon">🏢</span> Steuerbuero</div>
+    <div class="tour-body">
+
+      <!-- Sidebar Mandant (Steps 1-3) -->
+      <div class="tour-sidebar" id="tourSidebarMandant">
+        <div class="tour-sidebar-logo">Steuer<span>Cockpit</span></div>
+        <div class="tour-nav-item" id="tourNavUeberblick"><span class="tour-nav-icon">&#128202;</span> Ueberblick</div>
+        <div class="tour-nav-item" id="tourNavDokumente"><span class="tour-nav-icon">&#129534;</span> Dokumente</div>
+        <div class="tour-nav-item" id="tourNavZahlen"><span class="tour-nav-icon">&#128200;</span> Meine Zahlen</div>
+        <div class="tour-nav-item"><span class="tour-nav-icon">&#127970;</span> Steuerbuero</div>
       </div>
-      <!-- Sidebar STB (Screens 3-4) -->
-      <div class="mockup-sidebar" id="mockupSidebarSTB" style="display:none;">
-        <div class="mockup-sidebar-logo">Steuer<span>Cockpit</span></div>
-        <div class="mockup-nav-item active" id="navSTB3"><span class="mockup-nav-icon">🎛️</span> Kommandozentrale</div>
-        <div class="mockup-nav-item"><span class="mockup-nav-icon">⚠️</span> Ausnahmen</div>
-        <div class="mockup-nav-item" id="navSTB4"><span class="mockup-nav-icon">📋</span> Monatsabschluss</div>
-        <div class="mockup-nav-item"><span class="mockup-nav-icon">⚙️</span> Verwaltung</div>
+
+      <!-- Sidebar STB (Step 4) -->
+      <div class="tour-sidebar" id="tourSidebarSTB" style="display:none;">
+        <div class="tour-sidebar-logo">Steuer<span>Cockpit</span></div>
+        <div class="tour-nav-item active"><span class="tour-nav-icon">&#127899;&#65039;</span> Kommandozentrale</div>
+        <div class="tour-nav-item"><span class="tour-nav-icon">&#9888;&#65039;</span> Ausnahmen</div>
+        <div class="tour-nav-item"><span class="tour-nav-icon">&#128203;</span> Monatsabschluss</div>
+        <div class="tour-nav-item"><span class="tour-nav-icon">&#9881;&#65039;</span> Verwaltung</div>
       </div>
 
       <!-- Content Area -->
-      <div class="mockup-content">
+      <div class="tour-content">
 
-        <!-- Screen 0: Mandant Dashboard -->
-        <div class="mockup-screen active" id="mockupScreen0">
-          <div class="mockup-page-title">Ueberblick – Maerz 2026</div>
-          <div class="mockup-stats">
-            <div class="mockup-stat-card mockup-row-anim">
-              <div class="mockup-stat-label">Einnahmen</div>
-              <div class="mockup-stat-value green mockup-count-val" data-target="12450">0</div>
+        <!-- Step 1: Belegerfassung -->
+        <div class="tour-step active" id="tourStep1">
+          <div class="tour-step-title"><span class="step-num">Schritt 1</span> Ihr Mandant erfasst einen Beleg</div>
+          <div class="tour-form-group">
+            <div class="tour-form-label">Rechnungsnummer</div>
+            <div class="tour-form-input" id="tourField1"></div>
+          </div>
+          <div class="tour-form-row">
+            <div class="tour-form-group">
+              <div class="tour-form-label">Betrag (brutto)</div>
+              <div class="tour-form-input" id="tourField2"></div>
             </div>
-            <div class="mockup-stat-card mockup-row-anim">
-              <div class="mockup-stat-label">Ausgaben</div>
-              <div class="mockup-stat-value red mockup-count-val" data-target="4230">0</div>
-            </div>
-            <div class="mockup-stat-card mockup-row-anim">
-              <div class="mockup-stat-label">Gewinn</div>
-              <div class="mockup-stat-value green mockup-count-val" data-target="8220">0</div>
-            </div>
-            <div class="mockup-stat-card mockup-row-anim">
-              <div class="mockup-stat-label">USt-Zahllast</div>
-              <div class="mockup-stat-value blue mockup-count-val" data-target="1562">0</div>
+            <div class="tour-form-group">
+              <div class="tour-form-label">Kategorie</div>
+              <div class="tour-form-input" id="tourField3"></div>
             </div>
           </div>
-          <div class="mockup-warning mockup-row-anim" style="animation-delay:0.5s;">
-            <span>⚠️</span> UStVA faellig in 8 Tagen – jetzt pruefen
+          <div class="tour-form-group">
+            <div class="tour-form-label">SKR03-Konto</div>
+            <div class="tour-form-input" id="tourField4"></div>
+            <div class="tour-form-auto-badge" id="tourAutoBadge">&#10003; Automatisch zugeordnet</div>
+          </div>
+          <div class="tour-success-msg" id="tourSaveMsg">Beleg gespeichert &#10003;</div>
+        </div>
+
+        <!-- Step 2: Dashboard -->
+        <div class="tour-step" id="tourStep2">
+          <div class="tour-step-title"><span class="step-num">Schritt 2</span> Das Dashboard aktualisiert sich sofort</div>
+          <div class="tour-page-title">Ueberblick – Maerz 2026</div>
+          <div class="tour-stats">
+            <div class="tour-stat-card" id="tourStat1">
+              <div class="tour-stat-label">Einnahmen</div>
+              <div class="tour-stat-value green" id="tourStatVal1">0 &#8364;</div>
+            </div>
+            <div class="tour-stat-card" id="tourStat2">
+              <div class="tour-stat-label">Ausgaben</div>
+              <div class="tour-stat-value red" id="tourStatVal2">0 &#8364;</div>
+            </div>
+            <div class="tour-stat-card" id="tourStat3">
+              <div class="tour-stat-label">Gewinn</div>
+              <div class="tour-stat-value green" id="tourStatVal3">0 &#8364;</div>
+            </div>
+            <div class="tour-stat-card" id="tourStat4">
+              <div class="tour-stat-label">USt-Zahllast</div>
+              <div class="tour-stat-value blue" id="tourStatVal4">0 &#8364;</div>
+            </div>
+          </div>
+          <div class="tour-warning" id="tourWarning">
+            <span>&#9888;&#65039;</span> UStVA faellig in 8 Tagen
           </div>
         </div>
 
-        <!-- Screen 1: Belegerfassung -->
-        <div class="mockup-screen" id="mockupScreen1">
-          <div class="mockup-page-title">Neuen Beleg erfassen</div>
-          <div class="mockup-form-group mockup-row-anim">
-            <div class="mockup-form-label">Rechnungsnummer</div>
-            <div class="mockup-form-input">RE-2026-0847</div>
-          </div>
-          <div class="mockup-form-row">
-            <div class="mockup-form-group mockup-row-anim">
-              <div class="mockup-form-label">Betrag (brutto)</div>
-              <div class="mockup-form-input">84,90 EUR</div>
-            </div>
-            <div class="mockup-form-group mockup-row-anim">
-              <div class="mockup-form-label">Kategorie</div>
-              <div class="mockup-form-input">Buerobedarf</div>
-            </div>
-          </div>
-          <div class="mockup-form-group mockup-row-anim">
-            <div class="mockup-form-label">SKR03-Konto</div>
-            <div class="mockup-form-input auto-filled">4930 – Buerobedarf</div>
-            <div class="mockup-form-auto-badge">&#10003; Automatisch zugeordnet</div>
-          </div>
-          <button class="mockup-btn-green mockup-row-anim">&#10003; Beleg speichern</button>
-        </div>
-
-        <!-- Screen 2: UStVA -->
-        <div class="mockup-screen" id="mockupScreen2">
-          <div class="mockup-page-title">UStVA – Q1 2026</div>
-          <table class="mockup-table">
+        <!-- Step 3: UStVA -->
+        <div class="tour-step" id="tourStep3">
+          <div class="tour-step-title"><span class="step-num">Schritt 3</span> Die UStVA berechnet sich automatisch</div>
+          <div class="tour-page-title">UStVA – Q1 2026</div>
+          <table class="tour-table">
             <thead>
-              <tr class="mockup-row-anim"><th>ELSTER-Kennzahl</th><th>Bezeichnung</th><th class="value-right">Betrag</th></tr>
+              <tr><th>ELSTER-Kennzahl</th><th>Bezeichnung</th><th class="value-right">Betrag</th></tr>
             </thead>
             <tbody>
-              <tr class="mockup-row-anim"><td>Kz. 81</td><td style="color:#94a3b8">Umsaetze 19%</td><td class="value-right" style="color:#e2e8f0">9.840,00 EUR</td></tr>
-              <tr class="mockup-row-anim"><td>Kz. 86</td><td style="color:#94a3b8">Umsaetze 7%</td><td class="value-right" style="color:#e2e8f0">2.610,00 EUR</td></tr>
-              <tr class="mockup-row-anim"><td>Kz. 66</td><td style="color:#94a3b8">Vorsteuer</td><td class="value-right" style="color:#10b981">-1.050,35 EUR</td></tr>
-              <tr class="mockup-row-anim" style="border-top:2px solid rgba(255,255,255,0.1)"><td><strong style="color:#e2e8f0">Kz. 83</strong></td><td style="color:#94a3b8"><strong>Zahllast</strong></td><td class="value-right" style="color:#e2e8f0;font-size:15px"><strong>1.562,85 EUR</strong></td></tr>
+              <tr class="anim-row" id="tourRow1"><td>Kz. 81</td><td style="color:#94a3b8">Umsaetze 19%</td><td class="value-right" style="color:#e2e8f0">9.840,00 &#8364;</td></tr>
+              <tr class="anim-row" id="tourRow2"><td>Kz. 86</td><td style="color:#94a3b8">Umsaetze 7%</td><td class="value-right" style="color:#e2e8f0">2.610,00 &#8364;</td></tr>
+              <tr class="anim-row" id="tourRow3"><td>Kz. 66</td><td style="color:#94a3b8">Vorsteuer</td><td class="value-right" style="color:#10b981">-1.050,35 &#8364;</td></tr>
+              <tr class="anim-row" id="tourRow4" style="border-top:2px solid rgba(255,255,255,0.1)"><td><strong style="color:#e2e8f0">Kz. 83</strong></td><td style="color:#94a3b8"><strong>Zahllast</strong></td><td class="value-right" style="color:#e2e8f0;font-size:15px"><strong>1.562,85 &#8364;</strong></td></tr>
             </tbody>
           </table>
-          <div class="mockup-export-btns mockup-row-anim">
-            <button class="mockup-export-btn">PDF</button>
-            <button class="mockup-export-btn">XML</button>
-            <button class="mockup-export-btn">CSV</button>
+          <div class="tour-export-btns" id="tourExportBtns">
+            <button class="tour-export-btn">PDF</button>
+            <button class="tour-export-btn">XML</button>
+            <button class="tour-export-btn">CSV</button>
           </div>
         </div>
 
-        <!-- Screen 3: STB Kommandozentrale -->
-        <div class="mockup-screen" id="mockupScreen3">
-          <div class="mockup-page-title">Kommandozentrale</div>
-          <div class="mockup-ampel-overview mockup-row-anim">
-            <div class="mockup-ampel-stat">
-              <span class="ampel-dot gruen"></span>
-              <span class="mockup-ampel-count">12</span>
-              <span class="mockup-ampel-label">Gruen</span>
-            </div>
-            <div class="mockup-ampel-stat">
-              <span class="ampel-dot gelb"></span>
-              <span class="mockup-ampel-count">3</span>
-              <span class="mockup-ampel-label">Gelb</span>
-            </div>
-            <div class="mockup-ampel-stat">
-              <span class="ampel-dot rot"></span>
-              <span class="mockup-ampel-count">1</span>
-              <span class="mockup-ampel-label">Rot</span>
-            </div>
-          </div>
-          <table class="mockup-table">
-            <thead>
-              <tr class="mockup-row-anim"><th>Status</th><th>Mandant</th><th>Offene Flags</th><th>Naechste Frist</th></tr>
-            </thead>
-            <tbody>
-              <tr class="mockup-row-anim"><td><span class="ampel-dot gruen"></span></td><td style="color:#e2e8f0">Mueller GmbH</td><td style="color:#94a3b8">0</td><td style="color:#94a3b8">15.04.2026</td></tr>
-              <tr class="mockup-row-anim"><td><span class="ampel-dot gelb"></span></td><td style="color:#e2e8f0">Schmidt Consulting</td><td style="color:#eab308">2 Belege offen</td><td style="color:#eab308">10.04.2026</td></tr>
-              <tr class="mockup-row-anim"><td><span class="ampel-dot rot"></span></td><td style="color:#e2e8f0">Meier Fotografie</td><td style="color:#ef4444">UStVA ueberfaellig</td><td style="color:#ef4444">01.04.2026</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Screen 4: DATEV Export -->
-        <div class="mockup-screen" id="mockupScreen4">
-          <div class="mockup-page-title">DATEV-Export – Maerz 2026</div>
-          <ul class="mockup-checklist">
-            <li class="mockup-row-anim"><span class="mockup-check">&#10003;</span> Alle Belege vollstaendig erfasst</li>
-            <li class="mockup-row-anim"><span class="mockup-check">&#10003;</span> Bankzuordnung abgeschlossen</li>
-            <li class="mockup-row-anim"><span class="mockup-check">&#10003;</span> SKR03-Konten geprueft</li>
+        <!-- Step 4: DATEV Export -->
+        <div class="tour-step" id="tourStep4">
+          <div class="tour-step-title"><span class="step-num">Schritt 4</span> Sie exportieren den DATEV-Buchungsstapel</div>
+          <div class="tour-page-title">DATEV-Export – Maerz 2026</div>
+          <ul class="tour-checklist">
+            <li id="tourCheck1"><span class="tour-check">&#10003;</span> Alle Belege zugeordnet</li>
+            <li id="tourCheck2"><span class="tour-check">&#10003;</span> Keine offenen Flags</li>
+            <li id="tourCheck3"><span class="tour-check">&#10003;</span> Belegnummern fortlaufend</li>
           </ul>
-          <button class="mockup-btn-blue mockup-row-anim">📤 DATEV CSV exportieren</button>
-          <div class="mockup-result mockup-row-anim">&#10003; 23 Belege als DATEV-CSV exportiert</div>
+          <button class="tour-btn-datev" id="tourDatevBtn">&#128228; DATEV CSV exportieren</button>
+          <div class="tour-result" id="tourDatevResult">&#10003; 23 Belege als DATEV-CSV exportiert</div>
         </div>
 
       </div>
     </div>
   </div>
 
-  <div class="mockup-auto-indicator" id="mockupAutoIndicator">Wechselt automatisch alle 5 Sekunden</div>
+  <!-- Navigation Controls -->
+  <div class="tour-controls">
+    <button class="tour-btn-back hidden" id="tourBtnBack">&#8592; Zurueck</button>
+    <div class="tour-dots" id="tourDots">
+      <button class="tour-dot-step active" data-step="0"></button>
+      <button class="tour-dot-step" data-step="1"></button>
+      <button class="tour-dot-step" data-step="2"></button>
+      <button class="tour-dot-step" data-step="3"></button>
+    </div>
+    <div id="tourNextArea">
+      <button class="tour-btn-next" id="tourBtnNext" disabled>Weiter &#8594;</button>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="tour-progress">
+    <div class="tour-progress-bar" id="tourProgressBar" style="width: 25%"></div>
+  </div>
 </section>
 
 <!-- Interactive Demo -->
@@ -1984,132 +1871,286 @@
     });
   });
 
-  // === APP SHOWCASE MOCKUP TABS ===
+  // === GUIDED TOUR ===
   (function() {
-    let mockupCurrent = 0;
-    let mockupTimer = null;
-    const MOCKUP_INTERVAL = 5000;
-    const tabs = document.querySelectorAll('.mockup-tab');
-    const screens = document.querySelectorAll('.mockup-screen');
-    const sidebarMandant = document.getElementById('mockupSidebarMandant');
-    const sidebarSTB = document.getElementById('mockupSidebarSTB');
-    const mandantNavItems = [
-      document.getElementById('navMandant0'),
-      document.getElementById('navMandant1'),
-      document.getElementById('navMandant2')
+    var currentStep = 0;
+    var totalSteps = 4;
+    var animTimers = [];
+    var stepAnimated = [false, false, false, false];
+
+    var steps = [
+      document.getElementById('tourStep1'),
+      document.getElementById('tourStep2'),
+      document.getElementById('tourStep3'),
+      document.getElementById('tourStep4')
     ];
-    const stbNavItems = [
-      document.getElementById('navSTB3'),
-      document.getElementById('navSTB4')
-    ];
+    var sidebarMandant = document.getElementById('tourSidebarMandant');
+    var sidebarSTB = document.getElementById('tourSidebarSTB');
+    var btnBack = document.getElementById('tourBtnBack');
+    var btnNext = document.getElementById('tourBtnNext');
+    var nextArea = document.getElementById('tourNextArea');
+    var dots = document.querySelectorAll('.tour-dot-step');
+    var progressBar = document.getElementById('tourProgressBar');
 
-    function showMockupScreen(index) {
-      // Update tabs
-      tabs.forEach(t => t.classList.remove('active'));
-      tabs[index].classList.add('active');
+    // Sidebar nav items
+    var navUeberblick = document.getElementById('tourNavUeberblick');
+    var navDokumente = document.getElementById('tourNavDokumente');
+    var navZahlen = document.getElementById('tourNavZahlen');
 
-      // Update screens
-      screens.forEach(s => s.classList.remove('active'));
-      screens[index].classList.add('active');
+    function clearTimers() {
+      animTimers.forEach(function(t) { clearTimeout(t); });
+      animTimers = [];
+    }
 
-      // Switch sidebar
+    function setMandantNav(active) {
+      [navUeberblick, navDokumente, navZahlen].forEach(function(n) {
+        if (n) n.classList.remove('active');
+      });
+      if (active && active.length) {
+        active.forEach(function(n) { if (n) n.classList.add('active'); });
+      }
+    }
+
+    function countUp(el, target, suffix) {
+      suffix = suffix || ' \u20AC';
+      var startTime = performance.now();
+      var duration = 1200;
+      function tick(now) {
+        var p = Math.min((now - startTime) / duration, 1);
+        var eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+        el.textContent = Math.round(eased * target).toLocaleString('de-DE') + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function typeText(el, text, delay, cb) {
+      el.textContent = '';
+      el.classList.add('typing');
+      var i = 0;
+      function next() {
+        if (i < text.length) {
+          el.textContent += text[i];
+          i++;
+          animTimers.push(setTimeout(next, 30));
+        } else {
+          el.classList.remove('typing');
+          if (cb) cb();
+        }
+      }
+      animTimers.push(setTimeout(next, delay));
+    }
+
+    function enableNext(delay) {
+      animTimers.push(setTimeout(function() {
+        btnNext.disabled = false;
+      }, delay));
+    }
+
+    function animateStep(index) {
+      btnNext.disabled = true;
+      if (stepAnimated[index]) {
+        // Re-show but skip animation, enable next immediately
+        btnNext.disabled = false;
+        return;
+      }
+      stepAnimated[index] = true;
+
+      if (index === 0) {
+        // Step 1: Form typing animation
+        var f1 = document.getElementById('tourField1');
+        var f2 = document.getElementById('tourField2');
+        var f3 = document.getElementById('tourField3');
+        var f4 = document.getElementById('tourField4');
+        var badge = document.getElementById('tourAutoBadge');
+        var msg = document.getElementById('tourSaveMsg');
+        f1.textContent = ''; f2.textContent = ''; f3.textContent = ''; f4.textContent = '';
+        badge.classList.remove('visible'); msg.classList.remove('visible');
+
+        typeText(f1, 'ER-2026-0042', 500, function() {
+          typeText(f2, '84,90 \u20AC brutto', 200, function() {
+            typeText(f3, 'Buerobedarf', 200, function() {
+              // Auto-fill SKR03
+              animTimers.push(setTimeout(function() {
+                f4.textContent = '4930 \u2013 Bueromaterial';
+                f4.classList.add('auto-filled');
+                animTimers.push(setTimeout(function() {
+                  badge.classList.add('visible');
+                  animTimers.push(setTimeout(function() {
+                    msg.classList.add('visible');
+                    enableNext(0);
+                  }, 500));
+                }, 300));
+              }, 300));
+            });
+          });
+        });
+      }
+
+      else if (index === 1) {
+        // Step 2: Count-up stats
+        var cards = [
+          document.getElementById('tourStat1'),
+          document.getElementById('tourStat2'),
+          document.getElementById('tourStat3'),
+          document.getElementById('tourStat4')
+        ];
+        var vals = [
+          { el: document.getElementById('tourStatVal1'), target: 12450 },
+          { el: document.getElementById('tourStatVal2'), target: 4230 },
+          { el: document.getElementById('tourStatVal3'), target: 8220 },
+          { el: document.getElementById('tourStatVal4'), target: 1562 }
+        ];
+        var warning = document.getElementById('tourWarning');
+
+        cards.forEach(function(c, i) {
+          animTimers.push(setTimeout(function() {
+            c.classList.add('visible');
+            countUp(vals[i].el, vals[i].target);
+          }, i * 250));
+        });
+
+        animTimers.push(setTimeout(function() {
+          warning.classList.add('visible');
+          enableNext(0);
+        }, 1200));
+      }
+
+      else if (index === 2) {
+        // Step 3: Rows slide in
+        var rows = [
+          document.getElementById('tourRow1'),
+          document.getElementById('tourRow2'),
+          document.getElementById('tourRow3'),
+          document.getElementById('tourRow4')
+        ];
+        var exportBtns = document.getElementById('tourExportBtns');
+
+        rows.forEach(function(r, i) {
+          animTimers.push(setTimeout(function() {
+            r.classList.add('visible');
+          }, 300 + i * 350));
+        });
+
+        animTimers.push(setTimeout(function() {
+          exportBtns.classList.add('visible');
+          enableNext(0);
+        }, 300 + 4 * 350 + 200));
+      }
+
+      else if (index === 3) {
+        // Step 4: Checklist, then button click, then result
+        var checks = [
+          document.getElementById('tourCheck1'),
+          document.getElementById('tourCheck2'),
+          document.getElementById('tourCheck3')
+        ];
+        var datevBtn = document.getElementById('tourDatevBtn');
+        var result = document.getElementById('tourDatevResult');
+
+        checks.forEach(function(c, i) {
+          animTimers.push(setTimeout(function() {
+            c.classList.add('visible');
+          }, 300 + i * 400));
+        });
+
+        animTimers.push(setTimeout(function() {
+          datevBtn.classList.add('visible');
+        }, 300 + 3 * 400 + 300));
+
+        animTimers.push(setTimeout(function() {
+          datevBtn.classList.add('clicked');
+          animTimers.push(setTimeout(function() {
+            datevBtn.classList.remove('clicked');
+            result.classList.add('visible');
+            // Show final CTA
+            showFinalCTA();
+          }, 300));
+        }, 300 + 3 * 400 + 900));
+      }
+    }
+
+    function showFinalCTA() {
+      nextArea.innerHTML = '<span class="tour-final-text">So einfach ist das.</span>' +
+        '<a href="#kontakt" class="tour-btn-cta">90 Tage kostenlos testen &#8594;</a>';
+    }
+
+    function goToStep(index) {
+      if (index < 0 || index >= totalSteps) return;
+      clearTimers();
+      currentStep = index;
+
+      // Show/hide steps
+      steps.forEach(function(s) { s.classList.remove('active'); });
+      steps[index].classList.add('active');
+
+      // Update sidebar
       if (index <= 2) {
         sidebarMandant.style.display = '';
         sidebarSTB.style.display = 'none';
-        mandantNavItems.forEach(n => { if (n) n.classList.remove('active'); });
-        if (mandantNavItems[index]) mandantNavItems[index].classList.add('active');
+        if (index === 0) setMandantNav([navDokumente]);
+        else if (index === 1) setMandantNav([navUeberblick]);
+        else if (index === 2) setMandantNav([navZahlen]);
       } else {
         sidebarMandant.style.display = 'none';
         sidebarSTB.style.display = '';
-        stbNavItems.forEach(n => { if (n) n.classList.remove('active'); });
-        if (index === 3 && stbNavItems[0]) stbNavItems[0].classList.add('active');
-        if (index === 4 && stbNavItems[1]) stbNavItems[1].classList.add('active');
       }
 
-      mockupCurrent = index;
+      // Update dots
+      dots.forEach(function(d) { d.classList.remove('active'); });
+      dots[index].classList.add('active');
 
-      // Animate count-up values in active screen
-      screens[index].querySelectorAll('.mockup-count-val').forEach(function(el) {
-        if (el.dataset.animated) return;
-        el.dataset.animated = 'true';
-        var target = parseInt(el.dataset.target);
-        var start = performance.now();
-        var duration = 1200;
-        function tick(now) {
-          var p = Math.min((now - start) / duration, 1);
-          var eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
-          el.textContent = Math.round(eased * target).toLocaleString('de-DE') + ' \u20AC';
-          if (p < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-      });
+      // Update progress
+      progressBar.style.width = ((index + 1) / totalSteps * 100) + '%';
+
+      // Back button
+      if (index === 0) {
+        btnBack.classList.add('hidden');
+      } else {
+        btnBack.classList.remove('hidden');
+      }
+
+      // Reset next button for non-final steps
+      if (index < totalSteps - 1 || !stepAnimated[3]) {
+        nextArea.innerHTML = '<button class="tour-btn-next" id="tourBtnNext" disabled>Weiter &#8594;</button>';
+        btnNext = document.getElementById('tourBtnNext');
+        btnNext.addEventListener('click', function() {
+          goToStep(currentStep + 1);
+        });
+      } else if (index === 3 && stepAnimated[3]) {
+        showFinalCTA();
+      }
+
+      // Trigger animation
+      animateStep(index);
     }
 
-    // Tab click handlers
-    tabs.forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        var idx = parseInt(this.dataset.screen);
-        showMockupScreen(idx);
-        resetMockupTimer();
+    // Event listeners
+    btnBack.addEventListener('click', function() {
+      goToStep(currentStep - 1);
+    });
+    btnNext.addEventListener('click', function() {
+      goToStep(currentStep + 1);
+    });
+
+    dots.forEach(function(dot) {
+      dot.addEventListener('click', function() {
+        goToStep(parseInt(this.dataset.step));
       });
     });
 
-    // Auto-rotate
-    function startMockupTimer() {
-      mockupTimer = setInterval(function() {
-        var next = (mockupCurrent + 1) % screens.length;
-        showMockupScreen(next);
-      }, MOCKUP_INTERVAL);
-    }
-
-    function resetMockupTimer() {
-      clearInterval(mockupTimer);
-      startMockupTimer();
-    }
-
-    // Pause on hover
-    var mockupWindow = document.getElementById('mockupWindow');
-    if (mockupWindow) {
-      mockupWindow.addEventListener('mouseenter', function() {
-        clearInterval(mockupTimer);
-        var indicator = document.getElementById('mockupAutoIndicator');
-        if (indicator) indicator.textContent = 'Pausiert';
-      });
-      mockupWindow.addEventListener('mouseleave', function() {
-        startMockupTimer();
-        var indicator = document.getElementById('mockupAutoIndicator');
-        if (indicator) indicator.textContent = 'Wechselt automatisch alle 5 Sekunden';
-      });
-    }
-
-    // Start auto-rotation when section is visible
-    var showcaseObserver = new IntersectionObserver(function(entries) {
+    // Start first step when visible
+    var tourObserver = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
         if (entry.isIntersecting) {
-          startMockupTimer();
-          // Trigger initial count-up
-          screens[0].querySelectorAll('.mockup-count-val').forEach(function(el) {
-            if (!el.dataset.animated) {
-              el.dataset.animated = 'true';
-              var target = parseInt(el.dataset.target);
-              var start = performance.now();
-              var duration = 1200;
-              function tick(now) {
-                var p = Math.min((now - start) / duration, 1);
-                var eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
-                el.textContent = Math.round(eased * target).toLocaleString('de-DE') + ' \u20AC';
-                if (p < 1) requestAnimationFrame(tick);
-              }
-              requestAnimationFrame(tick);
-            }
-          });
-          showcaseObserver.unobserve(entry.target);
+          goToStep(0);
+          tourObserver.unobserve(entry.target);
         }
       });
     }, { threshold: 0.2 });
 
-    var showcaseSection = document.getElementById('app-preview');
-    if (showcaseSection) showcaseObserver.observe(showcaseSection);
+    var tourSection = document.getElementById('app-preview');
+    if (tourSection) tourObserver.observe(tourSection);
   })();
 
   // Nav background on scroll
