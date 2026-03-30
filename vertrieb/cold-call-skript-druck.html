@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Cold Call Skript – Steuer-Cockpit</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm 18mm 16mm;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #1a1a1a;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h1 {
+    font-size: 18pt;
+    text-align: center;
+    margin-bottom: 4px;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 9pt;
+    color: #64748b;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 10px;
+  }
+
+  h2 {
+    font-size: 13pt;
+    color: #fff;
+    background: #0f172a;
+    padding: 5px 10px;
+    margin: 14px 0 8px 0;
+    border-radius: 4px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 10.5pt;
+    color: #0f172a;
+    margin: 10px 0 4px 0;
+    page-break-after: avoid;
+  }
+
+  .section {
+    margin-bottom: 6px;
+  }
+
+  /* Sprechtext */
+  .speech {
+    background: #f0f7ff;
+    border-left: 3px solid #2563eb;
+    padding: 6px 10px;
+    margin: 4px 0 8px 0;
+    font-style: italic;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Hinweise / Anweisungen */
+  .hint {
+    font-size: 9pt;
+    color: #64748b;
+    font-style: italic;
+    margin: 2px 0 6px 12px;
+  }
+
+  /* Situation labels */
+  .situation {
+    font-weight: 700;
+    font-size: 10pt;
+    color: #334155;
+    margin-top: 8px;
+  }
+
+  /* Einwand-Karten */
+  .objection {
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin: 6px 0;
+    page-break-inside: avoid;
+  }
+  .objection h3 {
+    color: #dc2626;
+    font-size: 10pt;
+    margin: 0 0 4px 0;
+  }
+  .objection .speech {
+    margin: 4px 0 0 0;
+  }
+
+  /* DSGVO Untergruppe */
+  .dsgvo-sub {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin: 5px 0;
+    page-break-inside: avoid;
+  }
+  .dsgvo-sub h3 {
+    color: #7c3aed;
+    font-size: 10pt;
+    margin: 0 0 4px 0;
+  }
+
+  /* Vorbereitung Liste */
+  ul.prep {
+    margin: 4px 0 6px 20px;
+    font-size: 10pt;
+  }
+  ul.prep li { margin-bottom: 2px; }
+
+  /* Checkliste */
+  .checklist {
+    margin: 6px 0 6px 8px;
+  }
+  .checklist label {
+    display: block;
+    font-size: 10pt;
+    margin-bottom: 3px;
+    padding-left: 4px;
+  }
+
+  /* Regeln */
+  ol.rules {
+    margin: 6px 0 6px 20px;
+    font-size: 10pt;
+  }
+  ol.rules li {
+    margin-bottom: 3px;
+  }
+  ol.rules strong { color: #0f172a; }
+
+  /* Abschluss-Varianten */
+  .close-variant {
+    margin: 5px 0;
+    page-break-inside: avoid;
+  }
+
+  /* Page breaks */
+  .page-break { page-break-before: always; }
+
+  /* Print tweaks */
+  @media print {
+    body { font-size: 10pt; }
+    h2 { background: #0f172a !important; color: #fff !important; }
+    .objection, .dsgvo-sub { border-color: #ccc !important; }
+  }
+
+  /* Screen-only hint */
+  .print-hint {
+    text-align: center;
+    background: #fef3c7;
+    padding: 8px;
+    font-size: 9pt;
+    color: #92400e;
+    border-radius: 6px;
+    margin-bottom: 12px;
+  }
+  @media print { .print-hint { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="print-hint">Zum Drucken: Cmd+P (Mac) oder Strg+P (Windows) &rarr; "Als PDF speichern"</div>
+
+<h1>Cold Call Skript</h1>
+<div class="subtitle">Steuer-Cockpit &middot; MR-Dienstleistungen &middot; Stand 30.03.2026</div>
+
+<!-- VORBEREITUNG -->
+<div class="section">
+  <h2>Vorbereitung vor jedem Anruf</h2>
+  <ul class="prep">
+    <li>Name des Entscheiders (Kanzleiinhaber) aus Lead-Liste</li>
+    <li>Website der Kanzlei kurz anschauen (Spezialisierung, Teamgr&ouml;&szlig;e)</li>
+    <li>Notieren: Wie viele Mitarbeiter? Welche Mandanten?</li>
+    <li>Pr&uuml;fen: Hat die Kanzlei offene Stellenanzeigen? &rarr; starker Einstieg!</li>
+  </ul>
+</div>
+
+<!-- TEIL 1 -->
+<div class="section">
+  <h2>Teil 1: Vorzimmer / Empfang</h2>
+
+  <div class="speech">"Guten Tag, hier ist Matej Rezo. Ich w&uuml;rde gerne kurz mit Herrn/Frau [NAME] sprechen &ndash; ist er/sie gerade erreichbar?"</div>
+
+  <p class="situation">Wenn gefragt wird "Worum geht's?":</p>
+  <div class="speech">"Es geht um das Thema Fachkr&auml;ftemangel in der Kanzlei &ndash; ich habe eine L&ouml;sung, mit der Ihre Fachangestellten deutlich mehr Mandanten schaffen, ohne &Uuml;berstunden. Ist wirklich nur ein kurzes Gespr&auml;ch, 2 Minuten."</div>
+
+  <p class="situation">Wenn "Ist gerade nicht da / im Termin":</p>
+  <div class="speech">"Verstehe, wann erreiche ich ihn/sie am besten? Ich rufe gerne nochmal an."</div>
+  <p class="hint">Uhrzeit notieren, R&uuml;ckruf eintragen</p>
+
+  <p class="situation">Wenn "Schicken Sie eine E-Mail":</p>
+  <div class="speech">"Mache ich gerne &ndash; an welche Adresse am besten? Dann schicke ich eine kurze Info mit einem Demo-Video, das erkl&auml;rt sich in 3 Minuten."</div>
+  <p class="hint">E-Mail notieren &rarr; Nachfass-E-Mail schicken</p>
+</div>
+
+<!-- TEIL 2 -->
+<div class="page-break"></div>
+<div class="section">
+  <h2>Teil 2: Entscheider-Gespr&auml;ch</h2>
+
+  <h3>Einstieg (10 Sekunden)</h3>
+  <div class="speech">"Herr/Frau [NAME], guten Tag, hier ist Matej Rezo von MR-Dienstleistungen. Ich halte mich kurz &ndash; darf ich Ihnen in 60 Sekunden erkl&auml;ren, warum ich anrufe?"</div>
+  <p class="hint">Warte auf Ja/OK</p>
+
+  <h3>Pitch (60 Sekunden)</h3>
+  <div class="speech">"Ich habe eine Frage: Suchen Sie aktuell Steuerfachangestellte &ndash; oder haben Sie schon aufgegeben, welche zu finden?<br><br>
+  Das h&ouml;re ich bei fast jeder Kanzlei. Der Fachkr&auml;ftemangel ist das Problem Nummer 1. Eine gute Fachangestellte kostet 3.500 Euro im Monat, schafft etwa 50 Mandanten &ndash; und ist kaum zu finden.<br><br>
+  Ich habe das Steuer-Cockpit entwickelt &ndash; ein einfaches Online-Portal, in dem Ihre Mandanten Belege selbst erfassen. Ihre Mitarbeiter verbringen keine Zeit mehr mit Nachfragen und Hinterherrennen. Ergebnis: Statt 50 schafft eine Mitarbeiterin 100&ndash;150 Mandanten.<br><br>
+  Das ist g&uuml;nstiger als jede Neueinstellung. Und Sie bekommen am Ende fertige DATEV-Buchungsstapel.<br><br>
+  Mein Angebot: Ich richte das f&uuml;r Sie ein &ndash; kostenlos, mit 10 Mandanten, 90 Tage testen. Wenn Ihre Mitarbeiter danach nicht deutlich mehr schaffen, zahlen Sie nichts."</div>
+
+  <h3>Br&uuml;cke zum Termin</h3>
+  <div class="speech">"Ich nehme gerade nur 5 Kanzleien in Hannover auf, weil ich jede pers&ouml;nlich begleite. Haben Sie n&auml;chste Woche 15 Minuten f&uuml;r eine kurze Demo &ndash; online oder pers&ouml;nlich?"</div>
+</div>
+
+<!-- TEIL 3 -->
+<div class="page-break"></div>
+<div class="section">
+  <h2>Teil 3: Einwandbehandlung</h2>
+
+  <div class="objection">
+    <h3>"Wir nutzen schon DATEV Unternehmen Online"</h3>
+    <div class="speech">"Das erg&auml;nzt sich sogar &ndash; das Steuer-Cockpit ist kein DATEV-Ersatz, sondern ein Klienten-Portal davor. Ihre Mandanten erfassen die Belege im Cockpit, und am Ende exportieren Sie alles als DATEV-Buchungsstapel. Ihre Arbeitsweise &auml;ndert sich nicht, aber Ihre Mitarbeiter schaffen deutlich mehr Mandanten."</div>
+  </div>
+
+  <div class="objection">
+    <h3>"Was kostet das?"</h3>
+    <div class="speech">"F&uuml;r die Testphase: gar nichts. Ich richte Ihnen alles mit 10 Mandanten ein, 90 Tage kostenlos. Danach sind es 14,90 Euro pro Mandant im Monat. Klingt erstmal nach Geld &ndash; aber rechnen Sie dagegen: Eine Fachangestellte kostet 3.500 Euro f&uuml;r 50 Mandanten. Das sind 70 Euro pro Mandant. Das Tool kostet ein F&uuml;nftel davon &ndash; und l&ouml;st Ihr Personalproblem."</div>
+  </div>
+
+  <div class="objection">
+    <h3>"14,90 pro Mandant, bei 100 Mandanten sind das ja fast 1.500 Euro?"</h3>
+    <div class="speech">"Richtig &ndash; und daf&uuml;r sparen Sie sich mindestens eine Fachangestellte, die 3.500 Euro kostet. Plus Recruiting, Einarbeitung, Krankheitstage. Sie sparen &uuml;ber 2.000 Euro im Monat. Kostet weniger als ein Bewerbungsgespr&auml;ch."</div>
+  </div>
+
+  <div class="objection">
+    <h3>"Das ist zu teuer"</h3>
+    <div class="speech">"Verstehe ich. Aber was kostet es, wenn Sie die n&auml;chste Stelle 6 Monate lang nicht besetzt bekommen? Wenn Ihre Leute &uuml;berlastet sind und k&uuml;ndigen? Das Tool kostet 14,90 pro Mandant. Eine Fachangestellte kostet 70 Euro pro Mandant. Und die ersten 90 Tage testen Sie komplett kostenlos."</div>
+  </div>
+
+  <div class="objection">
+    <h3>"Kein Interesse / Kein Bedarf"</h3>
+    <div class="speech">"Verstehe ich. Darf ich fragen: Haben Sie aktuell genug Fachangestellte, oder suchen Sie auch? Die meisten Kanzleien, die ich erreiche, haben mindestens eine offene Stelle."</div>
+    <p class="hint">Wenn der STB ein Personalproblem beschreibt &rarr; darauf eingehen. Wenn wirklich kein Interesse &rarr; freundlich verabschieden.</p>
+  </div>
+
+  <div class="objection">
+    <h3>"Schicken Sie mir erstmal Unterlagen"</h3>
+    <div class="speech">"Mache ich sofort &ndash; ich schicke Ihnen eine E-Mail mit einem kurzen Demo-Video und einem Zugang zum Ausprobieren. Darf ich dann Ende der Woche nochmal kurz anrufen, ob Sie reinschauen konnten?"</div>
+  </div>
+
+  <div class="objection">
+    <h3>"Habe keine Zeit"</h3>
+    <div class="speech">"Kein Problem &ndash; wann passt es Ihnen besser? Ich rufe gerne nochmal an. Alternativ kann ich Ihnen auch ein 3-Minuten-Video schicken, das erkl&auml;rt alles."</div>
+  </div>
+</div>
+
+<!-- DSGVO BLOCK -->
+<div class="page-break"></div>
+<div class="section">
+  <h2>DSGVO / Datenschutz &ndash; Einwandbehandlung</h2>
+
+  <div class="dsgvo-sub">
+    <h3>"Wie sieht es mit Datenschutz aus?" / "Ist das DSGVO-konform?"</h3>
+    <div class="speech">"Absolut berechtigte Frage &ndash; gerade bei Steuerdaten. Kurz und klar: Ja, komplett DSGVO-konform. Alle Daten liegen auf europ&auml;ischen Servern in der EU. Es gibt keine Daten&uuml;bertragung in die USA oder Drittl&auml;nder. Die Daten geh&ouml;ren zu 100% Ihnen und Ihren Mandanten &ndash; ich habe da keinen Zugriff drauf. Und eine Auftragsverarbeitungsvereinbarung &ndash; also AVV &ndash; bekommen Sie nat&uuml;rlich von mir."</div>
+  </div>
+
+  <div class="dsgvo-sub">
+    <h3>"Wo genau liegen die Daten?"</h3>
+    <div class="speech">"Die Datenbank l&auml;uft &uuml;ber Supabase auf AWS-Servern in Frankfurt &ndash; also in Deutschland. Kein US-Cloud-Anbieter ohne EU-Standort, sondern physisch hier. Und verschl&uuml;sselt, sowohl bei der &Uuml;bertragung als auch auf dem Server."</div>
+  </div>
+
+  <div class="dsgvo-sub">
+    <h3>"Meine Mandanten geben da sensible Daten ein &ndash; das geht doch nicht einfach so?"</h3>
+    <div class="speech">"Genau deshalb ist das durchdacht: Der Mandant meldet sich mit einem gesch&uuml;tzten Login an. Jeder sieht nur seine eigenen Daten &ndash; kein Mandant kann auf Daten eines anderen zugreifen. Das Berechtigungssystem sorgt daf&uuml;r, dass jeder nur sieht, was er sehen soll. Das ist sicherer als Belege per E-Mail schicken &ndash; was viele Mandanten heute ja machen."</div>
+  </div>
+
+  <div class="dsgvo-sub">
+    <h3>"Wir haben eine Pflicht zur Verschwiegenheit &ndash; &sect;203 StGB"</h3>
+    <div class="speech">"Richtig, und genau deshalb ist das Cockpit so aufgebaut, dass Sie Ihre Verschwiegenheitspflicht einhalten. Sie bleiben der Verantwortliche &ndash; ich bin nur Auftragsverarbeiter mit AVV. Ich sehe keine Mandantendaten. Kein Dritter hat Zugriff. Das ist rechtlich sauberer, als wenn Mandanten Ihnen Belege per WhatsApp oder unverschl&uuml;sselter E-Mail schicken."</div>
+  </div>
+
+  <div class="dsgvo-sub">
+    <h3>"Ich brauche erst eine AVV / Mein Datenschutzbeauftragter muss das pr&uuml;fen"</h3>
+    <div class="speech">"Selbstverst&auml;ndlich &ndash; eine AVV stelle ich Ihnen sofort zur Verf&uuml;gung. Die k&ouml;nnen Sie bzw. Ihr Datenschutzbeauftragter in Ruhe pr&uuml;fen. Soll ich die direkt mit der Demo-Einladung mitschicken? Dann k&ouml;nnen Sie beides parallel anschauen."</div>
+  </div>
+
+  <div class="dsgvo-sub">
+    <h3>"Was passiert mit den Daten, wenn ich k&uuml;ndige?"</h3>
+    <div class="speech">"Ganz einfach: Ihre Daten geh&ouml;ren Ihnen. Bei K&uuml;ndigung exportieren Sie alles &ndash; und ich l&ouml;sche Ihre Daten vollst&auml;ndig vom Server. Keine Restdaten, kein Kleingedrucktes. Das steht auch so in der AVV."</div>
+  </div>
+
+  <div class="dsgvo-sub">
+    <h3>"DATEV ist aber zertifiziert &ndash; Sie nicht"</h3>
+    <div class="speech">"DATEV ist ein Riesenkonzern mit eigenem Rechenzentrum &ndash; klar, die haben andere Zertifizierungen. Aber: Das Steuer-Cockpit ist ein Eingabe-Portal, kein Buchhaltungssystem. Die Steuerdaten bleiben am Ende bei DATEV &ndash; das Cockpit ist nur der Weg dorthin. Und dieser Weg ist DSGVO-konform, verschl&uuml;sselt und mit AVV abgesichert. Ihre Kanzlei-Software &auml;ndert sich nicht."</div>
+  </div>
+
+  <div class="dsgvo-sub">
+    <h3>Wenn der STB grunds&auml;tzlich skeptisch bleibt:</h3>
+    <div class="speech">"Ich verstehe die Vorsicht total &ndash; bei Steuerdaten sollte man genau hinschauen. Deshalb mein Vorschlag: Ich schicke Ihnen die AVV und unsere Datenschutz-Dokumentation. Schauen Sie sich das in Ruhe an, zeigen Sie es Ihrem DSB, und wenn alles passt, richten wir die Testphase ein. Kein Druck &ndash; die Sicherheit muss stimmen."</div>
+  </div>
+</div>
+
+<!-- TEIL 4 -->
+<div class="section">
+  <h2>Teil 4: Gespr&auml;chsabschluss</h2>
+
+  <div class="close-variant">
+    <p class="situation">Bei Termin:</p>
+    <div class="speech">"Super, dann sehen wir uns am [TAG] um [UHRZEIT]. Ich schicke Ihnen gleich eine Terminbest&auml;tigung per E-Mail. Vielen Dank und bis dann!"</div>
+  </div>
+
+  <div class="close-variant">
+    <p class="situation">Bei E-Mail-Anfrage:</p>
+    <div class="speech">"Perfekt, die E-Mail geht in den n&auml;chsten Minuten raus. Ich melde mich dann am [TAG] nochmal kurz. Vielen Dank f&uuml;r Ihre Zeit!"</div>
+  </div>
+
+  <div class="close-variant">
+    <p class="situation">Bei Absage:</p>
+    <div class="speech">"Kein Problem, ich verstehe das. Falls sich mal was &auml;ndert &ndash; meine Nummer haben Sie. Ich w&uuml;nsche Ihnen einen sch&ouml;nen Tag!"</div>
+  </div>
+</div>
+
+<!-- CHECKLISTE -->
+<div class="section">
+  <h2>Checkliste nach jedem Call</h2>
+  <div class="checklist">
+    <label><input type="checkbox"> Ergebnis notieren (Termin / E-Mail / R&uuml;ckruf / Absage)</label>
+    <label><input type="checkbox"> N&auml;chsten Schritt eintragen (Datum + Aktion)</label>
+    <label><input type="checkbox"> Bei E-Mail-Anfrage: sofort Nachfass-E-Mail schicken</label>
+    <label><input type="checkbox"> Bei Termin: Best&auml;tigungs-E-Mail schicken</label>
+  </div>
+</div>
+
+<!-- REGELN -->
+<div class="section">
+  <h2>Wichtige Regeln</h2>
+  <ol class="rules">
+    <li><strong>L&auml;cheln am Telefon</strong> &ndash; man h&ouml;rt es</li>
+    <li><strong>Stehen beim Telefonieren</strong> &ndash; gibt mehr Energie</li>
+    <li><strong>Nicht verkaufen, sondern Termin vereinbaren</strong> &ndash; das Produkt verkauft sich in der Demo</li>
+    <li><strong>Bei Nein: freundlich bleiben</strong> &ndash; der Markt ist klein, man trifft sich immer zweimal</li>
+    <li><strong>Tempo: 15&ndash;20 Calls pro Stunde</strong> &ndash; nicht zu lange bei einem Call bleiben</li>
+    <li><strong>Personalproblem ansprechen</strong> &ndash; nicht "g&uuml;nstige Software", sondern "l&ouml;st Ihren Fachkr&auml;ftemangel"</li>
+  </ol>
+</div>
+
+</body>
+</html>
