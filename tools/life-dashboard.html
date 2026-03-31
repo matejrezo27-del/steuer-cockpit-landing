@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life OS - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Design Tokens ── */
+    :root {
+      --bg: #0a0e17;
+      --sidebar: #0f1520;
+      --card: #131a2b;
+      --card-hover: #1a2340;
+      --border: #1e2a45;
+      --text-primary: #e2e8f0;
+      --text-secondary: #8892a8;
+      --accent: #00e5a0;
+      --accent-secondary: #00b4d8;
+      --danger: #ff4757;
+      --warning: #ffa502;
+      --business: #4a9eff;
+      --personal: #a78bfa;
+      --fitness: #00e5a0;
+      --routine: #ff9f43;
+      --font-display: 'Orbitron', sans-serif;
+      --font-body: 'Rajdhani', sans-serif;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --sidebar-width: 240px;
+      --sidebar-collapsed: 60px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 16px;
+      color: var(--text-primary);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 10% 20%, rgba(0,229,160,0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 80%, rgba(0,180,216,0.03) 0%, transparent 50%),
+        linear-gradient(rgba(30,42,69,0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30,42,69,0.15) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 60px 60px, 60px 60px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(100%); }
+    }
+    @keyframes progressFill { from { width: 0; } }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: var(--sidebar-width); height: 100vh;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      z-index: 100; transition: width var(--transition); overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px; min-height: 72px;
+    }
+    .sidebar-header .logo-icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .sidebar-header h1 {
+      font-family: var(--font-display); font-size: 15px; font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; white-space: nowrap;
+    }
+    .sidebar-nav { flex: 1; padding: 12px 0; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 20px; cursor: pointer;
+      color: var(--text-secondary); font-size: 15px; font-weight: 500;
+      letter-spacing: 0.3px; border-left: 3px solid transparent;
+      transition: all var(--transition); white-space: nowrap; user-select: none;
+    }
+    .nav-item:hover { color: var(--text-primary); background: rgba(0,229,160,0.05); }
+    .nav-item.active {
+      color: var(--accent); border-left-color: var(--accent);
+      background: rgba(0,229,160,0.08); text-shadow: 0 0 20px rgba(0,229,160,0.3);
+    }
+    .nav-item .nav-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+    .nav-item .nav-label { overflow: hidden; transition: opacity var(--transition); }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); text-align: center; min-height: 56px; }
+    .sidebar-footer span {
+      font-family: var(--font-display); font-size: 10px; font-weight: 600;
+      letter-spacing: 3px; color: var(--accent);
+      text-shadow: 0 0 12px rgba(0,229,160,0.4); white-space: nowrap;
+    }
+
+    /* ── Main Content ── */
+    .main { margin-left: var(--sidebar-width); padding: 32px; min-height: 100vh; transition: margin-left var(--transition); }
+
+    .section { display: none; animation: fadeIn 0.4s ease-out; }
+    .section.active { display: block; }
+    .section-header { margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .section-header h2 {
+      font-family: var(--font-display); font-size: 22px; font-weight: 700;
+      letter-spacing: 1.5px; color: var(--text-primary);
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 24px; transition: all var(--transition);
+    }
+    .card:hover { background: var(--card-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+
+    /* ── KPI Card ── */
+    .kpi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 24px; text-align: center; transition: all var(--transition);
+      position: relative; overflow: hidden;
+    }
+    .kpi-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+      opacity: 0; transition: opacity var(--transition);
+    }
+    .kpi-card:hover { background: var(--card-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .kpi-card:hover::before { opacity: 1; }
+    .kpi-card .kpi-value { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--text-primary); line-height: 1; margin-bottom: 8px; }
+    .kpi-card .kpi-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .kpi-card .kpi-trend { font-size: 13px; font-weight: 600; }
+    .kpi-trend.up { color: var(--accent); }
+    .kpi-trend.down { color: var(--danger); }
+    .kpi-trend.neutral { color: var(--text-secondary); }
+
+    /* ── Grid ── */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+    /* ── Buttons ── */
+    .btn-primary, .btn-secondary, .btn-danger {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; font-family: var(--font-body); font-size: 15px;
+      font-weight: 600; letter-spacing: 0.5px; border: none; border-radius: 8px;
+      cursor: pointer; transition: all var(--transition); white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { box-shadow: 0 0 20px rgba(0,229,160,0.4); transform: translateY(-1px); }
+    .btn-secondary { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-secondary:hover { color: var(--text-primary); border-color: var(--text-secondary); background: rgba(255,255,255,0.03); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { box-shadow: 0 0 20px rgba(255,71,87,0.4); transform: translateY(-1px); }
+    .btn-small { padding: 6px 14px; font-size: 13px; border-radius: 6px; background: var(--card); color: var(--text-secondary); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
+    .btn-small:hover { background: var(--card-hover); color: var(--text-primary); }
+    .btn-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--card); color: var(--text-secondary); border: 1px solid var(--border); cursor: pointer; font-size: 14px; transition: all var(--transition); }
+    .btn-icon:hover { background: var(--card-hover); color: var(--text-primary); }
+
+    /* ── Forms ── */
+    input, select, textarea {
+      width: 100%; padding: 10px 14px; font-family: var(--font-body); font-size: 15px;
+      font-weight: 500; color: var(--text-primary); background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px; outline: none;
+      transition: all var(--transition);
+    }
+    input::placeholder, textarea::placeholder { color: var(--text-secondary); opacity: 0.6; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,229,160,0.1); }
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238892a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer;
+    }
+    select option { background: var(--sidebar); color: var(--text-primary); }
+    textarea { resize: vertical; min-height: 80px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px); z-index: 1000; display: none;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: var(--sidebar); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+      padding: 32px; width: 90%; max-width: 520px; max-height: 85vh;
+      overflow-y: auto; animation: slideIn 0.3s ease-out;
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .modal-header h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+    .modal-close {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      border: none; background: transparent; color: var(--text-secondary);
+      font-size: 20px; cursor: pointer; border-radius: 6px; transition: all var(--transition);
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+    .modal-body { margin-bottom: 24px; }
+    .modal-footer { display: flex; gap: 12px; justify-content: flex-end; }
+
+    /* ── Progress Bar ── */
+    .progress-bar { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+    .progress-bar .progress-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+      transition: width 0.6s ease-out;
+    }
+
+    /* ── Toast ── */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
+      color: var(--bg); box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: toastIn 0.3s ease-out; display: flex; align-items: center; gap: 10px; min-width: 260px;
+    }
+    .toast.removing { animation: toastOut 0.3s ease-out forwards; }
+    .toast.success { background: var(--accent); }
+    .toast.error { background: var(--danger); }
+    .toast.warning { background: var(--warning); }
+    .toast.info { background: var(--accent-secondary); }
+
+    /* ── Responsive ── */
+    @media (max-width: 1200px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px) {
+      .sidebar { width: var(--sidebar-collapsed); }
+      .sidebar .nav-label, .sidebar-header h1, .sidebar-footer span { opacity: 0; pointer-events: none; }
+      .main { margin-left: var(--sidebar-collapsed); }
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .main { padding: 20px 16px; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    /* ══════════════════════════════════════
+       Section-specific styles
+    ══════════════════════════════════════ */
+
+    /* Dashboard */
+    .dashboard-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .dashboard-charts-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .dashboard-bottom-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .chart-container { position: relative; height: 220px; padding: 1rem; }
+    .chart-card-title { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; padding: 1rem 1rem 0; }
+    .schedule-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+    .schedule-item:last-child { border-bottom: none; }
+    .schedule-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .schedule-time { font-size: 0.8rem; color: var(--text-secondary); min-width: 90px; font-variant-numeric: tabular-nums; }
+    .schedule-name { font-size: 0.9rem; color: var(--text-primary); }
+    .task-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+    .task-item:last-child { border-bottom: none; }
+    .priority-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .priority-dot.high { background: var(--danger); }
+    .priority-dot.medium { background: var(--warning); }
+    .priority-dot.low { background: var(--accent); }
+    .task-title { font-size: 0.9rem; color: var(--text-primary); flex: 1; }
+    .task-due { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; }
+    .empty-state { color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 2rem 1rem; }
+    .card-section-title { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; }
+    @media (max-width: 900px) {
+      .dashboard-kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-charts-row, .dashboard-bottom-row { grid-template-columns: 1fr; }
+    }
+
+    /* Nutrition */
+    .date-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+    .date-display { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-left: 8px; }
+    .macro-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .macro-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+    .macro-label { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .macro-numbers { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; font-family: var(--font-display); }
+    .progress-bar-container { width: 100%; height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; }
+    .progress-bar-container .progress-bar { height: 100%; border-radius: 5px; transition: width 0.4s ease; min-width: 0; background: var(--accent); }
+    .progress-kcal { background: var(--accent) !important; }
+    .progress-kcal.over { background: var(--danger) !important; }
+    .progress-protein { background: var(--accent-secondary) !important; }
+    .progress-protein.over { background: var(--danger) !important; }
+    .progress-carbs { background: var(--warning) !important; }
+    .progress-carbs.over { background: var(--danger) !important; }
+    .progress-fat { background: var(--personal) !important; }
+    .progress-fat.over { background: var(--danger) !important; }
+    .meal-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+    .meal-header { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; gap: 12px; }
+    .meal-header:hover { background: rgba(255,255,255,0.03); }
+    .meal-title { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); flex: 1; }
+    .meal-subtotal { font-size: 0.9rem; color: var(--text-secondary); margin-right: 4px; }
+    .meal-toggle-icon { font-size: 0.75rem; color: var(--text-secondary); transition: transform 0.2s ease; }
+    .meal-card.collapsed .meal-toggle-icon { transform: rotate(-90deg); }
+    .meal-body { padding: 0 20px 14px 20px; }
+    .meal-card.collapsed .meal-body { display: none; }
+    .meal-items { display: flex; flex-direction: column; gap: 6px; }
+    .meal-item { display: flex; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; gap: 12px; }
+    .meal-item-name { flex: 1; font-weight: 500; color: var(--text-primary); }
+    .meal-item-macros { display: flex; gap: 14px; font-size: 0.82rem; }
+    .macro-val-kcal { color: var(--accent); }
+    .macro-val-protein { color: var(--accent-secondary); }
+    .macro-val-carbs { color: var(--warning); }
+    .macro-val-fat { color: var(--personal); }
+    .meal-item-delete { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; }
+    .meal-item-delete:hover { color: var(--danger); background: rgba(255,71,87,0.1); }
+    .meal-empty { color: var(--text-secondary); font-size: 0.85rem; padding: 8px 0; font-style: italic; }
+    .btn-add-meal { font-size: 1.2rem; font-weight: 700; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(0,229,160,0.1); color: var(--accent); border: none; cursor: pointer; }
+    .btn-add-meal:hover { background: rgba(0,229,160,0.2); }
+    .meal-subtotal-row { display: flex; justify-content: flex-end; gap: 14px; padding: 8px 12px 2px; font-size: 0.82rem; font-weight: 600; border-top: 1px solid var(--border); margin-top: 6px; }
+    .nutrition-actions { margin-top: 20px; display: flex; justify-content: flex-end; }
+    .nutrition-form-group { margin-bottom: 14px; }
+    .nutrition-form-group label { display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--text-secondary); }
+
+    /* Schedule */
+    .schedule-date-nav { display: flex; align-items: center; gap: 8px; }
+    .schedule-date-nav .date-display { font-size: 0.95rem; color: var(--text-primary); margin-left: 8px; }
+    .schedule-date-nav .date-display.is-today { color: var(--business); font-weight: 600; }
+    .schedule-layout { display: flex; gap: 20px; margin-top: 16px; }
+    .schedule-calendar-wrapper { flex: 1; overflow-y: auto; max-height: 640px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
+    .schedule-calendar { display: flex; position: relative; }
+    .schedule-time-column { width: 56px; flex-shrink: 0; border-right: 1px solid var(--border); }
+    .schedule-time-label { display: flex; align-items: flex-start; justify-content: flex-end; padding: 2px 8px 0 0; font-size: 0.75rem; color: var(--text-secondary); box-sizing: border-box; }
+    .schedule-grid { flex: 1; position: relative; }
+    .schedule-grid-lines { position: absolute; inset: 0; pointer-events: none; }
+    .schedule-grid-line { position: absolute; left: 0; right: 0; height: 1px; }
+    .schedule-grid-line-full { background: rgba(255,255,255,0.07); }
+    .schedule-grid-line-half { border-top: 1px dotted rgba(255,255,255,0.04); }
+    .schedule-blocks { position: absolute; inset: 0; padding: 0 8px; }
+    .schedule-block { position: absolute; left: 8px; right: 8px; border-radius: 8px; border-left: 4px solid #888; padding: 6px 10px; cursor: pointer; transition: filter 0.15s, box-shadow 0.15s; overflow: hidden; z-index: 2; user-select: none; }
+    .schedule-block:hover { filter: brightness(1.2); box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+    .schedule-block.dragging { opacity: 0.5; z-index: 10; }
+    .schedule-block.resizing { z-index: 10; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .block-name { font-weight: 600; font-size: 0.85rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .block-time { font-size: 0.72rem; color: rgba(255,255,255,0.7); margin-top: 2px; }
+    .block-category-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; }
+    .block-resize-handle { position: absolute; bottom: 0; left: 0; right: 0; height: 8px; cursor: ns-resize; background: linear-gradient(transparent, rgba(255,255,255,0.1)); border-radius: 0 0 8px 4px; }
+    .block-resize-handle:hover { background: linear-gradient(transparent, rgba(255,255,255,0.25)); }
+    .schedule-drop-preview { position: absolute; left: 8px; right: 8px; height: 30px; border: 2px dashed rgba(74,158,255,0.5); border-radius: 6px; background: rgba(74,158,255,0.08); z-index: 5; pointer-events: none; display: none; align-items: center; padding-left: 10px; font-size: 0.72rem; color: var(--business); }
+    .schedule-current-time { position: absolute; left: 0; right: 0; display: flex; align-items: center; z-index: 8; pointer-events: none; }
+    .current-time-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4444; margin-left: -5px; flex-shrink: 0; }
+    .current-time-line { flex: 1; height: 2px; background: #ff4444; }
+    .current-time-label { font-size: 0.65rem; color: #ff4444; margin-left: 4px; font-weight: 600; }
+    .schedule-empty-hint { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; color: var(--text-secondary); font-size: 0.85rem; pointer-events: none; }
+    .schedule-routines-panel { width: 220px; flex-shrink: 0; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .schedule-routines-panel h3 { margin: 0 0 12px 0; font-size: 0.9rem; color: var(--text-primary); }
+    .routines-list { display: flex; flex-direction: column; gap: 6px; }
+    .routine-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.04); cursor: pointer; transition: background 0.15s; }
+    .routine-item:hover { background: rgba(255,255,255,0.08); }
+    .routine-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .routine-name-sched { flex: 1; font-size: 0.82rem; color: var(--text-primary); }
+    .routine-duration { font-size: 0.72rem; color: var(--text-secondary); }
+    .routines-hint { font-size: 0.72rem; color: var(--text-secondary); margin-top: 10px; }
+    .routines-empty { font-size: 0.82rem; color: var(--text-secondary); }
+    @media (max-width: 900px) { .schedule-layout { flex-direction: column; } .schedule-routines-panel { width: 100%; } }
+
+    /* Routines */
+    .routines-today .routine-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem; }
+    .routines-stats { margin-top: 2rem; padding: 1rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+    .routine-steps label { font-size: 14px; text-transform: none; letter-spacing: 0; }
+    .routine-step-row input { font-size: 14px; }
+    .routine-step-row button { padding: 4px 8px; background: var(--card); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
+    .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 6px; background: var(--card); color: var(--text-secondary); border: 1px solid var(--border); cursor: pointer; }
+    .btn-sm:hover { background: var(--card-hover); color: var(--text-primary); }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon">⚡</div>
+      <h1>LIFE OS</h1>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-section="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></div>
+      <div class="nav-item" data-section="health"><span class="nav-icon">💪</span><span class="nav-label">Gesundheit</span></div>
+      <div class="nav-item" data-section="nutrition"><span class="nav-icon">🍎</span><span class="nav-label">Ernährung</span></div>
+      <div class="nav-item" data-section="schedule"><span class="nav-icon">📅</span><span class="nav-label">Tagesplan</span></div>
+      <div class="nav-item" data-section="routines"><span class="nav-icon">🔄</span><span class="nav-label">Routinen</span></div>
+      <div class="nav-item" data-section="tasks"><span class="nav-icon">✅</span><span class="nav-label">Aufgaben</span></div>
+      <div class="nav-item" data-section="goals"><span class="nav-icon">🎯</span><span class="nav-label">Ziele</span></div>
+    </nav>
+    <div class="sidebar-footer"><span>LIFE OS</span></div>
+  </aside>
+
+  <main class="main">
+    <div class="section active" id="dashboard"></div>
+    <div class="section" id="health"></div>
+    <div class="section" id="nutrition"></div>
+    <div class="section" id="schedule"></div>
+    <div class="section" id="routines"></div>
+    <div class="section" id="tasks"></div>
+    <div class="section" id="goals"></div>
+  </main>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Modal</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+        <button class="btn-primary" id="modalSaveBtn">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ══════════════════════════════════════
+       Core: Navigation, Storage, Modal, Toast
+    ══════════════════════════════════════ */
+    const navItems = document.querySelectorAll('.nav-item');
+    const allSections = document.querySelectorAll('.section');
+    const sectionInits = {};
+    const sectionInitialized = {};
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const target = item.getAttribute('data-section');
+        navItems.forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        allSections.forEach(s => { s.classList.remove('active'); if (s.id === target) s.classList.add('active'); });
+        if (sectionInits[target] && !sectionInitialized[target]) {
+          sectionInits[target]();
+          sectionInitialized[target] = true;
+        }
+      });
+    });
+
+    const STORAGE_PREFIX = 'lifeos_';
+    function saveData(key, data) { try { localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(data)); } catch(e) {} }
+    function loadData(key, defaultValue = null) { try { const r = localStorage.getItem(STORAGE_PREFIX + key); return r ? JSON.parse(r) : defaultValue; } catch(e) { return defaultValue; } }
+
+    function getCurrentDateKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    let currentModalSaveCallback = null;
+    function showModal(title, contentHtml, onSave) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = contentHtml;
+      const saveBtn = document.getElementById('modalSaveBtn');
+      if (onSave) {
+        saveBtn.style.display = '';
+        currentModalSaveCallback = onSave;
+        saveBtn.onclick = () => { onSave(); };
+      } else {
+        saveBtn.style.display = 'none';
+        currentModalSaveCallback = null;
+      }
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+      currentModalSaveCallback = null;
+    }
+    document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    function showNotification(message, type = 'success') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+      t.innerHTML = `<span>${icons[type]||icons.info}</span><span>${message}</span>`;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('removing'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    /* ══════════════════════════════════════
+       DASHBOARD
+    ══════════════════════════════════════ */
+    function initDashboard() {
+      const container = document.getElementById('dashboard');
+      container.innerHTML = `
+        <div class="section-header"><h2>📊 Dashboard</h2></div>
+        <div class="dashboard-kpi-row">
+          <div class="kpi-card" id="kpi-weight"></div>
+          <div class="kpi-card" id="kpi-kcal"></div>
+          <div class="kpi-card" id="kpi-tasks"></div>
+          <div class="kpi-card" id="kpi-routines"></div>
+        </div>
+        <div class="dashboard-charts-row">
+          <div class="card"><div class="chart-card-title">Gewicht – letzte 30 Tage</div><div class="chart-container"><canvas id="chart-weight"></canvas></div></div>
+          <div class="card"><div class="chart-card-title">Kalorien – letzte 7 Tage</div><div class="chart-container"><canvas id="chart-kcal"></canvas></div></div>
+        </div>
+        <div class="dashboard-bottom-row">
+          <div class="card" style="padding:1rem;"><div class="card-section-title">Tagesplan heute</div><div id="dashboard-schedule"></div></div>
+          <div class="card" style="padding:1rem;"><div class="card-section-title">Nächste Aufgaben</div><div id="dashboard-tasks"></div></div>
+        </div>`;
+
+      const today = getCurrentDateKey();
+
+      // Weight KPI
+      const healthData = loadData('health', []);
+      const sorted = [...healthData].filter(e => e.weight).sort((a,b) => a.date.localeCompare(b.date));
+      const lastWeight = sorted.length > 0 ? sorted[sorted.length-1] : null;
+      const prevWeight = sorted.length > 1 ? sorted[sorted.length-2] : null;
+      const weightDiff = lastWeight && prevWeight ? lastWeight.weight - prevWeight.weight : null;
+
+      document.getElementById('kpi-weight').innerHTML = lastWeight
+        ? `<div class="kpi-value">${parseFloat(lastWeight.weight).toFixed(1)} kg</div><div class="kpi-label">Gewicht</div><div class="kpi-trend ${weightDiff < 0 ? 'up' : weightDiff > 0 ? 'down' : 'neutral'}">${weightDiff !== null ? (weightDiff < 0 ? '▼' : weightDiff > 0 ? '▲' : '→') + ' ' + Math.abs(weightDiff).toFixed(1) + ' kg' : ''}</div>`
+        : `<div class="kpi-value">—</div><div class="kpi-label">Gewicht</div><div class="kpi-trend neutral">Keine Daten</div>`;
+
+      // Kcal KPI
+      const nutrition = loadData('nutrition', {});
+      const todayNutrition = nutrition[today];
+      let kcalToday = 0, kcalGoal = 0;
+      if (todayNutrition) {
+        kcalGoal = todayNutrition.goals ? todayNutrition.goals.kcal || 0 : 0;
+        (todayNutrition.meals || []).forEach(m => { kcalToday += (m.kcal || 0); });
+      }
+      document.getElementById('kpi-kcal').innerHTML = todayNutrition
+        ? `<div class="kpi-value">${Math.round(kcalToday)}</div><div class="kpi-label">kcal von ${Math.round(kcalGoal)}</div>${kcalGoal > 0 ? `<div class="kpi-trend ${kcalToday <= kcalGoal ? 'up' : 'down'}">${Math.round((kcalToday/kcalGoal)*100)}%</div>` : ''}`
+        : `<div class="kpi-value">—</div><div class="kpi-label">Kalorien</div><div class="kpi-trend neutral">Keine Daten</div>`;
+
+      // Tasks KPI
+      const tasks = loadData('tasks', []);
+      const tasksDoneToday = tasks.filter(t => t.completions && t.completions.includes(today)).length;
+      const tasksDue = tasks.filter(t => t.dueDate === today || t.recurring).length;
+      document.getElementById('kpi-tasks').innerHTML = `<div class="kpi-value">${tasksDoneToday}/${tasksDue}</div><div class="kpi-label">Aufgaben heute</div><div class="kpi-trend ${tasksDoneToday >= tasksDue && tasksDue > 0 ? 'up' : 'neutral'}">${tasksDue > 0 && tasksDoneToday >= tasksDue ? '✓ Erledigt' : ''}</div>`;
+
+      // Routines KPI
+      const routines = loadData('routines', []);
+      const routinesDone = routines.filter(r => { if (!r.completions || !r.completions[today]) return false; return r.completions[today].length >= (r.steps||[]).length && (r.steps||[]).length > 0; }).length;
+      document.getElementById('kpi-routines').innerHTML = routines.length > 0
+        ? `<div class="kpi-value">${routinesDone}/${routines.length}</div><div class="kpi-label">Routinen</div><div class="kpi-trend ${routinesDone >= routines.length ? 'up' : 'neutral'}">${routinesDone >= routines.length ? '✓ Komplett' : (routines.length - routinesDone) + ' offen'}</div>`
+        : `<div class="kpi-value">—</div><div class="kpi-label">Routinen</div><div class="kpi-trend neutral">Keine angelegt</div>`;
+
+      // Weight Chart
+      const last30 = []; for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate()-i); last30.push(d.toISOString().split('T')[0]); }
+      const weightByDate = {}; sorted.forEach(e => { weightByDate[e.date] = parseFloat(e.weight); });
+      new Chart(document.getElementById('chart-weight'), {
+        type: 'line',
+        data: { labels: last30.map(d => { const [,m,day] = d.split('-'); return `${day}.${m}.`; }),
+          datasets: [{ data: last30.map(d => weightByDate[d] ?? null), borderColor: '#00e5a0', backgroundColor: 'rgba(0,229,160,0.1)', fill: true, tension: 0.3, pointRadius: 2, spanGaps: true }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8892a8', maxTicksLimit: 8, font: {size:11} }, grid: { color: '#1e2a45' } }, y: { ticks: { color: '#8892a8', font: {size:11} }, grid: { color: '#1e2a45' } } } }
+      });
+
+      // Kcal Chart
+      const last7 = []; for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate()-i); last7.push(d.toISOString().split('T')[0]); }
+      const kcalValues = last7.map(d => { const e = nutrition[d]; if (!e || !e.meals) return 0; return e.meals.reduce((s,m) => s+(m.kcal||0), 0); });
+      let repGoal = kcalGoal; if (!repGoal) { for (const d of last7) { if (nutrition[d] && nutrition[d].goals && nutrition[d].goals.kcal) { repGoal = nutrition[d].goals.kcal; break; } } }
+      const kcalDS = [{ data: kcalValues, backgroundColor: 'rgba(0,180,216,0.7)', borderColor: '#00b4d8', borderWidth: 1, borderRadius: 4 }];
+      if (repGoal) kcalDS.push({ data: last7.map(() => repGoal), type: 'line', borderColor: '#ff4757', borderDash: [6,3], borderWidth: 2, pointRadius: 0, fill: false });
+      new Chart(document.getElementById('chart-kcal'), {
+        type: 'bar',
+        data: { labels: last7.map(d => { const [,m,day] = d.split('-'); return `${day}.${m}.`; }), datasets: kcalDS },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8892a8', font: {size:11} }, grid: { color: '#1e2a45' } }, y: { ticks: { color: '#8892a8', font: {size:11} }, grid: { color: '#1e2a45' }, beginAtZero: true } } }
+      });
+
+      // Schedule preview
+      const schedule = loadData('schedule', {});
+      const todaySched = schedule[today];
+      const schedEl = document.getElementById('dashboard-schedule');
+      if (todaySched && todaySched.blocks && todaySched.blocks.length > 0) {
+        const COLORS = { business: '#4a9eff', personal: '#a78bfa', fitness: '#00e5a0', routine: '#ff9f43' };
+        const sortedB = [...todaySched.blocks].sort((a,b) => a.startHour - b.startHour);
+        schedEl.innerHTML = sortedB.map(b => {
+          const sh = Math.floor(b.startHour), sm = Math.round((b.startHour-sh)*60);
+          const eh = b.startHour+b.duration, ehi = Math.floor(eh), emi = Math.round((eh-ehi)*60);
+          return `<div class="schedule-item"><span class="schedule-dot" style="background:${COLORS[b.category]||'#888'}"></span><span class="schedule-time">${String(sh).padStart(2,'0')}:${String(sm).padStart(2,'0')} – ${String(ehi).padStart(2,'0')}:${String(emi).padStart(2,'0')}</span><span class="schedule-name">${b.name}</span></div>`;
+        }).join('');
+      } else { schedEl.innerHTML = '<div class="empty-state">Kein Tagesplan</div>'; }
+
+      // Upcoming tasks
+      const tasksEl = document.getElementById('dashboard-tasks');
+      const upcoming = tasks.filter(t => t.dueDate && t.dueDate >= today && !(t.completions && t.completions.includes(t.dueDate))).sort((a,b) => a.dueDate.localeCompare(b.dueDate)).slice(0,3);
+      if (upcoming.length > 0) {
+        tasksEl.innerHTML = upcoming.map(t => `<div class="task-item"><span class="priority-dot ${t.priority||'low'}"></span><span class="task-title">${t.title}</span><span class="task-due">${t.dueDate.split('-').reverse().slice(0,2).join('.')}.</span></div>`).join('');
+      } else { tasksEl.innerHTML = '<div class="empty-state">Keine Aufgaben</div>'; }
+    }
+
+    /* ══════════════════════════════════════
+       GESUNDHEIT
+    ══════════════════════════════════════ */
+    let healthWeightChart = null, healthMuscleChart = null;
+
+    function initHealth() {
+      const container = document.getElementById('health');
+      container.innerHTML = `
+        <div class="section-header"><h2>💪 Gesundheit</h2><button class="btn-secondary" onclick="openHealthGoalsModal()">Ziele anpassen</button></div>
+        <div class="grid-2" id="health-kpis" style="margin-bottom:1.5rem;"></div>
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-bottom:1rem;">Neuer Eintrag</h3>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:1;min-width:140px;"><label>Datum</label><input type="date" id="health-date"></div>
+            <div style="flex:1;min-width:120px;"><label>Gewicht (kg)</label><input type="number" step="0.1" id="health-weight" placeholder="z.B. 82.5"></div>
+            <div style="flex:1;min-width:120px;"><label>Muskelmasse</label><input type="number" step="0.1" id="health-muscle" placeholder="z.B. 38.2"></div>
+            <div><button class="btn-primary" onclick="saveHealthEntry()">Speichern</button></div>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-bottom:1.5rem;">
+          <div class="card"><h3 style="margin-bottom:0.75rem;">Gewichtsverlauf (90 Tage)</h3><canvas id="health-weight-chart"></canvas></div>
+          <div class="card"><h3 style="margin-bottom:0.75rem;">Muskelmasse (90 Tage)</h3><canvas id="health-muscle-chart"></canvas></div>
+        </div>
+        <div class="card"><h3 style="margin-bottom:1rem;">Verlauf</h3><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr style="border-bottom:2px solid var(--border);"><th style="text-align:left;padding:10px 12px;color:var(--text-secondary);">Datum</th><th style="text-align:right;padding:10px 12px;color:var(--text-secondary);">Gewicht</th><th style="text-align:right;padding:10px 12px;color:var(--text-secondary);">Muskelmasse</th><th style="text-align:center;padding:10px 12px;color:var(--text-secondary);">Aktion</th></tr></thead><tbody id="health-table-body"></tbody></table><p id="health-empty" style="text-align:center;color:var(--text-secondary);padding:2rem 0;display:none;">Noch keine Einträge</p></div></div>`;
+      document.getElementById('health-date').value = getCurrentDateKey();
+      renderHealthKPIs(); renderHealthTable(); renderHealthCharts();
+    }
+
+    function getHealthData() { return loadData('health', []).sort((a,b) => a.date.localeCompare(b.date)); }
+    function getHealthGoals() { return (loadData('settings', {}).healthGoals) || { weight: null, muscle: null }; }
+
+    window.saveHealthEntry = function() {
+      const date = document.getElementById('health-date').value;
+      const weight = parseFloat(document.getElementById('health-weight').value);
+      const muscle = parseFloat(document.getElementById('health-muscle').value);
+      if (!date) { showNotification('Bitte Datum eingeben', 'error'); return; }
+      if (isNaN(weight) && isNaN(muscle)) { showNotification('Bitte Gewicht oder Muskelmasse eingeben', 'error'); return; }
+      const data = loadData('health', []);
+      const idx = data.findIndex(e => e.date === date);
+      const entry = { date, weight: isNaN(weight) ? null : weight, muscle: isNaN(muscle) ? null : muscle };
+      if (idx >= 0) { if (entry.weight !== null) data[idx].weight = entry.weight; if (entry.muscle !== null) data[idx].muscle = entry.muscle; } else { data.push(entry); }
+      saveData('health', data);
+      document.getElementById('health-weight').value = ''; document.getElementById('health-muscle').value = '';
+      document.getElementById('health-date').value = getCurrentDateKey();
+      showNotification('Gespeichert!', 'success'); renderHealthKPIs(); renderHealthTable(); renderHealthCharts();
+    };
+
+    window.deleteHealthEntry = function(date) {
+      if (!confirm('Eintrag löschen?')) return;
+      saveData('health', loadData('health', []).filter(e => e.date !== date));
+      showNotification('Gelöscht', 'success'); renderHealthKPIs(); renderHealthTable(); renderHealthCharts();
+    };
+
+    function renderHealthKPIs() {
+      const data = getHealthData(); const goals = getHealthGoals();
+      const latest = data.length > 0 ? data[data.length-1] : null;
+      const prev = data.length > 1 ? data[data.length-2] : null;
+      let whtml = '<div class="kpi-card" style="padding:1.25rem;"><div style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:4px;">Gewicht</div>';
+      if (latest && latest.weight !== null) {
+        let trend = '';
+        if (prev && prev.weight !== null) { const c = latest.weight - prev.weight; trend = c < 0 ? `<span style="color:var(--accent);font-size:1.1rem;">↓ ${Math.abs(c).toFixed(1)} kg</span>` : c > 0 ? `<span style="color:var(--danger);font-size:1.1rem;">↑ ${c.toFixed(1)} kg</span>` : `<span style="color:var(--text-secondary);">→ stabil</span>`; }
+        whtml += `<div style="display:flex;align-items:baseline;gap:0.75rem;"><span style="font-size:2rem;font-weight:700;">${latest.weight.toFixed(1)}</span><span style="color:var(--text-secondary);">kg</span>${trend}</div>`;
+        if (goals.weight) whtml += `<div style="font-size:0.85rem;color:var(--text-secondary);">Ziel: ${goals.weight} kg</div>`;
+      } else { whtml += '<div style="color:var(--text-secondary);">Keine Daten</div>'; }
+      whtml += '</div>';
+
+      let mhtml = '<div class="kpi-card" style="padding:1.25rem;"><div style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:4px;">Muskelmasse</div>';
+      if (latest && latest.muscle !== null) {
+        let trend = '';
+        if (prev && prev.muscle !== null) { const c = latest.muscle - prev.muscle; trend = c > 0 ? `<span style="color:var(--accent);font-size:1.1rem;">↑ ${c.toFixed(1)}</span>` : c < 0 ? `<span style="color:var(--danger);font-size:1.1rem;">↓ ${Math.abs(c).toFixed(1)}</span>` : ''; }
+        mhtml += `<div style="display:flex;align-items:baseline;gap:0.75rem;"><span style="font-size:2rem;font-weight:700;">${latest.muscle.toFixed(1)}</span><span style="color:var(--text-secondary);">kg</span>${trend}</div>`;
+        if (goals.muscle) mhtml += `<div style="font-size:0.85rem;color:var(--text-secondary);">Ziel: ${goals.muscle}</div>`;
+      } else { mhtml += '<div style="color:var(--text-secondary);">Keine Daten</div>'; }
+      mhtml += '</div>';
+      document.getElementById('health-kpis').innerHTML = whtml + mhtml;
+    }
+
+    function renderHealthTable() {
+      const data = getHealthData().reverse().slice(0, 20);
+      const tbody = document.getElementById('health-table-body');
+      const empty = document.getElementById('health-empty');
+      if (data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      tbody.innerHTML = data.map(e => `<tr style="border-bottom:1px solid var(--border);"><td style="padding:10px 12px;">${e.date.split('-').reverse().join('.')}</td><td style="padding:10px 12px;text-align:right;">${e.weight !== null ? e.weight.toFixed(1) : '–'}</td><td style="padding:10px 12px;text-align:right;">${e.muscle !== null ? e.muscle.toFixed(1) : '–'}</td><td style="padding:10px 12px;text-align:center;"><button class="btn-danger" onclick="deleteHealthEntry('${e.date}')" style="padding:4px 10px;font-size:0.8rem;">Löschen</button></td></tr>`).join('');
+    }
+
+    function renderHealthCharts() {
+      const data = getHealthData(); const goals = getHealthGoals();
+      const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-90);
+      const cutoffStr = cutoff.toISOString().split('T')[0];
+      const recent = data.filter(e => e.date >= cutoffStr);
+      const chartOpts = { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8892a8', maxTicksLimit: 8 }, grid: { color: '#1e2a45' } }, y: { ticks: { color: '#8892a8' }, grid: { color: '#1e2a45' } } } };
+
+      const wEntries = recent.filter(e => e.weight !== null);
+      const wDS = [{ data: wEntries.map(e => e.weight), borderColor: '#00b4d8', backgroundColor: 'rgba(0,180,216,0.1)', fill: true, tension: 0.3, pointRadius: 3 }];
+      if (goals.weight) wDS.push({ data: Array(wEntries.length).fill(goals.weight), borderColor: '#00e5a0', borderDash: [8,4], borderWidth: 2, pointRadius: 0, fill: false });
+      if (healthWeightChart) healthWeightChart.destroy();
+      healthWeightChart = new Chart(document.getElementById('health-weight-chart'), { type: 'line', data: { labels: wEntries.map(e => e.date.split('-').reverse().slice(0,2).join('.')), datasets: wDS }, options: chartOpts });
+
+      const mEntries = recent.filter(e => e.muscle !== null);
+      const mDS = [{ data: mEntries.map(e => e.muscle), borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,0.1)', fill: true, tension: 0.3, pointRadius: 3 }];
+      if (goals.muscle) mDS.push({ data: Array(mEntries.length).fill(goals.muscle), borderColor: '#00e5a0', borderDash: [8,4], borderWidth: 2, pointRadius: 0, fill: false });
+      if (healthMuscleChart) healthMuscleChart.destroy();
+      healthMuscleChart = new Chart(document.getElementById('health-muscle-chart'), { type: 'line', data: { labels: mEntries.map(e => e.date.split('-').reverse().slice(0,2).join('.')), datasets: mDS }, options: chartOpts });
+    }
+
+    window.openHealthGoalsModal = function() {
+      const goals = getHealthGoals();
+      showModal('Gesundheitsziele', `<div style="display:flex;flex-direction:column;gap:1rem;"><div><label>Ziel-Gewicht (kg)</label><input type="number" step="0.1" id="goal-weight" value="${goals.weight||''}" placeholder="z.B. 78.0"></div><div><label>Ziel-Muskelmasse</label><input type="number" step="0.1" id="goal-muscle" value="${goals.muscle||''}" placeholder="z.B. 42.0"></div></div>`, () => {
+        const s = loadData('settings', {});
+        s.healthGoals = { weight: parseFloat(document.getElementById('goal-weight').value) || null, muscle: parseFloat(document.getElementById('goal-muscle').value) || null };
+        saveData('settings', s); closeModal(); showNotification('Ziele gespeichert!', 'success'); renderHealthKPIs(); renderHealthCharts();
+      });
+    };
+
+    /* ══════════════════════════════════════
+       ERNÄHRUNG
+    ══════════════════════════════════════ */
+    function initNutrition() {
+      const container = document.getElementById('nutrition');
+      container.innerHTML = `
+        <div class="section-header"><h2>🍎 Ernährung</h2></div>
+        <div class="date-nav"><button class="btn-icon" id="nutrition-prev-day">◀</button><button class="btn-small" id="nutrition-today-btn">Heute</button><button class="btn-icon" id="nutrition-next-day">▶</button><span class="date-display" id="nutrition-date-display"></span></div>
+        <div class="macro-overview"><div class="macro-card"><div class="macro-label">Kalorien</div><div class="macro-numbers" id="macro-kcal-numbers">0 / 2200 kcal</div><div class="progress-bar-container"><div class="progress-bar progress-kcal" id="macro-kcal-bar" style="width:0%"></div></div></div><div class="macro-card"><div class="macro-label">Protein</div><div class="macro-numbers" id="macro-protein-numbers">0 / 150 g</div><div class="progress-bar-container"><div class="progress-bar progress-protein" id="macro-protein-bar" style="width:0%"></div></div></div><div class="macro-card"><div class="macro-label">Kohlenhydrate</div><div class="macro-numbers" id="macro-carbs-numbers">0 / 250 g</div><div class="progress-bar-container"><div class="progress-bar progress-carbs" id="macro-carbs-bar" style="width:0%"></div></div></div><div class="macro-card"><div class="macro-label">Fett</div><div class="macro-numbers" id="macro-fat-numbers">0 / 70 g</div><div class="progress-bar-container"><div class="progress-bar progress-fat" id="macro-fat-bar" style="width:0%"></div></div></div></div>
+        <div id="nutrition-meals">${['breakfast|🌅 Frühstück','lunch|🌞 Mittagessen','dinner|🌙 Abendessen','snack|🍿 Snacks'].map(m => { const [type,title] = m.split('|'); return `<div class="meal-card" data-meal-type="${type}"><div class="meal-header" data-toggle="${type}"><span class="meal-title">${title}</span><span class="meal-subtotal" id="subtotal-${type}">0 kcal</span><button class="btn-add-meal" data-meal="${type}">+</button><span class="meal-toggle-icon">▼</span></div><div class="meal-body" id="meal-body-${type}"><div class="meal-items" id="items-${type}"></div></div></div>`; }).join('')}</div>
+        <div class="nutrition-actions"><button class="btn-secondary" id="nutrition-goals-btn">⚙️ Tagesziele anpassen</button></div>`;
+
+      const DEFAULT_GOALS = { kcal: 2200, protein: 150, carbs: 250, fat: 70 };
+      let currentDate = getCurrentDateKey();
+
+      function getAllData() { return loadData('nutrition', {}); }
+      function getDayData(dk) { const all = getAllData(); if (all[dk]) return all[dk]; let goals = {...DEFAULT_GOALS}; const dates = Object.keys(all).sort().reverse(); for (const d of dates) { if (d < dk && all[d] && all[d].goals) { goals = {...all[d].goals}; break; } } return { meals: [], goals }; }
+      function saveDayData(dk, dd) { const all = getAllData(); all[dk] = dd; saveData('nutrition', all); }
+      function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+      function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+      function formatNutrDate(dk) { const [y,m,d] = dk.split('-'); const date = new Date(parseInt(y),parseInt(m)-1,parseInt(d)); const wd = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag']; const mo = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']; return `${wd[date.getDay()]}, ${parseInt(d)}. ${mo[date.getMonth()]} ${y}`; }
+      function shiftDate(dk, days) { const [y,m,d] = dk.split('-').map(Number); const date = new Date(y,m-1,d); date.setDate(date.getDate()+days); return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
+
+      function renderAll() {
+        const dd = getDayData(currentDate), meals = dd.meals||[], goals = dd.goals||{...DEFAULT_GOALS};
+        let totals = { kcal:0, protein:0, carbs:0, fat:0 };
+        meals.forEach(m => { totals.kcal += m.kcal||0; totals.protein += m.protein||0; totals.carbs += m.carbs||0; totals.fat += m.fat||0; });
+
+        document.getElementById('nutrition-date-display').textContent = formatNutrDate(currentDate);
+
+        [{ key:'kcal', unit:'kcal', cls:'progress-kcal' }, { key:'protein', unit:'g', cls:'progress-protein' }, { key:'carbs', unit:'g', cls:'progress-carbs' }, { key:'fat', unit:'g', cls:'progress-fat' }].forEach(m => {
+          const cur = Math.round(totals[m.key]), goal = goals[m.key]||1, pct = Math.min((cur/goal)*100, 100), over = cur > goal;
+          const bar = document.getElementById(`macro-${m.key}-bar`), num = document.getElementById(`macro-${m.key}-numbers`);
+          if (num) num.textContent = `${cur} / ${goal} ${m.unit}`;
+          if (bar) { bar.style.width = pct+'%'; bar.className = 'progress-bar '+m.cls+(over?' over':''); }
+        });
+
+        ['breakfast','lunch','dinner','snack'].forEach(type => {
+          const items = meals.filter(m => m.type === type), el = document.getElementById('items-'+type);
+          if (!items.length) { el.innerHTML = '<div class="meal-empty">Noch keine Einträge</div>'; document.getElementById('subtotal-'+type).textContent = '0 kcal'; return; }
+          let sk=0,sp=0,sc=0,sf=0;
+          el.innerHTML = items.map(it => { sk+=it.kcal||0; sp+=it.protein||0; sc+=it.carbs||0; sf+=it.fat||0; return `<div class="meal-item"><span class="meal-item-name">${escHtml(it.name)}</span><div class="meal-item-macros"><span class="macro-val-kcal">${Math.round(it.kcal)} kcal</span><span class="macro-val-protein">${Math.round(it.protein)}g P</span><span class="macro-val-carbs">${Math.round(it.carbs)}g K</span><span class="macro-val-fat">${Math.round(it.fat)}g F</span></div><button class="meal-item-delete" data-delete-id="${it.id}">✕</button></div>`; }).join('') + `<div class="meal-subtotal-row"><span class="macro-val-kcal">${Math.round(sk)} kcal</span><span class="macro-val-protein">${Math.round(sp)}g P</span><span class="macro-val-carbs">${Math.round(sc)}g K</span><span class="macro-val-fat">${Math.round(sf)}g F</span></div>`;
+          document.getElementById('subtotal-'+type).textContent = `${Math.round(sk)} kcal`;
+        });
+
+        document.querySelectorAll('.meal-item-delete').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); const dd2 = getDayData(currentDate); dd2.meals = (dd2.meals||[]).filter(m => m.id !== btn.getAttribute('data-delete-id')); saveDayData(currentDate, dd2); renderAll(); showNotification('Gelöscht','info'); }));
+      }
+
+      function openAddMealModal(type) {
+        const labels = { breakfast:'Frühstück', lunch:'Mittagessen', dinner:'Abendessen', snack:'Snack' };
+        showModal(`${labels[type]} hinzufügen`, `<div style="display:flex;flex-direction:column;gap:14px;"><div><label>Name</label><input type="text" id="meal-name" placeholder="z.B. Haferflocken mit Banane"></div><div><label>Kalorien (kcal)</label><input type="number" id="meal-kcal" placeholder="0" min="0"></div><div><label>Protein (g)</label><input type="number" id="meal-protein" placeholder="0" min="0" step="0.1"></div><div><label>Kohlenhydrate (g)</label><input type="number" id="meal-carbs" placeholder="0" min="0" step="0.1"></div><div><label>Fett (g)</label><input type="number" id="meal-fat" placeholder="0" min="0" step="0.1"></div></div>`, () => {
+          const name = document.getElementById('meal-name').value.trim();
+          if (!name) { showNotification('Bitte Name eingeben', 'error'); return; }
+          const dd = getDayData(currentDate); if (!dd.meals) dd.meals = [];
+          dd.meals.push({ id: genId(), type, name, kcal: parseFloat(document.getElementById('meal-kcal').value)||0, protein: parseFloat(document.getElementById('meal-protein').value)||0, carbs: parseFloat(document.getElementById('meal-carbs').value)||0, fat: parseFloat(document.getElementById('meal-fat').value)||0 });
+          saveDayData(currentDate, dd); closeModal(); renderAll(); showNotification(`${name} hinzugefügt`, 'success');
+        });
+        setTimeout(() => { const n = document.getElementById('meal-name'); if (n) n.focus(); }, 100);
+      }
+
+      document.getElementById('nutrition-prev-day').addEventListener('click', () => { currentDate = shiftDate(currentDate, -1); renderAll(); });
+      document.getElementById('nutrition-next-day').addEventListener('click', () => { currentDate = shiftDate(currentDate, 1); renderAll(); });
+      document.getElementById('nutrition-today-btn').addEventListener('click', () => { currentDate = getCurrentDateKey(); renderAll(); });
+      document.querySelectorAll('.meal-header[data-toggle]').forEach(h => h.addEventListener('click', e => { if (e.target.closest('.btn-add-meal')) return; h.closest('.meal-card').classList.toggle('collapsed'); }));
+      document.querySelectorAll('.btn-add-meal').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openAddMealModal(b.getAttribute('data-meal')); }));
+      document.getElementById('nutrition-goals-btn').addEventListener('click', () => {
+        const dd = getDayData(currentDate), goals = dd.goals||{...DEFAULT_GOALS};
+        showModal('Tagesziele anpassen', `<div style="display:flex;flex-direction:column;gap:14px;"><div><label>Kalorien</label><input type="number" id="goal-kcal" value="${goals.kcal}"></div><div><label>Protein (g)</label><input type="number" id="goal-protein" value="${goals.protein}"></div><div><label>Kohlenhydrate (g)</label><input type="number" id="goal-carbs" value="${goals.carbs}"></div><div><label>Fett (g)</label><input type="number" id="goal-fat" value="${goals.fat}"></div></div>`, () => {
+          const dd2 = getDayData(currentDate); dd2.goals = { kcal: parseInt(document.getElementById('goal-kcal').value)||2200, protein: parseInt(document.getElementById('goal-protein').value)||150, carbs: parseInt(document.getElementById('goal-carbs').value)||250, fat: parseInt(document.getElementById('goal-fat').value)||70 };
+          saveDayData(currentDate, dd2); closeModal(); renderAll(); showNotification('Ziele gespeichert', 'success');
+        });
+      });
+      renderAll();
+    }
+
+    /* ══════════════════════════════════════
+       TAGESPLAN
+    ══════════════════════════════════════ */
+    function initSchedule() {
+      const container = document.getElementById('schedule');
+      container.innerHTML = `
+        <div class="section-header"><h2>📅 Tagesplan</h2><div class="schedule-date-nav"><button id="schedule-prev-day" class="btn-icon">◀</button><button id="schedule-today" class="btn-small">Heute</button><button id="schedule-next-day" class="btn-icon">▶</button><span id="schedule-date-display" class="date-display"></span></div><button id="schedule-add-block" class="btn-primary">+ Block</button></div>
+        <div class="schedule-layout"><div class="schedule-calendar-wrapper"><div class="schedule-calendar" id="schedule-calendar"><div class="schedule-time-column" id="schedule-time-column"></div><div class="schedule-grid" id="schedule-grid"><div class="schedule-grid-lines" id="schedule-grid-lines"></div><div class="schedule-blocks" id="schedule-blocks"></div><div class="schedule-current-time" id="schedule-current-time" style="display:none;"><div class="current-time-dot"></div><div class="current-time-line"></div><span class="current-time-label"></span></div></div></div></div><div class="schedule-routines-panel"><h3>🔁 Routinen einplanen</h3><div id="schedule-routines-list" class="routines-list"></div><p class="routines-hint">Routine anklicken zum Einplanen</p></div></div>`;
+
+      const HH = 60, SH = 6, EH = 22, TH = EH-SH;
+      const CCOLORS = { business:'#4a9eff', personal:'#a78bfa', fitness:'#00e5a0', routine:'#ff9f43' };
+      const CLABELS = { business:'Business', personal:'Persönlich', fitness:'Fitness', routine:'Routine' };
+      let curDate = new Date(), dragSt = null, resizeSt = null;
+
+      function dk(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+      function gdd(k) { return (loadData('schedule',{})[k]) || { blocks:[] }; }
+      function sdd(k,v) { const a = loadData('schedule',{}); a[k]=v; saveData('schedule',a); }
+      function gid() { return 'b_'+Date.now()+'_'+Math.random().toString(36).substr(2,6); }
+      function fh(h) { const hr=Math.floor(h), mn=Math.round((h-hr)*60); return `${String(hr).padStart(2,'0')}:${String(mn).padStart(2,'0')}`; }
+      function snap(h) { return Math.round(h*2)/2; }
+      function clamp(h) { return Math.max(SH, Math.min(EH-0.5, h)); }
+      function h2y(h) { return (h-SH)*HH; }
+      function y2h(y) { return y/HH+SH; }
+      function isToday(d) { const n=new Date(); return d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate(); }
+
+      function renderGrid() {
+        const tc = document.getElementById('schedule-time-column'), gl = document.getElementById('schedule-grid-lines');
+        tc.innerHTML=''; gl.innerHTML='';
+        for (let h=SH;h<=EH;h++) { const l=document.createElement('div'); l.className='schedule-time-label'; l.style.height=HH+'px'; l.textContent=fh(h); tc.appendChild(l); const ln=document.createElement('div'); ln.className='schedule-grid-line schedule-grid-line-full'; ln.style.top=h2y(h)+'px'; gl.appendChild(ln); if(h<EH){const hl=document.createElement('div');hl.className='schedule-grid-line schedule-grid-line-half';hl.style.top=h2y(h+0.5)+'px';gl.appendChild(hl);} }
+        document.getElementById('schedule-grid').style.height = (TH*HH)+'px';
+      }
+
+      function renderBlocks() {
+        const bc = document.getElementById('schedule-blocks'); bc.innerHTML='';
+        const dd = gdd(dk(curDate));
+        if (!dd.blocks.length) { const e=document.createElement('div'); e.className='schedule-empty-hint'; e.innerHTML='Klicke auf eine Zeitzeile<br>um einen Block zu erstellen'; e.style.top=h2y(SH+3)+'px'; bc.appendChild(e); }
+        dd.blocks.forEach(b => {
+          const el = document.createElement('div'); el.className='schedule-block'; el.dataset.id=b.id; el.draggable=true;
+          const col = CCOLORS[b.category]||'#888';
+          el.style.cssText = `top:${h2y(b.startHour)}px;height:${Math.max(b.duration*HH,HH*0.5)}px;border-left-color:${col};background-color:${col}33;`;
+          el.innerHTML = `<div class="block-name">${b.name}</div><div class="block-time">${fh(b.startHour)} – ${fh(b.startHour+b.duration)}</div><div class="block-category-dot" style="background:${col};"></div><div class="block-resize-handle" data-id="${b.id}"></div>`;
+          el.addEventListener('click', e => { if(!e.target.classList.contains('block-resize-handle')) openBlockModal(b); });
+          el.addEventListener('dragstart', e => { const r=el.getBoundingClientRect(); dragSt={blockId:b.id,offsetY:e.clientY-r.top}; el.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',b.id); const g=document.createElement('div');g.style.opacity='0';document.body.appendChild(g);e.dataTransfer.setDragImage(g,0,0);setTimeout(()=>document.body.removeChild(g),0); });
+          el.addEventListener('dragend', () => { el.classList.remove('dragging'); dragSt=null; rmPrev(); });
+          el.querySelector('.block-resize-handle').addEventListener('mousedown', e => { e.preventDefault();e.stopPropagation(); const gr=document.getElementById('schedule-grid').getBoundingClientRect(); resizeSt={blockId:b.id,startY:e.clientY,origDur:b.duration}; document.addEventListener('mousemove',onRM); document.addEventListener('mouseup',onRE); el.classList.add('resizing'); });
+          bc.appendChild(el);
+        });
+      }
+
+      function onRM(e) { if(!resizeSt) return; let nd=resizeSt.origDur+(e.clientY-resizeSt.startY)/HH; nd=Math.max(0.5,snap(nd)); const dd2=gdd(dk(curDate)),b=dd2.blocks.find(x=>x.id===resizeSt.blockId); if(b){nd=Math.min(nd,EH-b.startHour);nd=Math.max(0.5,nd);const el=document.querySelector(`.schedule-block[data-id="${b.id}"]`);if(el){el.style.height=(nd*HH)+'px';const t=el.querySelector('.block-time');if(t)t.textContent=`${fh(b.startHour)} – ${fh(b.startHour+nd)}`;} resizeSt._cd=nd;} }
+      function onRE() { if(!resizeSt) return; const dd2=gdd(dk(curDate)),b=dd2.blocks.find(x=>x.id===resizeSt.blockId); if(b){b.duration=resizeSt._cd||resizeSt.origDur;sdd(dk(curDate),dd2);} document.removeEventListener('mousemove',onRM); document.removeEventListener('mouseup',onRE); resizeSt=null; renderBlocks(); }
+
+      function showPrev(y) { let p=document.getElementById('schedule-drop-preview'); if(!p){p=document.createElement('div');p.id='schedule-drop-preview';p.className='schedule-drop-preview';document.getElementById('schedule-blocks').appendChild(p);} const sh=clamp(snap(y2h(y))); p.style.top=h2y(sh)+'px'; p.style.display='flex'; p.textContent=fh(sh); }
+      function rmPrev() { const p=document.getElementById('schedule-drop-preview'); if(p) p.style.display='none'; }
+
+      const grid = document.getElementById('schedule-grid');
+      grid.addEventListener('click', e => { if(e.target.closest('.schedule-block')) return; const r=grid.getBoundingClientRect(),y=e.clientY-r.top+grid.scrollTop; openBlockModal(null,clamp(snap(y2h(y)))); });
+      grid.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; if(dragSt){const r=grid.getBoundingClientRect();showPrev(e.clientY-r.top+grid.scrollTop-dragSt.offsetY);} });
+      grid.addEventListener('dragleave', rmPrev);
+      grid.addEventListener('drop', e => { e.preventDefault(); rmPrev(); if(!dragSt) return; const r=grid.getBoundingClientRect(),y=e.clientY-r.top+grid.scrollTop-dragSt.offsetY,nh=clamp(snap(y2h(y))); const ddk=dk(curDate),dd2=gdd(ddk),b=dd2.blocks.find(x=>x.id===dragSt.blockId); if(b){b.startHour=nh;b.duration=Math.min(b.duration,EH-nh);sdd(ddk,dd2);renderBlocks();showNotification('Block verschoben','success');} dragSt=null; });
+
+      function buildTimeOpts(sel) { let h=''; for(let hr=SH;hr<EH;hr++) for(let m=0;m<60;m+=30){const v=hr+m/60;h+=`<option value="${v}" ${v===sel?'selected':''}>${fh(v)}</option>`;} return h; }
+      function buildDurOpts(sel) { return [0.5,1,1.5,2,2.5,3,4,5,6,8].map(d=>`<option value="${d}" ${d===sel?'selected':''}>${d===0.5?'30 Min.':d===1?'1 Stunde':d+' Stunden'}</option>`).join(''); }
+      function buildCatOpts(sel) { return Object.entries(CLABELS).map(([k,v])=>`<option value="${k}" ${k===sel?'selected':''}>${v}</option>`).join(''); }
+
+      function openBlockModal(existing, defHour) {
+        const isEdit=!!existing, b=existing||{name:'',startHour:defHour||9,duration:1,category:'business'};
+        showModal(isEdit?'Block bearbeiten':'Neuer Block', `<div style="display:flex;flex-direction:column;gap:14px;"><div><label>Name</label><input type="text" id="modal-block-name" value="${b.name}" placeholder="z.B. Deep Work..."></div><div><label>Startzeit</label><select id="modal-block-start">${buildTimeOpts(b.startHour)}</select></div><div><label>Dauer</label><select id="modal-block-duration">${buildDurOpts(b.duration)}</select></div><div><label>Kategorie</label><select id="modal-block-category">${buildCatOpts(b.category)}</select></div>${isEdit?'<button id="modal-block-delete" class="btn-danger" style="margin-top:8px;">Block löschen</button>':''}</div>`, () => {
+          const name=document.getElementById('modal-block-name').value.trim(); if(!name){showNotification('Name eingeben','error');return;}
+          const sh=parseFloat(document.getElementById('modal-block-start').value), dur=Math.min(parseFloat(document.getElementById('modal-block-duration').value),EH-sh), cat=document.getElementById('modal-block-category').value;
+          const ddk=dk(curDate),dd2=gdd(ddk);
+          if(isEdit){const i=dd2.blocks.findIndex(x=>x.id===existing.id);if(i!==-1)dd2.blocks[i]={...dd2.blocks[i],name,startHour:sh,duration:dur,category:cat};} else { dd2.blocks.push({id:gid(),name,startHour:sh,duration:dur,category:cat}); }
+          sdd(ddk,dd2); closeModal(); renderBlocks(); showNotification(isEdit?'Aktualisiert':'Erstellt','success');
+        });
+        if(isEdit) setTimeout(()=>{const d=document.getElementById('modal-block-delete');if(d)d.addEventListener('click',()=>{const ddk=dk(curDate),dd2=gdd(ddk);dd2.blocks=dd2.blocks.filter(x=>x.id!==existing.id);sdd(ddk,dd2);closeModal();renderBlocks();showNotification('Gelöscht','success');});},50);
+      }
+
+      function updDate() { const days=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'],months=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']; const d=document.getElementById('schedule-date-display'); d.textContent=`${days[curDate.getDay()]}, ${curDate.getDate()}. ${months[curDate.getMonth()]} ${curDate.getFullYear()}`; d.classList.toggle('is-today',isToday(curDate)); }
+      function updTimeLine() { const ind=document.getElementById('schedule-current-time'); if(!isToday(curDate)){ind.style.display='none';return;} const now=new Date(),ch=now.getHours()+now.getMinutes()/60; if(ch<SH||ch>EH){ind.style.display='none';return;} ind.style.display='flex'; ind.style.top=h2y(ch)+'px'; ind.querySelector('.current-time-label').textContent=fh(ch); }
+
+      function renderRoutinesPanel() {
+        const list=document.getElementById('schedule-routines-list'), routs=loadData('routines',[]);
+        if(!routs.length){list.innerHTML='<p class="routines-empty">Keine Routinen</p>';return;}
+        list.innerHTML=routs.map(r=>{const tm=(r.steps||[]).reduce((s,st)=>s+(st.duration||0),0),dh=Math.max(0.5,Math.round((tm/60)*2)/2);return `<div class="routine-item" data-name="${r.name}" data-dur="${dh}"><span class="routine-color" style="background:${CCOLORS.routine};"></span><span class="routine-name-sched">${r.name}</span><span class="routine-duration">${tm} Min.</span></div>`;}).join('');
+        list.querySelectorAll('.routine-item').forEach(it=>it.addEventListener('click',()=>{const ddk=dk(curDate),dd2=gdd(ddk);let sh2=SH;if(dd2.blocks.length)sh2=Math.min(Math.max(...dd2.blocks.map(b=>b.startHour+b.duration)),EH-parseFloat(it.dataset.dur));sh2=clamp(snap(sh2));dd2.blocks.push({id:gid(),name:it.dataset.name,startHour:sh2,duration:Math.min(parseFloat(it.dataset.dur),EH-sh2),category:'routine'});sdd(ddk,dd2);renderBlocks();showNotification(`"${it.dataset.name}" eingeplant`,'success');}));
+      }
+
+      renderGrid(); updDate(); renderBlocks(); renderRoutinesPanel(); updTimeLine(); setInterval(updTimeLine, 60000);
+      document.getElementById('schedule-prev-day').addEventListener('click',()=>{curDate.setDate(curDate.getDate()-1);updDate();renderBlocks();updTimeLine();});
+      document.getElementById('schedule-next-day').addEventListener('click',()=>{curDate.setDate(curDate.getDate()+1);updDate();renderBlocks();updTimeLine();});
+      document.getElementById('schedule-today').addEventListener('click',()=>{curDate=new Date();updDate();renderBlocks();updTimeLine();});
+      document.getElementById('schedule-add-block').addEventListener('click',()=>openBlockModal(null));
+    }
+
+    /* ══════════════════════════════════════
+       ROUTINEN
+    ══════════════════════════════════════ */
+    function initRoutines() {
+      const container = document.getElementById('routines');
+      container.innerHTML = `<div class="section-header"><h2>🔄 Routinen</h2><button class="btn-primary" onclick="openRoutineModal()">+ Neue Routine</button></div><div id="routines-today" class="routines-today"></div><h3 style="margin-top:2rem;margin-bottom:1rem;">Alle Routinen</h3><div id="routines-all"></div><div id="routines-stats" class="routines-stats"></div>`;
+
+      function getRout() { return loadData('routines',[]); }
+      function setRout(d) { saveData('routines',d); }
+      function gid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+      function todayWD() { return new Date().getDay(); }
+      function isDue(r) { const d=todayWD(); if(r.repeat==='daily') return true; if(r.repeat==='weekdays') return d>=1&&d<=5; if(r.repeat==='custom') return (r.repeatDays||[]).includes(d); return true; }
+      function totDur(r) { return (r.steps||[]).reduce((s,st)=>s+(st.duration||0),0); }
+      function compToday(r) { return (r.completions&&r.completions[getCurrentDateKey()])||[]; }
+      function repLabel(r) { if(r.repeat==='daily') return 'Täglich'; if(r.repeat==='weekdays') return 'Mo–Fr'; if(r.repeat==='custom'){const n=['So','Mo','Di','Mi','Do','Fr','Sa'];return(r.repeatDays||[]).map(d=>n[d]).join(', ')||'Keine';} return ''; }
+      function esc(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+      function fdk(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+      function render() {
+        const routs = getRout();
+        // Today
+        const el = document.getElementById('routines-today'), due = routs.filter(isDue);
+        if(!due.length) { el.innerHTML='<p style="color:var(--text-secondary);">Heute keine Routinen fällig.</p>'; }
+        else { el.innerHTML = due.map(r => { const comp=compToday(r),tot=r.steps.length,done=comp.length,pct=tot>0?Math.round((done/tot)*100):0; return `<div class="routine-card" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;"><div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleRoutineSteps('${r.id}')"><div><strong>${esc(r.name)}</strong><span style="color:var(--text-secondary);margin-left:.5rem;font-size:.9em;">${totDur(r)} Min.</span></div><span style="font-size:.85em;color:${pct===100?'var(--accent)':'var(--text-secondary)'};">${done}/${tot}</span></div><div style="background:var(--bg);border-radius:6px;height:8px;margin:.6rem 0;overflow:hidden;"><div style="background:${pct===100?'var(--accent)':'var(--business)'};height:100%;width:${pct}%;transition:width .3s;border-radius:6px;"></div></div><div id="steps-${r.id}" style="display:none;">${r.steps.map((st,i)=>{const isDone=comp.includes(i);return`<label style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;cursor:pointer;font-size:14px;text-transform:none;letter-spacing:0;${isDone?'text-decoration:line-through;color:var(--text-secondary);':''}"><input type="checkbox" ${isDone?'checked':''} onchange="toggleStep('${r.id}',${i})" style="width:auto;"/>${esc(st.name)}<span style="margin-left:auto;font-size:.85em;color:var(--text-secondary);">${st.duration} Min.</span></label>`;}).join('')}</div></div>`; }).join(''); }
+
+        // All
+        const al = document.getElementById('routines-all');
+        if(!routs.length) { al.innerHTML='<p style="color:var(--text-secondary);">Noch keine Routinen erstellt.</p>'; }
+        else { al.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;">${routs.map(r=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;"><strong>${esc(r.name)}</strong><div style="font-size:.9em;color:var(--text-secondary);margin:.4rem 0;">${r.steps.length} Schritte · ${totDur(r)} Min. · ${repLabel(r)}</div><div style="display:flex;gap:.5rem;margin-top:.6rem;"><button class="btn-sm" onclick="openRoutineModal('${r.id}')">✏️ Bearbeiten</button><button class="btn-sm" onclick="deleteRoutine('${r.id}')" style="color:var(--danger);">🗑️ Löschen</button></div></div>`).join('')}</div>`; }
+
+        // Stats
+        const se = document.getElementById('routines-stats');
+        if(!routs.length) { se.innerHTML=''; return; }
+        let streak=0; const today=new Date();
+        for(let d=0;d<365;d++){const dt=new Date(today);dt.setDate(dt.getDate()-d);const k=fdk(dt),wd=dt.getDay();const dr=routs.filter(r=>{if(r.repeat==='daily')return true;if(r.repeat==='weekdays')return wd>=1&&wd<=5;if(r.repeat==='custom')return(r.repeatDays||[]).includes(wd);return true;});if(!dr.length){streak++;continue;}if(dr.every(r=>{const c=(r.completions&&r.completions[k])||[];return c.length>=r.steps.length&&r.steps.length>0;}))streak++;else break;}
+        let ts=0,ds=0; for(let d=0;d<7;d++){const dt=new Date(today);dt.setDate(dt.getDate()-d);const k=fdk(dt),wd=dt.getDay();routs.forEach(r=>{const due2=r.repeat==='daily'||(r.repeat==='weekdays'&&wd>=1&&wd<=5)||(r.repeat==='custom'&&(r.repeatDays||[]).includes(wd));if(due2&&r.steps.length>0){ts+=r.steps.length;ds+=((r.completions&&r.completions[k])||[]).length;}});}
+        se.innerHTML=`<h4 style="margin:0 0 .5rem;">📊 Statistik</h4><div style="display:flex;gap:2rem;"><div><strong>${streak}</strong> Tage Streak 🔥</div><div><strong>${ts>0?Math.round((ds/ts)*100):0}%</strong> Abschlussrate (7 Tage)</div></div>`;
+      }
+
+      window.toggleRoutineSteps = function(id) { const el=document.getElementById('steps-'+id); if(el) el.style.display=el.style.display==='none'?'block':'none'; };
+      window.toggleStep = function(rid,si) { const routs=getRout(),r=routs.find(x=>x.id===rid); if(!r) return; const k=getCurrentDateKey(); if(!r.completions) r.completions={}; if(!r.completions[k]) r.completions[k]=[]; const a=r.completions[k],i=a.indexOf(si); if(i>=0) a.splice(i,1); else a.push(si); setRout(routs); render(); setTimeout(()=>{const el=document.getElementById('steps-'+rid);if(el)el.style.display='block';},10); };
+      window.deleteRoutine = function(id) { if(!confirm('Routine löschen?')) return; setRout(getRout().filter(r=>r.id!==id)); showNotification('Gelöscht','success'); render(); };
+
+      window.openRoutineModal = function(editId) {
+        const routs=getRout(), existing=editId?routs.find(r=>r.id===editId):null;
+        const name=existing?existing.name:'', steps=existing?[...existing.steps]:[{name:'',duration:5}], repeat=existing?existing.repeat:'daily', repeatDays=existing?(existing.repeatDays||[]):[];
+        const dayNames=[{i:1,n:'Mo'},{i:2,n:'Di'},{i:3,n:'Mi'},{i:4,n:'Do'},{i:5,n:'Fr'},{i:6,n:'Sa'},{i:0,n:'So'}];
+        showModal(existing?'Routine bearbeiten':'Neue Routine', `<div style="display:flex;flex-direction:column;gap:1rem;"><div><label>Name</label><input type="text" id="routine-name" value="${esc(name)}" placeholder="z.B. Morgenroutine"></div><div><label>Schritte</label><div id="routine-steps-list">${steps.map((s,i)=>`<div class="routine-step-row" style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem;"><input type="text" class="step-name" value="${esc(s.name)}" placeholder="Schrittname" style="flex:1;"><input type="number" class="step-dur" value="${s.duration}" min="1" style="width:70px;"> Min.<button type="button" onclick="removeStep(this)" class="btn-sm" style="color:var(--danger);">✕</button></div>`).join('')}</div><button type="button" id="add-step-btn" class="btn-sm" style="margin-top:.4rem;">+ Schritt</button></div><div><label>Wiederholung</label><div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.3rem;"><label style="font-size:14px;text-transform:none;letter-spacing:0;"><input type="radio" name="routine-repeat" value="daily" ${repeat==='daily'?'checked':''} style="width:auto;"> Täglich</label><label style="font-size:14px;text-transform:none;letter-spacing:0;"><input type="radio" name="routine-repeat" value="weekdays" ${repeat==='weekdays'?'checked':''} style="width:auto;"> Werktage (Mo–Fr)</label><label style="font-size:14px;text-transform:none;letter-spacing:0;"><input type="radio" name="routine-repeat" value="custom" ${repeat==='custom'?'checked':''} style="width:auto;"> Benutzerdefiniert</label></div><div id="custom-days" style="margin-top:.4rem;display:${repeat==='custom'?'flex':'none'};gap:.5rem;flex-wrap:wrap;">${dayNames.map(d=>`<label style="font-size:14px;text-transform:none;letter-spacing:0;"><input type="checkbox" class="custom-day" value="${d.i}" ${repeatDays.includes(d.i)?'checked':''} style="width:auto;"> ${d.n}</label>`).join('')}</div></div></div>`, function() {
+          const rName=document.getElementById('routine-name').value.trim(); if(!rName){showNotification('Name eingeben','error');return;}
+          const newSteps=[]; document.querySelectorAll('.routine-step-row').forEach(row=>{const n=row.querySelector('.step-name').value.trim(),d=parseInt(row.querySelector('.step-dur').value)||1;if(n)newSteps.push({name:n,duration:d});}); if(!newSteps.length){showNotification('Mind. einen Schritt','error');return;}
+          const rRepeat=document.querySelector('input[name="routine-repeat"]:checked').value, rDays=[]; if(rRepeat==='custom') document.querySelectorAll('.custom-day:checked').forEach(cb=>rDays.push(parseInt(cb.value)));
+          const allR=getRout();
+          if(existing){const r=allR.find(x=>x.id===editId);r.name=rName;r.steps=newSteps;r.repeat=rRepeat;r.repeatDays=rDays;} else {allR.push({id:gid(),name:rName,steps:newSteps,repeat:rRepeat,repeatDays:rDays,completions:{}});}
+          setRout(allR); closeModal(); showNotification(existing?'Aktualisiert':'Erstellt','success'); render();
+        });
+        setTimeout(()=>{
+          document.getElementById('add-step-btn').addEventListener('click',function(){const list=document.getElementById('routine-steps-list');const d=document.createElement('div');d.className='routine-step-row';d.style.cssText='display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem;';d.innerHTML='<input type="text" class="step-name" placeholder="Schrittname" style="flex:1;"><input type="number" class="step-dur" value="5" min="1" style="width:70px;"> Min.<button type="button" onclick="removeStep(this)" class="btn-sm" style="color:var(--danger);">✕</button>';list.appendChild(d);});
+          document.querySelectorAll('input[name="routine-repeat"]').forEach(r=>r.addEventListener('change',function(){document.getElementById('custom-days').style.display=this.value==='custom'?'flex':'none';}));
+        },50);
+      };
+      window.removeStep = function(btn) { const row=btn.closest('.routine-step-row'),list=document.getElementById('routine-steps-list'); if(list.querySelectorAll('.routine-step-row').length<=1){showNotification('Mind. ein Schritt','error');return;} row.remove(); };
+
+      render();
+    }
+
+    /* ══════════════════════════════════════
+       AUFGABEN
+    ══════════════════════════════════════ */
+    function initTasks() {
+      const container = document.getElementById('tasks');
+      container.innerHTML = `<div class="section-header"><h2>✅ Aufgaben</h2><button id="tasks-add-btn" class="btn-primary">+ Neue Aufgabe</button></div><div id="tasks-filters" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;"><div style="display:flex;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;"><button class="tasks-filter-cat active" data-cat="all" style="padding:6px 14px;border:none;cursor:pointer;font-size:0.8rem;background:rgba(74,158,255,0.2);color:var(--business);">Alle</button><button class="tasks-filter-cat" data-cat="business" style="padding:6px 14px;border:none;cursor:pointer;font-size:0.8rem;background:transparent;color:var(--text-secondary);">Business</button><button class="tasks-filter-cat" data-cat="personal" style="padding:6px 14px;border:none;cursor:pointer;font-size:0.8rem;background:transparent;color:var(--text-secondary);">Privat</button></div><div style="display:flex;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;"><button class="tasks-filter-status active" data-status="all" style="padding:6px 14px;border:none;cursor:pointer;font-size:0.8rem;background:rgba(74,158,255,0.2);color:var(--business);">Alle</button><button class="tasks-filter-status" data-status="open" style="padding:6px 14px;border:none;cursor:pointer;font-size:0.8rem;background:transparent;color:var(--text-secondary);">Offen</button><button class="tasks-filter-status" data-status="done" style="padding:6px 14px;border:none;cursor:pointer;font-size:0.8rem;background:transparent;color:var(--text-secondary);">Erledigt</button></div></div><div id="tasks-today"></div><div id="tasks-upcoming" style="margin-top:24px;"></div><div id="tasks-recurring" style="margin-top:24px;"></div><div id="tasks-completed" style="margin-top:24px;"></div>`;
+
+      let tasks = loadData('tasks',[]), fCat='all', fStatus='all';
+      const today = getCurrentDateKey();
+      const pColors = {high:'#ff4757',medium:'#ffa502',low:'#8892a8'}, cColors = {business:'#4a9eff',personal:'#a78bfa'}, cLabels = {business:'Business',personal:'Privat'};
+
+      function save() { saveData('tasks',tasks); }
+      function gid() { return 't_'+Date.now()+'_'+Math.random().toString(36).slice(2,8); }
+      function isCompToday(t) { return t.completions && t.completions.includes(today); }
+      function isDueToday(t) { if(t.recurring && t.recurringRule) return isRecurDue(t,today); return t.dueDate===today; }
+      function isRecurDue(t,ds) { const d=new Date(ds+'T00:00:00'),wd=d.getDay(),rule=t.recurringRule; if(rule==='daily') return true; if(rule==='weekly'){return new Date(t.createdAt+'T00:00:00').getDay()===wd;} if(rule==='monthly'){return new Date(t.createdAt+'T00:00:00').getDate()===d.getDate();} if(typeof rule==='object'&&rule.type==='weekdays'){return rule.days.includes(wd===0?7:wd);} return false; }
+      function recurText(t) { const r=t.recurringRule; if(!r) return ''; if(r==='daily') return 'Täglich'; if(r==='weekly') return 'Wöchentlich'; if(r==='monthly') return 'Monatlich'; if(typeof r==='object'&&r.type==='weekdays'){const n={1:'Mo',2:'Di',3:'Mi',4:'Do',5:'Fr',6:'Sa',7:'So'};return r.days.map(d=>n[d]).join(', ');} return ''; }
+      function fmtDate(ds) { if(!ds) return ''; return ds.split('-').reverse().join('.'); }
+
+      function render() {
+        // Today
+        const tEl=document.getElementById('tasks-today'), todayT=tasks.filter(isDueToday);
+        const todayF=todayT.filter(t=>(fCat==='all'||t.category===fCat)&&(fStatus==='all'||(fStatus==='open'&&!isCompToday(t))||(fStatus==='done'&&isCompToday(t))));
+        const open=todayF.filter(t=>!isCompToday(t)), done=todayF.filter(t=>isCompToday(t));
+        let th=`<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;"><h3>Heute fällig</h3><span style="background:rgba(74,158,255,0.15);color:var(--business);font-size:0.8rem;padding:2px 8px;border-radius:10px;">${todayT.filter(t=>!isCompToday(t)).length} offen</span></div>`;
+        if(![...open,...done].length) th+=`<div style="padding:20px;text-align:center;color:var(--text-secondary);background:var(--card);border-radius:8px;">Keine Aufgaben heute</div>`;
+        else [...open,...done].forEach(t=>{const d=isCompToday(t);th+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;opacity:${d?0.5:1};"><input type="checkbox" class="task-check" data-id="${t.id}" ${d?'checked':''} style="width:18px;height:18px;cursor:pointer;accent-color:${pColors[t.priority]};"><span style="width:10px;height:10px;border-radius:50%;background:${pColors[t.priority]};flex-shrink:0;"></span><span style="flex:1;font-size:0.9rem;${d?'text-decoration:line-through;':''}">${t.title}</span><span style="font-size:0.7rem;padding:2px 8px;border-radius:4px;background:${cColors[t.category]}22;color:${cColors[t.category]};">${cLabels[t.category]||t.category}</span><button class="task-edit" data-id="${t.id}" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);">✏️</button><button class="task-del" data-id="${t.id}" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);">🗑️</button></div>`;});
+        tEl.innerHTML=th;
+
+        // Upcoming
+        const uEl=document.getElementById('tasks-upcoming');
+        const uTasks=tasks.filter(t=>!t.recurring&&t.dueDate&&t.dueDate>today&&(fCat==='all'||t.category===fCat)).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+        let uh=`<h3 style="margin-bottom:10px;">Demnächst</h3>`;
+        if(!uTasks.length) uh+=`<div style="padding:16px;text-align:center;color:var(--text-secondary);background:var(--card);border-radius:8px;">Keine anstehenden Aufgaben</div>`;
+        else { let ld=''; uTasks.forEach(t=>{if(t.dueDate!==ld){ld=t.dueDate;uh+=`<div style="font-size:0.8rem;color:var(--text-secondary);margin:12px 0 4px;font-weight:600;">${fmtDate(t.dueDate)}</div>`;} uh+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${pColors[t.priority]};"></span><span style="flex:1;font-size:0.9rem;">${t.title}</span><span style="font-size:0.7rem;padding:2px 8px;border-radius:4px;background:${cColors[t.category]}22;color:${cColors[t.category]};">${cLabels[t.category]||t.category}</span><button class="task-edit" data-id="${t.id}" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);">✏️</button><button class="task-del" data-id="${t.id}" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);">🗑️</button></div>`;}); }
+        uEl.innerHTML=uh;
+
+        // Recurring
+        const rEl=document.getElementById('tasks-recurring'), rTasks=tasks.filter(t=>t.recurring&&(fCat==='all'||t.category===fCat));
+        let rh=`<h3 style="margin-bottom:10px;">Wiederkehrend</h3>`;
+        if(!rTasks.length) rh+=`<div style="padding:16px;text-align:center;color:var(--text-secondary);background:var(--card);border-radius:8px;">Keine wiederkehrenden Aufgaben</div>`;
+        else rTasks.forEach(t=>{rh+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${pColors[t.priority]};"></span><span style="flex:1;font-size:0.9rem;">${t.title}</span><span style="font-size:0.75rem;color:var(--text-secondary);">🔁 ${recurText(t)}</span><button class="task-edit" data-id="${t.id}" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);">✏️</button><button class="task-del" data-id="${t.id}" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);">🗑️</button></div>`;});
+        rEl.innerHTML=rh;
+
+        // Completed
+        const cEl=document.getElementById('tasks-completed');
+        const allComp=[]; tasks.forEach(t=>{(t.completions||[]).forEach(d=>allComp.push({task:t,date:d}));}); allComp.sort((a,b)=>b.date.localeCompare(a.date));
+        cEl.innerHTML=`<details><summary style="font-size:1.1rem;font-weight:600;cursor:pointer;color:var(--text-primary);list-style:none;display:flex;align-items:center;gap:8px;">▶ Erledigte <span style="background:var(--card);color:var(--text-secondary);font-size:0.8rem;padding:2px 8px;border-radius:10px;">${allComp.length}</span></summary><div style="margin-top:8px;">${allComp.slice(0,20).map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--card);border-radius:8px;margin-bottom:4px;opacity:0.6;"><span style="flex:1;font-size:0.85rem;">${c.task.title}</span><span style="font-size:0.75rem;color:var(--text-secondary);">${fmtDate(c.date)}</span><button class="task-restore" data-id="${c.task.id}" data-date="${c.date}" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:var(--business);">Wiederherstellen</button></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text-secondary);">Keine</div>'}</div></details>`;
+
+        attachListeners();
+      }
+
+      function attachListeners() {
+        document.querySelectorAll('.task-check').forEach(cb=>cb.addEventListener('change',function(){const t=tasks.find(x=>x.id===this.dataset.id);if(!t)return;if(!t.completions)t.completions=[];if(this.checked){if(!t.completions.includes(today))t.completions.push(today);showNotification('Erledigt!','success');}else{t.completions=t.completions.filter(d=>d!==today);}save();render();}));
+        document.querySelectorAll('.task-edit').forEach(b=>b.addEventListener('click',()=>{const t=tasks.find(x=>x.id===b.dataset.id);if(t)openTaskModal(t);}));
+        document.querySelectorAll('.task-del').forEach(b=>b.addEventListener('click',()=>{if(!confirm('Aufgabe löschen?'))return;tasks=tasks.filter(x=>x.id!==b.dataset.id);save();render();showNotification('Gelöscht','success');}));
+        document.querySelectorAll('.task-restore').forEach(b=>b.addEventListener('click',()=>{const t=tasks.find(x=>x.id===b.dataset.id);if(t){t.completions=(t.completions||[]).filter(d=>d!==b.dataset.date);save();render();showNotification('Wiederhergestellt','success');}}));
+      }
+
+      function openTaskModal(existing) {
+        const t=existing||null, isEdit=!!t;
+        const curRule=t?t.recurringRule:null; let rv='daily'; if(curRule==='daily')rv='daily';else if(curRule==='weekly')rv='weekly';else if(curRule==='monthly')rv='monthly';else if(typeof curRule==='object')rv='weekdays';
+        const wdChecks=[1,2,3,4,5,6,7].map(d=>{const n={1:'Mo',2:'Di',3:'Mi',4:'Do',5:'Fr',6:'Sa',7:'So'};const ch=t&&typeof t.recurringRule==='object'&&t.recurringRule.days&&t.recurringRule.days.includes(d)?'checked':'';return `<label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="task-weekday" value="${d}" ${ch} style="width:auto;">${n[d]}</label>`;}).join('');
+
+        showModal(isEdit?'Aufgabe bearbeiten':'Neue Aufgabe', `<div style="display:flex;flex-direction:column;gap:14px;"><div><label>Titel</label><input type="text" id="task-title" value="${t?t.title.replace(/"/g,'&quot;'):''}" placeholder="Aufgabe..."></div><div><label>Beschreibung</label><textarea id="task-desc" rows="2" placeholder="Optional...">${t?t.description||'':''}</textarea></div><div style="display:flex;gap:20px;flex-wrap:wrap;"><div><label>Kategorie</label><div style="display:flex;gap:8px;"><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-cat" value="business" ${!t||t.category==='business'?'checked':''} style="width:auto;">Business</label><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-cat" value="personal" ${t&&t.category==='personal'?'checked':''} style="width:auto;">Privat</label></div></div><div><label>Priorität</label><div style="display:flex;gap:8px;"><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-prio" value="high" ${t&&t.priority==='high'?'checked':''} style="width:auto;">Hoch</label><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-prio" value="medium" ${!t||t.priority==='medium'?'checked':''} style="width:auto;">Mittel</label><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-prio" value="low" ${t&&t.priority==='low'?'checked':''} style="width:auto;">Niedrig</label></div></div></div><div><label>Fälligkeitsdatum</label><input type="date" id="task-due" value="${t&&t.dueDate?t.dueDate:''}"></div><div><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="task-recurring" ${t&&t.recurring?'checked':''} style="width:auto;">Wiederkehrend</label><div id="task-recurring-opts" style="margin-top:10px;display:${t&&t.recurring?'block':'none'};padding:12px;background:var(--bg);border-radius:8px;"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-rule" value="daily" ${rv==='daily'?'checked':''} style="width:auto;">Täglich</label><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-rule" value="weekly" ${rv==='weekly'?'checked':''} style="width:auto;">Wöchentlich</label><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-rule" value="monthly" ${rv==='monthly'?'checked':''} style="width:auto;">Monatlich</label><label style="font-size:14px;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:4px;"><input type="radio" name="task-rule" value="weekdays" ${rv==='weekdays'?'checked':''} style="width:auto;">Bestimmte Tage</label></div><div id="task-weekday-select" style="display:${rv==='weekdays'?'flex':'none'};gap:8px;flex-wrap:wrap;">${wdChecks}</div></div></div></div>`, function() {
+          const title=document.getElementById('task-title').value.trim(); if(!title){showNotification('Titel eingeben','error');return;}
+          const desc=document.getElementById('task-desc').value.trim(), cat=document.querySelector('input[name="task-cat"]:checked').value, prio=document.querySelector('input[name="task-prio"]:checked').value, due=document.getElementById('task-due').value||null, isRec=document.getElementById('task-recurring').checked;
+          let rule=null; if(isRec){const rv2=document.querySelector('input[name="task-rule"]:checked'); if(rv2){if(rv2.value==='weekdays'){const days=[];document.querySelectorAll('.task-weekday:checked').forEach(cb=>days.push(parseInt(cb.value)));if(!days.length){showNotification('Mind. einen Tag wählen','error');return;}rule={type:'weekdays',days};}else rule=rv2.value;}}
+          if(isEdit){t.title=title;t.description=desc;t.category=cat;t.priority=prio;t.dueDate=due;t.recurring=isRec;t.recurringRule=rule;}else{tasks.push({id:gid(),title,description:desc,category:cat,priority:prio,dueDate:due,recurring:isRec,recurringRule:rule,completions:[],createdAt:today});}
+          save();closeModal();render();showNotification(isEdit?'Aktualisiert':'Erstellt','success');
+        });
+        setTimeout(()=>{document.getElementById('task-recurring').addEventListener('change',function(){document.getElementById('task-recurring-opts').style.display=this.checked?'block':'none';});document.querySelectorAll('input[name="task-rule"]').forEach(r=>r.addEventListener('change',function(){document.getElementById('task-weekday-select').style.display=this.value==='weekdays'?'flex':'none';}));},50);
+      }
+
+      document.querySelectorAll('.tasks-filter-cat').forEach(b=>b.addEventListener('click',function(){document.querySelectorAll('.tasks-filter-cat').forEach(x=>{x.style.background='transparent';x.style.color='var(--text-secondary)';});this.style.background='rgba(74,158,255,0.2)';this.style.color='var(--business)';fCat=this.dataset.cat;render();}));
+      document.querySelectorAll('.tasks-filter-status').forEach(b=>b.addEventListener('click',function(){document.querySelectorAll('.tasks-filter-status').forEach(x=>{x.style.background='transparent';x.style.color='var(--text-secondary)';});this.style.background='rgba(74,158,255,0.2)';this.style.color='var(--business)';fStatus=this.dataset.status;render();}));
+      document.getElementById('tasks-add-btn').addEventListener('click',()=>openTaskModal(null));
+      render();
+    }
+
+    /* ══════════════════════════════════════
+       ZIELE
+    ══════════════════════════════════════ */
+    function initGoals() {
+      const container = document.getElementById('goals');
+      container.innerHTML = `<div class="section-header"><h2>🎯 Ziele</h2><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;"><div id="goals-filter" style="display:flex;gap:6px;"><button class="goals-filter-btn active" data-filter="all" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;font-size:0.85rem;">Alle</button><button class="goals-filter-btn" data-filter="health" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(0,229,160,0.3);background:transparent;color:var(--accent);cursor:pointer;font-size:0.85rem;">Gesundheit</button><button class="goals-filter-btn" data-filter="business" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(74,158,255,0.3);background:transparent;color:var(--business);cursor:pointer;font-size:0.85rem;">Business</button><button class="goals-filter-btn" data-filter="personal" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(167,139,250,0.3);background:transparent;color:var(--personal);cursor:pointer;font-size:0.85rem;">Persönlich</button></div><button id="goals-add-btn" class="btn-primary">+ Neues Ziel</button></div></div><div id="goals-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;"></div><div id="goals-achieved-section" style="margin-top:32px;display:none;"><div id="goals-achieved-toggle" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:16px;"><span id="goals-achieved-arrow" style="transition:transform 0.2s;display:inline-block;">▶</span><h3 style="margin:0;color:var(--text-secondary);">Erreichte Ziele</h3><span id="goals-achieved-count" style="background:rgba(0,229,160,0.15);color:var(--accent);padding:2px 10px;border-radius:12px;font-size:0.8rem;"></span></div><div id="goals-achieved-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;"></div></div><div id="goals-empty" style="display:none;text-align:center;padding:60px 20px;"><div style="font-size:3rem;margin-bottom:16px;">🎯</div><p style="color:var(--text-secondary);margin-bottom:20px;">Noch keine Ziele definiert.</p><button id="goals-empty-add" class="btn-primary">Erstes Ziel erstellen</button></div>`;
+
+      const CC = {health:'#00e5a0',business:'#4a9eff',personal:'#a78bfa'}, CL = {health:'Gesundheit',business:'Business',personal:'Persönlich'};
+      let curFilter='all', sparkCharts={};
+
+      function getG() { return loadData('goals',[]); }
+      function setG(g) { saveData('goals',g); }
+      function gid() { return 'g_'+Date.now()+'_'+Math.random().toString(36).substr(2,9); }
+      function calcProg(g) { const r=g.targetValue-g.startValue; if(r===0) return g.achieved?100:0; return Math.max(0,Math.min(100,((g.currentValue-g.startValue)/r)*100)); }
+      function getTrend(g) { if(!g.entries||g.entries.length<2) return null; const s=[...g.entries].sort((a,b)=>a.date.localeCompare(b.date)),d=s[s.length-1].value-s[s.length-2].value; if(d===0) return null; return {positive:(g.targetValue>g.startValue)?d>0:d<0,diff:d}; }
+      function checkAch(g) { return g.targetValue>g.startValue?g.currentValue>=g.targetValue:g.currentValue<=g.targetValue; }
+
+      function renderGoalCard(g) {
+        const col=CC[g.category]||'#4a9eff',lab=CL[g.category]||g.category,prog=calcProg(g),trend=getTrend(g),cid='sparkline_'+g.id;
+        let tH=''; if(trend) tH=trend.positive?`<span style="color:var(--accent);font-weight:600;">↑ Positiv</span>`:`<span style="color:var(--danger);font-weight:600;">↓ Negativ</span>`;
+        return `<div class="goal-card" data-id="${g.id}" style="position:relative;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:transform 0.2s;${g.achieved?'opacity:0.75;':''}">${g.achieved?'<div style="position:absolute;top:12px;left:12px;background:rgba(0,229,160,0.15);color:var(--accent);padding:4px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;">Erreicht ✓</div>':''}<div style="display:flex;justify-content:space-between;margin-bottom:12px;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:${col};"></div><span style="font-size:0.8rem;color:${col};">${lab}</span></div><div style="display:flex;gap:6px;"><button class="goal-edit" data-id="${g.id}" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;">✏️</button><button class="goal-del" data-id="${g.id}" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;">🗑️</button></div></div><h3 style="margin:0 0 16px;font-size:1.15rem;font-weight:700;">${g.name}</h3><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;"><span style="font-size:2rem;font-weight:800;">${g.currentValue}</span><span style="color:var(--text-secondary);">${g.unit}</span><span style="font-size:0.85rem;color:var(--text-secondary);margin-left:auto;">Ziel: ${g.targetValue} ${g.unit}</span></div><div style="background:var(--bg);border-radius:8px;height:8px;margin-bottom:8px;overflow:hidden;"><div style="height:100%;border-radius:8px;background:${col};width:${prog}%;transition:width 0.5s;"></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-size:0.85rem;color:var(--text-secondary);">${Math.round(prog)}% erreicht</span>${tH}</div>${g.entries&&g.entries.length>1?`<div style="height:40px;margin-bottom:16px;"><canvas id="${cid}" style="width:100%;height:40px;"></canvas></div>`:''}<div style="display:flex;justify-content:flex-end;">${g.achieved?`<button class="goal-react" data-id="${g.id}" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:0.8rem;">Reaktivieren</button>`:`<button class="goal-log" data-id="${g.id}" style="padding:6px 14px;border-radius:8px;border:none;background:${col}22;color:${col};cursor:pointer;font-size:0.85rem;font-weight:600;">Wert eintragen</button>`}</div></div>`;
+      }
+
+      function renderSparklines(goals) { Object.values(sparkCharts).forEach(c=>{try{c.destroy();}catch(e){}}); sparkCharts={}; goals.forEach(g=>{if(!g.entries||g.entries.length<2)return;const cv=document.getElementById('sparkline_'+g.id);if(!cv)return;const col=CC[g.category]||'#4a9eff',s=[...g.entries].sort((a,b)=>a.date.localeCompare(b.date));sparkCharts[g.id]=new Chart(cv,{type:'line',data:{labels:s.map(e=>e.date),datasets:[{data:s.map(e=>e.value),borderColor:col,borderWidth:2,pointRadius:0,fill:true,backgroundColor:col+'15',tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:500}}});}); }
+
+      function render() {
+        const goals=getG(), active=goals.filter(g=>!g.achieved), achieved=goals.filter(g=>g.achieved);
+        const filtered=curFilter==='all'?active:active.filter(g=>g.category===curFilter);
+        const grid=document.getElementById('goals-grid'), empty=document.getElementById('goals-empty'), achSec=document.getElementById('goals-achieved-section'), achGrid=document.getElementById('goals-achieved-grid');
+
+        if(!goals.length) { grid.style.display='none'; empty.style.display='block'; achSec.style.display='none'; }
+        else { empty.style.display='none'; grid.style.display='grid'; grid.innerHTML=filtered.length?filtered.map(g=>renderGoalCard(g)).join(''):'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-secondary);">Keine Ziele in dieser Kategorie</div>';
+          if(achieved.length){achSec.style.display='block';document.getElementById('goals-achieved-count').textContent=achieved.length;const fa=curFilter==='all'?achieved:achieved.filter(g=>g.category===curFilter);achGrid.innerHTML=fa.map(g=>renderGoalCard(g)).join('');}else achSec.style.display='none'; }
+        setTimeout(()=>renderSparklines([...filtered,...achieved]),50);
+
+        // Listeners
+        document.querySelectorAll('.goal-log').forEach(b=>b.addEventListener('click',()=>showLogModal(b.dataset.id)));
+        document.querySelectorAll('.goal-edit').forEach(b=>b.addEventListener('click',()=>{const g=getG().find(x=>x.id===b.dataset.id);if(g)showGoalModal(g);}));
+        document.querySelectorAll('.goal-del').forEach(b=>b.addEventListener('click',()=>{if(!confirm('Ziel löschen?'))return;setG(getG().filter(x=>x.id!==b.dataset.id));render();showNotification('Gelöscht','success');}));
+        document.querySelectorAll('.goal-react').forEach(b=>b.addEventListener('click',()=>{const gs=getG(),i=gs.findIndex(x=>x.id===b.dataset.id);if(i!==-1){gs[i].achieved=false;setG(gs);render();showNotification('Reaktiviert','success');}}));
+      }
+
+      function showGoalModal(existing) {
+        const isEdit=!!existing, g=existing||{name:'',category:'health',startValue:0,targetValue:100,unit:''};
+        showModal(isEdit?'Ziel bearbeiten':'Neues Ziel', `<div style="display:flex;flex-direction:column;gap:16px;"><div><label>Name</label><input id="gm-name" type="text" value="${g.name}" placeholder="z.B. Gewicht reduzieren"></div><div><label>Kategorie</label><select id="gm-cat"><option value="health" ${g.category==='health'?'selected':''}>Gesundheit</option><option value="business" ${g.category==='business'?'selected':''}>Business</option><option value="personal" ${g.category==='personal'?'selected':''}>Persönlich</option></select></div><div class="grid-2"><div><label>Startwert</label><input id="gm-start" type="number" value="${g.startValue}"></div><div><label>Einheit</label><input id="gm-unit" type="text" value="${g.unit}" placeholder="kg, €, ..."></div></div><div><label>Zielwert</label><input id="gm-target" type="number" value="${g.targetValue}"></div></div>`, () => {
+          const name=document.getElementById('gm-name').value.trim(); if(!name){showNotification('Name eingeben','error');return;}
+          const gs=getG(), cat=document.getElementById('gm-cat').value, sv=parseFloat(document.getElementById('gm-start').value)||0, unit=document.getElementById('gm-unit').value.trim(), tv=parseFloat(document.getElementById('gm-target').value)||0;
+          if(isEdit){const i=gs.findIndex(x=>x.id===existing.id);if(i!==-1){gs[i].name=name;gs[i].category=cat;gs[i].startValue=sv;gs[i].unit=unit;gs[i].targetValue=tv;gs[i].achieved=checkAch(gs[i]);}}else{gs.push({id:gid(),name,category:cat,startValue:sv,currentValue:sv,targetValue:tv,unit,entries:[{date:getCurrentDateKey(),value:sv}],achieved:false,createdAt:getCurrentDateKey()});}
+          setG(gs);closeModal();render();showNotification(isEdit?'Aktualisiert':'Erstellt','success');
+        });
+      }
+
+      function showLogModal(goalId) {
+        const gs=getG(), g=gs.find(x=>x.id===goalId); if(!g) return;
+        showModal('Wert eintragen', `<div style="display:flex;flex-direction:column;gap:16px;"><p style="color:var(--text-secondary);">Neuer Wert für <strong style="color:var(--text-primary);">${g.name}</strong>:</p><div><label>Datum</label><input id="gl-date" type="date" value="${getCurrentDateKey()}"></div><div><label>Neuer Wert (${g.unit})</label><input id="gl-value" type="number" step="any" placeholder="${g.currentValue}"></div></div>`, () => {
+          const date=document.getElementById('gl-date').value, val=parseFloat(document.getElementById('gl-value').value); if(isNaN(val)){showNotification('Wert eingeben','error');return;}
+          const gs2=getG(), i=gs2.findIndex(x=>x.id===goalId); if(i===-1) return;
+          const ei=gs2[i].entries.findIndex(e=>e.date===date); if(ei!==-1) gs2[i].entries[ei].value=val; else gs2[i].entries.push({date,value:val});
+          gs2[i].currentValue=val; gs2[i].achieved=checkAch(gs2[i]);
+          setG(gs2);closeModal();render();showNotification(`${val} ${gs2[i].unit} eingetragen`,'success');
+        });
+      }
+
+      document.getElementById('goals-add-btn').addEventListener('click',()=>showGoalModal(null));
+      document.getElementById('goals-empty-add')?.addEventListener('click',()=>showGoalModal(null));
+      document.getElementById('goals-filter').addEventListener('click',e=>{const b=e.target.closest('.goals-filter-btn');if(!b)return;document.querySelectorAll('.goals-filter-btn').forEach(x=>{x.style.background='transparent';});b.style.background='rgba(255,255,255,0.1)';curFilter=b.dataset.filter;render();});
+      document.getElementById('goals-achieved-toggle').addEventListener('click',()=>{const g=document.getElementById('goals-achieved-grid'),a=document.getElementById('goals-achieved-arrow');if(g.style.display==='none'){g.style.display='grid';a.style.transform='rotate(90deg)';}else{g.style.display='none';a.style.transform='rotate(0deg)';}});
+      render();
+    }
+
+    /* ══════════════════════════════════════
+       INIT
+    ══════════════════════════════════════ */
+    sectionInits.health = initHealth;
+    sectionInits.nutrition = initNutrition;
+    sectionInits.schedule = initSchedule;
+    sectionInits.routines = initRoutines;
+    sectionInits.tasks = initTasks;
+    sectionInits.goals = initGoals;
+
+    // Init dashboard immediately
+    initDashboard();
+    sectionInitialized.dashboard = true;
+  </script>
+</body>
+</html>
