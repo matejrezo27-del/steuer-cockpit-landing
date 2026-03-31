@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Steuerbase – Das Klienten-Portal für Steuerkanzleien</title>
-<meta name="description" content="Ihre Mandanten erfassen Belege selbst – Sie bekommen fertige DATEV-Buchungsstapel. Ab 14,90€ pro Mandant.">
+<meta name="description" content="Löst das Personalproblem: Ihre Fachangestellten werden 2-3x produktiver. 14,90€ pro Mandant – günstiger als jede Neueinstellung.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
 <style>
@@ -88,6 +88,15 @@
     transition: color 0.2s;
   }
   .nav-links a:hover { color: #0f172a; }
+  .nav-login {
+    border: 1px solid var(--card-border) !important;
+    color: #0f172a !important;
+    padding: 10px 22px !important;
+    border-radius: 8px;
+    font-weight: 600 !important;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s !important;
+  }
+  .nav-login:hover { background: var(--navy-mid) !important; border-color: var(--card-hover-border) !important; transform: translateY(-1px); }
   .nav-cta {
     background: var(--blue) !important;
     color: #fff !important;
@@ -330,6 +339,212 @@
   .feature-card h3 { font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 8px; }
   .feature-card p { font-size: 13px; color: #64748b; line-height: 1.6; }
 
+  /* --- Interactive Demo --- */
+  .video-section {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+    text-align: center;
+  }
+  .video-section .section-title { margin: 0 auto 40px; }
+  .video-section .section-label { text-align: center; }
+
+  .demo-player {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+
+  /* Startscreen */
+  .demo-start {
+    aspect-ratio: 16/9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .demo-start:hover { background: rgba(37,99,235,0.03); }
+  .play-btn {
+    width: 80px; height: 80px;
+    background: var(--blue);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+  .play-btn:hover { transform: scale(1.1); box-shadow: 0 0 40px rgba(37,99,235,0.4); }
+  .play-btn svg { margin-left: 4px; }
+  .demo-start-text { color: #334155; font-size: 15px; font-weight: 500; }
+  .demo-start-sub { color: #94a3b8; font-size: 12px; }
+
+  /* Slide area */
+  .demo-slides {
+    display: none;
+    position: relative;
+    min-height: 500px;
+  }
+  .demo-slides.active { display: block; }
+
+  .demo-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+  }
+  .demo-slide.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Slide content types */
+  .slide-icon {
+    font-size: 56px;
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+  }
+  .slide-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .slide-text {
+    font-size: 17px;
+    color: #475569;
+    max-width: 560px;
+    text-align: center;
+    line-height: 1.7;
+  }
+  .slide-highlight {
+    color: var(--blue);
+    font-weight: 600;
+  }
+  .slide-number {
+    font-family: 'Fraunces', serif;
+    font-size: 72px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .slide-number.red { color: #ef4444; }
+  .slide-number.green { color: var(--mint); }
+  .slide-number.blue { color: var(--blue); }
+
+  /* Mock UI elements */
+  .slide-mock {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .mock-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+    color: #475569;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .demo-slide.active .mock-row { opacity: 1; transform: translateX(0); }
+  .demo-slide.active .mock-row:nth-child(1) { transition-delay: 0.3s; }
+  .demo-slide.active .mock-row:nth-child(2) { transition-delay: 0.5s; }
+  .demo-slide.active .mock-row:nth-child(3) { transition-delay: 0.7s; }
+  .demo-slide.active .mock-row:nth-child(4) { transition-delay: 0.9s; }
+  .mock-row .label { color: #64748b; }
+  .mock-row .value { font-weight: 600; color: #0f172a; }
+  .mock-row .value.green { color: #059669; }
+  .mock-row .value.red { color: #dc2626; }
+
+  /* Mock bar chart */
+  .mock-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    height: 120px;
+    margin-top: 20px;
+  }
+  .mock-bar {
+    width: 40px;
+    border-radius: 6px 6px 0 0;
+    transition: height 1s ease;
+  }
+  .mock-bar.income { background: var(--mint); }
+  .mock-bar.expense { background: #ef4444; opacity: 0.7; }
+  .mock-bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .mock-bar-label { font-size: 10px; color: var(--slate); }
+
+  /* Progress bar */
+  .demo-progress {
+    height: 3px;
+    background: #e2e8f0;
+    position: relative;
+  }
+  .demo-progress-bar {
+    height: 100%;
+    background: var(--blue);
+    transition: width 0.3s ease;
+    border-radius: 3px;
+  }
+
+  /* Controls */
+  .demo-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .demo-step { font-size: 12px; color: #94a3b8; }
+  .demo-btns { display: flex; gap: 8px; }
+  .demo-btn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .demo-btn:hover { background: #e2e8f0; color: #0f172a; }
+  .demo-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .demo-btn.primary:hover { background: #3b82f6; }
+
+
   /* --- Pricing --- */
   .pricing {
     max-width: 1120px;
@@ -346,17 +561,17 @@
     margin: 0 auto;
   }
   .price-card {
-    background: var(--navy-light);
-    border: 1px solid rgba(148,163,184,0.08);
+    background: #fff;
+    border: 1px solid #e2e8f0;
     border-radius: 16px;
     padding: 32px 28px;
     text-align: center;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
   }
-  .price-card:hover { transform: translateY(-4px); }
+  .price-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
   .price-card.featured {
     border-color: var(--blue);
-    background: linear-gradient(180deg, var(--navy-mid), var(--navy-light));
+    background: linear-gradient(180deg, #eff6ff, #fff);
     position: relative;
   }
   .price-badge {
@@ -371,22 +586,22 @@
     border-radius: 100px;
     letter-spacing: 0.5px;
   }
-  .price-card h3 { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .price-card h3 { font-size: 18px; font-weight: 600; color: #0f172a; margin-bottom: 8px; }
   .price-amount {
     font-family: 'Fraunces', serif;
     font-size: 42px;
     font-weight: 700;
-    color: #fff;
+    color: #0f172a;
     margin-bottom: 4px;
   }
-  .price-amount span { font-size: 16px; font-weight: 400; color: var(--slate); }
-  .price-sub { font-size: 13px; color: var(--slate); margin-bottom: 24px; }
+  .price-amount span { font-size: 16px; font-weight: 400; color: #94a3b8; }
+  .price-sub { font-size: 13px; color: #64748b; margin-bottom: 24px; }
   .price-features { list-style: none; text-align: left; margin-bottom: 28px; }
   .price-features li {
     font-size: 14px;
-    color: var(--slate-light);
+    color: #475569;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(148,163,184,0.06);
+    border-bottom: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -448,19 +663,19 @@
     max-width: 1120px;
     margin: 0 auto;
     padding: 40px 32px;
-    border-top: 1px solid rgba(148,163,184,0.08);
+    border-top: 1px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 16px;
   }
-  .footer-left { font-size: 13px; color: var(--slate); }
-  .footer-left a { color: var(--slate); text-decoration: none; }
-  .footer-left a:hover { color: #fff; }
+  .footer-left { font-size: 13px; color: #94a3b8; }
+  .footer-left a { color: #64748b; text-decoration: none; }
+  .footer-left a:hover { color: #0f172a; }
   .footer-right { display: flex; gap: 24px; }
-  .footer-right a { font-size: 13px; color: var(--slate); text-decoration: none; }
-  .footer-right a:hover { color: #fff; }
+  .footer-right a { font-size: 13px; color: #64748b; text-decoration: none; }
+  .footer-right a:hover { color: #0f172a; }
 
   /* --- Animations --- */
   @keyframes fadeUp {
@@ -490,8 +705,8 @@
     100% { transform: scale(1); }
   }
   @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(37,99,235,0.1); }
-    50% { box-shadow: 0 0 40px rgba(37,99,235,0.25); }
+    0%, 100% { box-shadow: 0 4px 20px rgba(37,99,235,0.08); }
+    50% { box-shadow: 0 4px 30px rgba(37,99,235,0.18); }
   }
 
   .reveal {
@@ -537,22 +752,22 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: rgba(16,185,129,0.1);
-    border: 1px solid rgba(16,185,129,0.25);
+    background: #f0fdf4;
+    border: 1px solid #86efac;
     padding: 12px 24px;
     border-radius: 12px;
     font-size: 15px;
-    color: var(--mint);
+    color: #059669;
     font-weight: 600;
     margin-top: 32px;
-    animation: fadeUp 0.8s ease 0.5s both, glowPulse 3s ease-in-out infinite 1s;
+    animation: fadeUp 0.8s ease 0.5s both;
   }
   .guarantee-badge::after {
     content: '';
     position: absolute;
     top: 0; left: -100%;
     width: 60%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    background: linear-gradient(90deg, transparent, rgba(5,150,105,0.06), transparent);
     animation: shimmer 4s ease-in-out infinite 2s;
   }
 
@@ -571,28 +786,45 @@
     align-items: center;
   }
   .cost-box {
-    background: var(--navy-light);
+    background: #fff;
     border-radius: 16px;
     padding: 32px 28px;
     text-align: center;
-    border: 1px solid rgba(148,163,184,0.08);
-    transition: transform 0.3s ease;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.3s ease, box-shadow 0.3s;
   }
-  .cost-box:hover { transform: scale(1.03); }
-  .cost-box.bad { border-color: rgba(239,68,68,0.2); }
-  .cost-box.good { border-color: rgba(16,185,129,0.2); }
-  .cost-box .cost-label { font-size: 14px; color: var(--slate); margin-bottom: 8px; }
-  .cost-box .cost-sub { font-size: 12px; color: var(--slate); margin-top: 6px; }
+  .cost-box:hover { transform: scale(1.03); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .cost-box.bad { border-color: #fca5a5; background: #fef2f2; }
+  .cost-box.good { border-color: #86efac; background: #f0fdf4; }
+  .cost-box .cost-label { font-size: 14px; color: #475569; margin-bottom: 8px; }
+  .cost-box .cost-sub { font-size: 12px; color: #94a3b8; margin-top: 6px; }
   .cost-arrow {
     text-align: center;
     font-size: 28px;
-    color: var(--blue-light);
+    color: var(--blue);
     animation: float 2s ease-in-out infinite;
   }
 
   /* Price card hover glow */
   .price-card.featured {
     animation: glowPulse 3s ease-in-out infinite;
+  }
+
+  /* --- Mobile --- */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .hero { padding: 50px 20px 40px; }
+    .hero-actions { flex-direction: column; align-items: center; }
+    .trust-bar { gap: 20px; }
+    .problems, .solution, .features, .video-section, .pricing, .cta-section { padding-left: 20px; padding-right: 20px; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; max-width: 360px; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .solution-box { padding: 40px 24px; }
+    .cta-box { padding: 40px 24px; }
+    footer { flex-direction: column; text-align: center; }
+    .footer-right { justify-content: center; }
   }
 
   /* --- Hamburger Mobile --- */
@@ -607,617 +839,18 @@
   @media (max-width: 768px) {
     .mobile-menu-btn { display: block; }
   }
-
-  /* ================================================================
-     PREMIUM GUIDED TOUR - Glass Morphism + Animated Cursor
-     ================================================================ */
-
-  .tour-section {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 0 32px 100px;
-  }
-  .tour-section .section-label { text-align: center; }
-  .tour-section .section-title { text-align: center; margin: 0 auto 48px; }
-
-  /* Step label floating above device */
-  .tour-step-label {
-    text-align: center;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--slate);
-    margin-bottom: 16px;
-    min-height: 20px;
-    transition: opacity 0.4s ease;
-  }
-  .tour-step-label span {
-    color: var(--blue);
-    font-weight: 600;
-  }
-
-  /* === DEVICE FRAME === */
-  .tour-device {
-    position: relative;
-    max-width: 960px;
-    margin: 0 auto;
-    border-radius: 16px;
-    padding: 2px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #3b82f6, #8b5cf6);
-    background-size: 300% 300%;
-    animation: borderGradient 6s ease infinite;
-    box-shadow:
-      0 25px 60px rgba(0,0,0,0.5),
-      0 0 40px rgba(37,99,235,0.1),
-      0 0 0 1px rgba(255,255,255,0.05);
-  }
-  @keyframes borderGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  .tour-device-inner {
-    border-radius: 14px;
-    overflow: hidden;
-    position: relative;
-    background: #0b1120;
-  }
-
-  /* Glass reflection */
-  .tour-device-inner::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.02) 100%);
-    pointer-events: none;
-    z-index: 50;
-  }
-
-  /* Title bar */
-  .tour-titlebar {
-    background: linear-gradient(180deg, #111827, #0f172a);
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    position: relative;
-    z-index: 5;
-  }
-  .tour-traffic-dot {
-    width: 12px; height: 12px; border-radius: 50%;
-  }
-  .tour-traffic-dot.r { background: #ef4444; }
-  .tour-traffic-dot.y { background: #eab308; }
-  .tour-traffic-dot.g { background: #22c55e; }
-  .tour-titlebar-title {
-    color: #94a3b8; font-size: 13px; margin-left: auto; font-weight: 500;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  /* Body: sidebar + content */
-  .tour-body {
-    display: flex;
-    min-height: 420px;
-    position: relative;
-  }
-
-  /* Sidebar */
-  .tour-sidebar {
-    width: 180px;
-    background: linear-gradient(180deg, #0f1729, #131b2e);
-    padding: 20px 0;
-    flex-shrink: 0;
-    border-right: 1px solid rgba(255,255,255,0.06);
-    transition: opacity 0.4s ease;
-    position: relative;
-    z-index: 5;
-  }
-  .tour-sidebar-brand {
-    padding: 0 16px 16px;
-    font-family: 'Fraunces', serif;
-    font-size: 14px; font-weight: 700; color: #e2e8f0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    margin-bottom: 12px;
-  }
-  .tour-sidebar-brand em { color: #3b82f6; font-style: normal; }
-  .tour-nav-item {
-    padding: 9px 16px; font-size: 12px; color: #64748b;
-    display: flex; align-items: center; gap: 10px;
-    cursor: default; border-left: 3px solid transparent;
-    transition: all 0.3s ease;
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-  .tour-nav-item.show {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  .tour-nav-item.active {
-    background: rgba(59,130,246,0.1); color: #93c5fd;
-    border-left-color: #3b82f6; font-weight: 600;
-    box-shadow: inset 0 0 20px rgba(59,130,246,0.05);
-  }
-  .tour-nav-icon { width: 16px; text-align: center; font-size: 12px; }
-
-  /* Content area */
-  .tour-content {
-    flex: 1;
-    background: #111827;
-    padding: 28px 32px;
-    position: relative;
-    overflow: hidden;
-    min-height: 420px;
-  }
-
-  /* Animated cursor */
-  .tour-cursor {
-    position: absolute;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(59,130,246,0.9), rgba(59,130,246,0.2));
-    box-shadow: 0 0 20px rgba(59,130,246,0.4), 0 0 40px rgba(59,130,246,0.15);
-    pointer-events: none;
-    z-index: 40;
-    opacity: 0;
-    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .tour-cursor.visible { opacity: 1; }
-  .tour-cursor::after {
-    content: '';
-    position: absolute;
-    top: -4px; left: -4px;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    border: 1px solid rgba(59,130,246,0.3);
-    animation: cursorPing 2s ease-in-out infinite;
-  }
-  @keyframes cursorPing {
-    0%, 100% { transform: scale(1); opacity: 0.6; }
-    50% { transform: scale(1.5); opacity: 0; }
-  }
-
-  /* Step panels */
-  .tour-panel {
-    position: absolute;
-    top: 28px; left: 32px; right: 32px; bottom: 28px;
-    opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    pointer-events: none;
-  }
-  .tour-panel.active {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-    position: relative;
-    top: auto; left: auto; right: auto; bottom: auto;
-  }
-
-  /* Form fields (Step 1) */
-  .tf-group { margin-bottom: 14px; }
-  .tf-label {
-    font-size: 11px; color: #64748b; margin-bottom: 5px;
-    text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500;
-  }
-  .tf-input {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px; padding: 10px 14px;
-    font-size: 14px; color: #e2e8f0;
-    min-height: 40px; width: 100%; display: block;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .tf-input.glow {
-    border-color: rgba(59,130,246,0.5);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 0 20px rgba(59,130,246,0.08);
-  }
-  .tf-input.done {
-    border-color: rgba(255,255,255,0.12);
-    box-shadow: none;
-  }
-  .tf-input.auto {
-    border-color: rgba(16,185,129,0.5);
-    background: rgba(16,185,129,0.06);
-    box-shadow: 0 0 0 3px rgba(16,185,129,0.12), 0 0 20px rgba(16,185,129,0.08);
-    animation: autoFillPulse 0.6s ease;
-  }
-  @keyframes autoFillPulse {
-    0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
-    50% { box-shadow: 0 0 20px 8px rgba(16,185,129,0.2); }
-    100% { box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
-  }
-  .tf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .tf-auto-tag {
-    font-size: 10px; color: #10b981; margin-top: 4px; font-weight: 500;
-    display: flex; align-items: center; gap: 4px;
-    opacity: 0; transition: opacity 0.3s ease;
-  }
-  .tf-auto-tag.show { opacity: 1; }
-  .tf-dropdown {
-    position: relative;
-  }
-  .tf-dropdown-menu {
-    position: absolute; top: 100%; left: 0; right: 0;
-    background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px; margin-top: 4px; overflow: hidden;
-    opacity: 0; transform: translateY(-4px) scaleY(0.95);
-    transform-origin: top;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 30;
-    pointer-events: none;
-  }
-  .tf-dropdown-menu.open {
-    opacity: 1; transform: translateY(0) scaleY(1);
-    pointer-events: auto;
-  }
-  .tf-dropdown-item {
-    padding: 8px 14px; font-size: 13px; color: #94a3b8;
-    transition: background 0.15s;
-  }
-  .tf-dropdown-item.highlight {
-    background: rgba(59,130,246,0.15); color: #93c5fd;
-  }
-
-  /* Save button */
-  .tf-save-btn {
-    background: #2563eb; color: #fff; border: none; border-radius: 8px;
-    padding: 10px 24px; font-size: 13px; font-weight: 600;
-    display: inline-flex; align-items: center; gap: 6px;
-    cursor: default; font-family: 'DM Sans', sans-serif;
-    position: relative; overflow: hidden;
-    margin-top: 8px;
-    transition: all 0.2s ease;
-  }
-  .tf-save-btn .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.3);
-    transform: scale(0);
-    animation: ripple 0.6s ease-out;
-  }
-  @keyframes ripple {
-    to { transform: scale(4); opacity: 0; }
-  }
-
-  /* Toast notification */
-  .tour-toast {
-    position: absolute; top: 16px; right: 16px;
-    background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
-    backdrop-filter: blur(12px);
-    border-radius: 10px; padding: 12px 18px;
-    font-size: 13px; color: #10b981; font-weight: 600;
-    display: flex; align-items: center; gap: 8px;
-    z-index: 35;
-    opacity: 0; transform: translateX(20px);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .tour-toast.show {
-    opacity: 1; transform: translateX(0);
-  }
-
-  /* Dashboard cards (Step 2) */
-  .td-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-    margin-bottom: 20px;
-  }
-  .td-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 10px; padding: 16px 14px; text-align: center;
-    opacity: 0; transform: translateY(12px);
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .td-card.show {
-    opacity: 1; transform: translateY(0);
-  }
-  .td-card.glow-green { box-shadow: 0 0 20px rgba(16,185,129,0.1), inset 0 0 20px rgba(16,185,129,0.03); border-color: rgba(16,185,129,0.15); }
-  .td-card.glow-red { box-shadow: 0 0 20px rgba(239,68,68,0.08), inset 0 0 20px rgba(239,68,68,0.02); border-color: rgba(239,68,68,0.12); }
-  .td-card.glow-amber { box-shadow: 0 0 20px rgba(234,179,8,0.1), inset 0 0 20px rgba(234,179,8,0.03); border-color: rgba(234,179,8,0.15); }
-  .td-label { font-size: 11px; color: #64748b; margin-bottom: 6px; }
-  .td-value {
-    font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700;
-  }
-  .td-value.green { color: #10b981; }
-  .td-value.red { color: #ef4444; }
-  .td-value.bright-green { color: #34d399; }
-  .td-value.amber { color: #f59e0b; }
-
-  /* Mini trend chart */
-  .td-chart {
-    margin: 16px 0; height: 80px; position: relative;
-    opacity: 0; transition: opacity 0.6s ease;
-  }
-  .td-chart.show { opacity: 1; }
-  .td-chart svg { width: 100%; height: 100%; }
-  .td-chart-line {
-    fill: none; stroke: #3b82f6; stroke-width: 2.5;
-    stroke-dasharray: 500; stroke-dashoffset: 500;
-    transition: stroke-dashoffset 2s ease;
-    stroke-linecap: round;
-  }
-  .td-chart.show .td-chart-line { stroke-dashoffset: 0; }
-  .td-chart-fill {
-    opacity: 0; transition: opacity 1.5s ease 0.5s;
-  }
-  .td-chart.show .td-chart-fill { opacity: 0.15; }
-
-  /* Warning badge */
-  .td-warning {
-    background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.2);
-    border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #fbbf24;
-    display: flex; align-items: center; gap: 8px; font-weight: 500;
-    opacity: 0; transform: translateY(8px);
-    transition: all 0.4s ease;
-  }
-  .td-warning.show { opacity: 1; transform: translateY(0); }
-  .td-warning-dot {
-    width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;
-    animation: pulse 1.5s infinite;
-  }
-
-  /* ELSTER rows (Step 3) */
-  .te-rows { margin-bottom: 16px; }
-  .te-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    opacity: 0;
-    transform: translateX(-12px) perspective(400px) rotateY(2deg);
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .te-row.show {
-    opacity: 1;
-    transform: translateX(0) perspective(400px) rotateY(0);
-  }
-  .te-row.highlight {
-    border: 1px solid rgba(59,130,246,0.25);
-    border-radius: 8px;
-    padding: 12px;
-    background: rgba(59,130,246,0.04);
-    box-shadow: 0 0 20px rgba(59,130,246,0.08);
-    animation: highlightGlow 2s ease-in-out infinite;
-  }
-  @keyframes highlightGlow {
-    0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.08); }
-    50% { box-shadow: 0 0 30px rgba(59,130,246,0.15); }
-  }
-  .te-kz {
-    font-size: 12px; color: #64748b; font-weight: 600;
-    min-width: 50px; font-family: 'DM Sans', monospace;
-  }
-  .te-desc { font-size: 13px; color: #94a3b8; flex: 1; }
-  .te-val {
-    font-size: 14px; font-weight: 700; color: #e2e8f0;
-    font-family: 'DM Sans', monospace; min-width: 100px; text-align: right;
-  }
-  .te-val.green { color: #10b981; }
-  .te-bar-wrap {
-    width: 80px; height: 6px; background: rgba(255,255,255,0.06);
-    border-radius: 3px; overflow: hidden;
-  }
-  .te-bar {
-    height: 100%; border-radius: 3px;
-    width: 0; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .te-bar.blue { background: #3b82f6; }
-  .te-bar.green { background: #10b981; }
-  .te-row.show .te-bar { width: var(--bar-w, 50%); }
-
-  /* Export buttons */
-  .te-export-btns {
-    display: flex; gap: 8px; margin-top: 12px;
-  }
-  .te-export-btn {
-    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 6px; padding: 8px 18px; font-size: 12px; font-weight: 600;
-    color: #94a3b8; cursor: default; font-family: 'DM Sans', sans-serif;
-    opacity: 0; transform: scale(0.8);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .te-export-btn.show {
-    opacity: 1; transform: scale(1);
-  }
-
-  /* Checklist (Step 4) */
-  .tc-list { list-style: none; margin-bottom: 20px; }
-  .tc-item {
-    padding: 12px 0; font-size: 14px; color: #cbd5e1;
-    display: flex; align-items: center; gap: 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    opacity: 0; transform: translateX(-10px);
-    transition: all 0.4s ease;
-  }
-  .tc-item.show { opacity: 1; transform: translateX(0); }
-  .tc-check {
-    width: 24px; height: 24px; border-radius: 50%;
-    background: rgba(16,185,129,0.12);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .tc-check svg {
-    width: 14px; height: 14px;
-    stroke: #10b981; stroke-width: 3; fill: none;
-    stroke-dasharray: 24; stroke-dashoffset: 24;
-    stroke-linecap: round; stroke-linejoin: round;
-    transition: stroke-dashoffset 0.5s ease;
-  }
-  .tc-item.show .tc-check svg { stroke-dashoffset: 0; }
-
-  /* DATEV export button */
-  .tc-export-btn {
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
-    color: #fff; border: none; border-radius: 10px;
-    padding: 14px 32px; font-size: 15px; font-weight: 600;
-    display: inline-flex; align-items: center; gap: 10px;
-    cursor: default; font-family: 'DM Sans', sans-serif;
-    position: relative; overflow: hidden;
-    opacity: 0; transform: scale(0.9);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    animation: none;
-    margin-bottom: 16px;
-  }
-  .tc-export-btn.show { opacity: 1; transform: scale(1); }
-  .tc-export-btn.pulse-invite {
-    animation: invitePulse 1.5s ease-in-out infinite;
-  }
-  @keyframes invitePulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.4); }
-    50% { box-shadow: 0 0 0 8px rgba(37,99,235,0); }
-  }
-  .tc-export-btn .ripple {
-    position: absolute; border-radius: 50%;
-    background: rgba(255,255,255,0.25);
-    transform: scale(0);
-    animation: ripple 0.6s ease-out;
-  }
-
-  /* Progress bar inside export btn */
-  .tc-progress-bar {
-    position: absolute; bottom: 0; left: 0; height: 3px;
-    background: rgba(255,255,255,0.4); border-radius: 0 0 10px 10px;
-    width: 0; transition: width 1.2s ease;
-  }
-  .tc-export-btn.loading .tc-progress-bar { width: 100%; }
-
-  /* Export result */
-  .tc-result {
-    background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
-    border-radius: 10px; padding: 14px 20px; font-size: 14px;
-    color: #10b981; font-weight: 600;
-    display: flex; align-items: center; gap: 10px;
-    opacity: 0; transform: translateY(8px);
-    transition: all 0.4s ease;
-  }
-  .tc-result.show { opacity: 1; transform: translateY(0); }
-  .tc-result-icon {
-    animation: downloadBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes downloadBounce {
-    0% { transform: translateY(-8px); }
-    50% { transform: translateY(4px); }
-    100% { transform: translateY(0); }
-  }
-
-  /* Final CTA overlay */
-  .tc-final-cta {
-    text-align: center; margin-top: 24px;
-    opacity: 0; transform: translateY(12px);
-    transition: all 0.5s ease;
-  }
-  .tc-final-cta.show { opacity: 1; transform: translateY(0); }
-  .tc-final-cta h3 {
-    font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700;
-    color: #e2e8f0; margin-bottom: 16px;
-  }
-  .tc-final-cta a {
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
-    color: #fff; border: none; border-radius: 10px;
-    padding: 14px 32px; font-size: 15px; font-weight: 600;
-    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
-    transition: all 0.2s;
-  }
-  .tc-final-cta a:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,99,235,0.4); }
-
-  /* Panel title */
-  .tp-title {
-    font-size: 16px; font-weight: 700; color: #e2e8f0;
-    margin-bottom: 18px; font-family: 'DM Sans', sans-serif;
-  }
-
-  /* === NAVIGATION CONTROLS === */
-  .tour-nav-controls {
-    max-width: 960px; margin: 28px auto 0;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-  }
-  .tour-btn-back, .tour-btn-next {
-    background: none; border: 1px solid #d1d5db; color: #6b7280;
-    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: all 0.25s ease;
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .tour-btn-back:hover { border-color: #9ca3af; color: #374151; background: #f9fafb; }
-  .tour-btn-next {
-    background: var(--blue); border-color: var(--blue); color: #fff;
-  }
-  .tour-btn-next:hover { background: #1d4ed8; }
-  .tour-btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
-  .tour-btn-back.hidden { visibility: hidden; }
-  .tour-btn-next .arrow {
-    display: inline-block;
-    transition: transform 0.2s ease;
-  }
-  .tour-btn-next:hover:not(:disabled) .arrow { transform: translateX(3px); }
-
-  /* Dots + connecting line */
-  .tour-dots-wrap {
-    display: flex; align-items: center; gap: 0; position: relative;
-  }
-  .tour-dot-line {
-    width: 32px; height: 2px; background: #d1d5db;
-    position: relative; overflow: hidden;
-  }
-  .tour-dot-fill {
-    position: absolute; top: 0; left: 0; height: 100%;
-    background: var(--blue);
-    width: 0; transition: width 0.5s ease;
-  }
-  .tour-dot-btn {
-    width: 12px; height: 12px; border-radius: 50%;
-    background: #d1d5db; border: none; padding: 0;
-    cursor: pointer; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-  }
-  .tour-dot-btn.active {
-    width: 16px; height: 16px;
-    background: var(--blue);
-    box-shadow: 0 0 12px rgba(37,99,235,0.4);
-  }
-  .tour-dot-btn.done { background: var(--blue); }
-  .tour-dot-btn:hover:not(.active) { background: #9ca3af; }
-
-  /* === RESPONSIVE === */
-  @media (max-width: 768px) {
-    nav { padding: 16px 20px; }
-    .nav-links { display: none; }
-    .hero { padding: 50px 20px 40px; }
-    .hero-actions { flex-direction: column; align-items: center; }
-    .trust-bar { gap: 20px; }
-    .problems, .solution, .features, .tour-section, .pricing, .cta-section { padding-left: 20px; padding-right: 20px; }
-    .feature-grid { grid-template-columns: 1fr; }
-    .pricing-grid { grid-template-columns: 1fr; max-width: 360px; }
-    .problem-grid { grid-template-columns: 1fr; }
-    .solution-box { padding: 40px 24px; }
-    .cta-box { padding: 40px 24px; }
-    footer { flex-direction: column; text-align: center; }
-    .footer-right { justify-content: center; }
-
-    .tour-sidebar { display: none; }
-    .tour-device { border-radius: 12px; }
-    .tour-device-inner { border-radius: 10px; }
-    .tour-content { padding: 20px 16px; min-height: 380px; }
-    .td-grid { grid-template-columns: repeat(2, 1fr); }
-    .tf-row { grid-template-columns: 1fr; }
-    .tour-nav-controls { flex-wrap: wrap; gap: 12px; justify-content: center; }
-    .tour-btn-back.hidden { display: none; }
-    .te-bar-wrap { display: none; }
-    .td-chart { display: none; }
-  }
 </style>
 </head>
 <body>
 
 <!-- Navigation -->
 <nav>
-  <a href="#" class="nav-logo">Steuer<span>base</span></a>
+  <a href="#" class="nav-logo">Steuer<span>Cockpit</span></a>
   <div class="nav-links">
     <a href="#funktionen">Funktionen</a>
     <a href="#demo">Demo</a>
     <a href="#preise">Preise</a>
+    <a href="https://konto-blick.vercel.app" class="nav-login">Login</a>
     <a href="#kontakt" class="nav-cta">Kostenlos testen</a>
   </div>
   <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').style.display=document.querySelector('.nav-links').style.display==='flex'?'none':'flex'">&#9776;</button>
@@ -1225,9 +858,9 @@
 
 <!-- Hero -->
 <section class="hero">
-  <div class="hero-badge">Nur noch 5 Plätze in Hannover</div>
-  <h1>5 Stunden weniger Beleg-Chaos. <em>Jede Woche.</em></h1>
-  <p>Ihre Mandanten erfassen Belege selbst im Steuerbase. Sie bekommen fertige DATEV-Buchungsstapel. Keine Rückfragen, keine fehlenden Belege.</p>
+  <div class="hero-badge">Löst das Personalproblem in Kanzleien</div>
+  <h1>Kostet weniger als ein <em>Bewerbungsgespräch.</em></h1>
+  <p>Ihre Fachangestellten schaffen aktuell 50 Mandanten. Mit dem Steuerbase werden es 100–150 – ohne Neueinstellung. Eine Kanzlei mit 200 Mandanten spart 4.000€ im Monat.</p>
   <div class="hero-actions">
     <a href="#kontakt" class="btn-primary">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -1240,7 +873,7 @@
   </div>
   <div class="guarantee-badge">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    90-Tage-Garantie: Spart es nicht 5h/Woche, zahlen Sie nichts.
+    90-Tage-Garantie: Macht es Ihr Team nicht produktiver, zahlen Sie nichts.
   </div>
   <div class="trust-bar">
     <div class="trust-item"><div class="trust-dot"></div> DSGVO-konform</div>
@@ -1253,42 +886,42 @@
 <!-- Problems -->
 <section class="problems reveal">
   <div class="section-label">Das Problem</div>
-  <h2 class="section-title">Was Kanzleien jeden Tag kostet – Zeit, Nerven und Geld</h2>
+  <h2 class="section-title">Das Personalproblem: Zu viele Mandanten, zu wenig Fachkräfte</h2>
   <div class="problem-grid">
     <div class="problem-card stagger">
-      <div class="problem-icon">📄</div>
-      <h3>Belege kommen zu spät</h3>
-      <p>Mandanten liefern Unterlagen unvollständig oder erst kurz vor der Frist. Ihre Mitarbeiter rennen hinterher.</p>
+      <div class="problem-icon">👩‍💼</div>
+      <h3>Fachkräftemangel</h3>
+      <p>Fachangestellte sind kaum zu finden. Und wenn, dauert die Einarbeitung Monate – bei 3.500€+ Gehalt vom ersten Tag.</p>
     </div>
     <div class="problem-card stagger">
       <div class="problem-icon">📞</div>
-      <h3>Ständige Rückfragen</h3>
-      <p>„Was ist mein Gewinn?" „Muss ich USt zahlen?" – Fragen, die Ihre Fachkräfte aufhalten.</p>
+      <h3>Kapazitätsgrenze erreicht</h3>
+      <p>50 Mandanten pro Fachangestellte – mehr geht nicht, wenn Belege manuell nachgefordert und sortiert werden müssen.</p>
     </div>
     <div class="problem-card stagger">
       <div class="problem-icon">⏱️</div>
-      <h3>Stunden für Sortierung</h3>
-      <p>Steuerfachangestellte verbringen wertvolle Zeit damit, Belege zu sortieren und nachzufordern.</p>
+      <h3>Stunden für Routine</h3>
+      <p>Ihre teuren Fachkräfte verbringen ihre Zeit mit Belege nachfordern, sortieren und Rückfragen – statt mit echter Steuerarbeit.</p>
     </div>
     <div class="problem-card stagger">
-      <div class="problem-icon">🔍</div>
-      <h3>Null Transparenz</h3>
-      <p>Mandanten haben keinen Einblick in ihre eigenen Finanzen – bis der Jahresabschluss kommt.</p>
+      <div class="problem-icon">💸</div>
+      <h3>Wachstum gebremst</h3>
+      <p>Neue Mandanten annehmen? Geht nicht ohne Personal. Und jede Neueinstellung kostet 3.500–4.500€/Monat.</p>
     </div>
   </div>
 
   <!-- Kosten-Vergleich mit animierten Zahlen -->
   <div class="cost-compare">
     <div class="cost-box bad">
-      <div class="cost-label">Versteckte Kosten / Monat</div>
-      <span class="cost-number count-up" data-target="750" data-suffix="€">0€</span>
-      <div class="cost-sub">Personalkosten für Beleg-Chaos</div>
+      <div class="cost-label">Neue Fachangestellte / Monat</div>
+      <span class="cost-number count-up" data-target="3500" data-suffix="€">0€</span>
+      <div class="cost-sub">Gehalt + Nebenkosten + Einarbeitung</div>
     </div>
     <div class="cost-arrow">→</div>
     <div class="cost-box good">
       <div class="cost-label">Steuerbase / Monat</div>
-      <span class="cost-number green count-up" data-target="210" data-suffix="€">0€</span>
-      <div class="cost-sub">bei 30 Mandanten (Gründer-Preis)</div>
+      <span class="cost-number green count-up" data-target="745" data-suffix="€">0€</span>
+      <div class="cost-sub">50 Mandanten × 14,90€ flat</div>
     </div>
   </div>
 </section>
@@ -1296,9 +929,9 @@
 <!-- Solution -->
 <section class="solution reveal">
   <div class="solution-box">
-    <h2>Mandanten werden selbstständig. Sie bekommen Ergebnisse.</h2>
+    <h2>Ihre Fachangestellten werden 2-3x produktiver. Sofort.</h2>
     <p>
-      Ihre Mandanten nutzen das Steuerbase als <strong>einfaches Online-Portal</strong>: Belege erfassen, Bankbuchungen zuordnen, Zahlen verstehen. Am Ende exportieren sie alles als <strong>fertigen DATEV-Buchungsstapel</strong>. Kein Schuhkarton. Keine fehlenden Belege. Keine Rückfragen.
+      Mandanten erfassen Belege selbst im <strong>einfachen Online-Portal</strong>: Betrag, Kategorie, fertig. Bankbuchungen werden automatisch zugeordnet. Am Ende kommt ein <strong>fertiger DATEV-Buchungsstapel</strong> bei Ihnen an. Ihre Fachangestellte spart Stunden – und schafft statt 50 plötzlich <strong>100–150 Mandanten</strong>.
     </p>
   </div>
 </section>
@@ -1341,272 +974,183 @@
   </div>
 </section>
 
-<!-- Premium Guided Tour -->
-<section class="tour-section reveal" id="app-preview">
-  <div class="section-label">So funktioniert es</div>
-  <h2 class="section-title">In 4 Schritten vom Beleg zum DATEV-Export</h2>
+<!-- Interactive Demo -->
+<section class="video-section reveal" id="demo">
+  <div class="section-label">Demo</div>
+  <h2 class="section-title">Sehen Sie selbst – in 2 Minuten</h2>
 
-  <!-- Floating step label -->
-  <div class="tour-step-label" id="tourLabel">
-    <span>Schritt 1 von 4</span> &middot; Belegerfassung
-  </div>
+  <div class="demo-player" id="demoPlayer">
 
-  <!-- Device Frame -->
-  <div class="tour-device">
-    <div class="tour-device-inner">
-
-      <!-- Title bar -->
-      <div class="tour-titlebar">
-        <div class="tour-traffic-dot r"></div>
-        <div class="tour-traffic-dot y"></div>
-        <div class="tour-traffic-dot g"></div>
-        <span class="tour-titlebar-title">Steuerbase</span>
+    <!-- Startscreen -->
+    <div class="demo-start" id="demoStart" onclick="startDemo()">
+      <div class="play-btn">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><polygon points="8 5 19 12 8 19"/></svg>
       </div>
-
-      <!-- Body -->
-      <div class="tour-body">
-
-        <!-- Sidebar -->
-        <div class="tour-sidebar" id="tourSidebar">
-          <div class="tour-sidebar-brand">Steuer<em>base</em></div>
-          <!-- Mandant nav items -->
-          <div class="tour-nav-item show" data-view="mandant" id="tnOverview"><span class="tour-nav-icon">&#128202;</span> Überblick</div>
-          <div class="tour-nav-item show" data-view="mandant" id="tnDocs"><span class="tour-nav-icon">&#129534;</span> Dokumente</div>
-          <div class="tour-nav-item show" data-view="mandant" id="tnNumbers"><span class="tour-nav-icon">&#128200;</span> Meine Zahlen</div>
-          <div class="tour-nav-item show" data-view="mandant"><span class="tour-nav-icon">&#127970;</span> Steuerbüro</div>
-          <!-- STB nav items (hidden initially) -->
-          <div class="tour-nav-item" data-view="stb" id="tnCommand"><span class="tour-nav-icon">&#127919;</span> Kommandozentrale</div>
-          <div class="tour-nav-item" data-view="stb"><span class="tour-nav-icon">&#9888;&#65039;</span> Ausnahmen</div>
-          <div class="tour-nav-item" data-view="stb"><span class="tour-nav-icon">&#128203;</span> Monatsabschluss</div>
-          <div class="tour-nav-item" data-view="stb"><span class="tour-nav-icon">&#9881;&#65039;</span> Verwaltung</div>
-        </div>
-
-        <!-- Content -->
-        <div class="tour-content" id="tourContent">
-
-          <!-- Animated cursor -->
-          <div class="tour-cursor" id="tourCursor"></div>
-
-          <!-- STEP 1: Beleg erfassen -->
-          <div class="tour-panel active" id="tPanel1">
-            <div class="tp-title">Neuen Beleg erfassen</div>
-
-            <div class="tf-group">
-              <div class="tf-label">Rechnungsnummer</div>
-              <div class="tf-input" id="tf1"></div>
-            </div>
-            <div class="tf-row">
-              <div class="tf-group">
-                <div class="tf-label">Betrag (brutto)</div>
-                <div class="tf-input" id="tf2"></div>
-              </div>
-              <div class="tf-group tf-dropdown">
-                <div class="tf-label">Kategorie</div>
-                <div class="tf-input" id="tf3"></div>
-                <div class="tf-dropdown-menu" id="tfDropdown">
-                  <div class="tf-dropdown-item">Telefon &amp; Internet</div>
-                  <div class="tf-dropdown-item highlight">Bürobedarf</div>
-                  <div class="tf-dropdown-item">Reisekosten</div>
-                  <div class="tf-dropdown-item">Software &amp; Lizenzen</div>
-                </div>
-              </div>
-            </div>
-            <div class="tf-group">
-              <div class="tf-label">SKR03-Konto</div>
-              <div class="tf-input" id="tf4"></div>
-              <div class="tf-auto-tag" id="tfAutoTag">&#10003; Automatisch zugeordnet</div>
-            </div>
-            <button class="tf-save-btn" id="tfSaveBtn">&#128190; Beleg speichern</button>
-
-            <!-- Toast -->
-            <div class="tour-toast" id="tfToast">&#10003; Beleg gespeichert</div>
-          </div>
-
-          <!-- STEP 2: Dashboard -->
-          <div class="tour-panel" id="tPanel2">
-            <div class="tp-title">Überblick &ndash; März 2026</div>
-
-            <div class="td-grid">
-              <div class="td-card" id="tdCard1">
-                <div class="td-label">Einnahmen</div>
-                <div class="td-value green" id="tdVal1">0 &euro;</div>
-              </div>
-              <div class="td-card" id="tdCard2">
-                <div class="td-label">Ausgaben</div>
-                <div class="td-value red" id="tdVal2">0 &euro;</div>
-              </div>
-              <div class="td-card" id="tdCard3">
-                <div class="td-label">Gewinn</div>
-                <div class="td-value bright-green" id="tdVal3">0 &euro;</div>
-              </div>
-              <div class="td-card" id="tdCard4">
-                <div class="td-label">USt-Zahllast</div>
-                <div class="td-value amber" id="tdVal4">0 &euro;</div>
-              </div>
-            </div>
-
-            <!-- Mini chart -->
-            <div class="td-chart" id="tdChart">
-              <svg viewBox="0 0 400 80" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
-                  </linearGradient>
-                </defs>
-                <path class="td-chart-fill" d="M0,70 L50,55 L100,60 L150,40 L200,45 L250,30 L300,25 L350,15 L400,10 L400,80 L0,80 Z" fill="url(#chartGrad)"/>
-                <path class="td-chart-line" d="M0,70 L50,55 L100,60 L150,40 L200,45 L250,30 L300,25 L350,15 L400,10"/>
-              </svg>
-            </div>
-
-            <div class="td-warning" id="tdWarning">
-              <div class="td-warning-dot"></div>
-              UStVA fällig in 8 Tagen
-            </div>
-          </div>
-
-          <!-- STEP 3: UStVA -->
-          <div class="tour-panel" id="tPanel3">
-            <div class="tp-title">UStVA &ndash; Q1 2026</div>
-
-            <div class="te-rows">
-              <div class="te-row" id="teRow1">
-                <div class="te-kz">Kz. 81</div>
-                <div class="te-desc">Umsätze 19%</div>
-                <div class="te-bar-wrap"><div class="te-bar blue" style="--bar-w: 85%"></div></div>
-                <div class="te-val">9.840,00 &euro;</div>
-              </div>
-              <div class="te-row" id="teRow2">
-                <div class="te-kz">Kz. 86</div>
-                <div class="te-desc">Umsätze 7%</div>
-                <div class="te-bar-wrap"><div class="te-bar blue" style="--bar-w: 45%"></div></div>
-                <div class="te-val">2.610,00 &euro;</div>
-              </div>
-              <div class="te-row" id="teRow3">
-                <div class="te-kz">Kz. 66</div>
-                <div class="te-desc">Vorsteuer</div>
-                <div class="te-bar-wrap"><div class="te-bar green" style="--bar-w: 30%"></div></div>
-                <div class="te-val green">-1.050,35 &euro;</div>
-              </div>
-              <div class="te-row highlight" id="teRow4">
-                <div class="te-kz" style="color:#93c5fd;font-weight:700">Kz. 83</div>
-                <div class="te-desc" style="color:#e2e8f0;font-weight:600">Zahllast</div>
-                <div class="te-bar-wrap"><div class="te-bar blue" style="--bar-w: 55%"></div></div>
-                <div class="te-val" style="font-size:16px">1.562,85 &euro;</div>
-              </div>
-            </div>
-
-            <div class="te-export-btns">
-              <button class="te-export-btn" id="teBtn1">PDF</button>
-              <button class="te-export-btn" id="teBtn2">XML</button>
-              <button class="te-export-btn" id="teBtn3">CSV</button>
-            </div>
-          </div>
-
-          <!-- STEP 4: DATEV Export -->
-          <div class="tour-panel" id="tPanel4">
-            <div class="tp-title">DATEV-Export &ndash; März 2026</div>
-
-            <ul class="tc-list">
-              <li class="tc-item" id="tcItem1">
-                <span class="tc-check"><svg viewBox="0 0 14 14"><polyline points="2,7 5.5,10.5 12,3.5"/></svg></span>
-                Alle Belege zugeordnet
-              </li>
-              <li class="tc-item" id="tcItem2">
-                <span class="tc-check"><svg viewBox="0 0 14 14"><polyline points="2,7 5.5,10.5 12,3.5"/></svg></span>
-                Keine offenen Flags
-              </li>
-              <li class="tc-item" id="tcItem3">
-                <span class="tc-check"><svg viewBox="0 0 14 14"><polyline points="2,7 5.5,10.5 12,3.5"/></svg></span>
-                Belegnummern fortlaufend
-              </li>
-            </ul>
-
-            <button class="tc-export-btn" id="tcExportBtn">
-              &#128228; DATEV CSV exportieren
-              <div class="tc-progress-bar" id="tcProgressBar"></div>
-            </button>
-
-            <div class="tc-result" id="tcResult">
-              <span class="tc-result-icon">&#128229;</span>
-              23 Belege als DATEV-CSV exportiert
-            </div>
-
-            <div class="tc-final-cta" id="tcFinalCta">
-              <h3>So einfach wird Ihr Kanzlei-Alltag.</h3>
-              <a href="#kontakt">90 Tage kostenlos testen <span>&rarr;</span></a>
-            </div>
-          </div>
-
-        </div><!-- /tour-content -->
-      </div><!-- /tour-body -->
-    </div><!-- /tour-device-inner -->
-  </div><!-- /tour-device -->
-
-  <!-- Navigation Controls -->
-  <div class="tour-nav-controls">
-    <button class="tour-btn-back hidden" id="tourBtnBack">&#8592; Zurück</button>
-
-    <div class="tour-dots-wrap">
-      <button class="tour-dot-btn active" data-step="0"></button>
-      <div class="tour-dot-line"><div class="tour-dot-fill" id="dotFill1"></div></div>
-      <button class="tour-dot-btn" data-step="1"></button>
-      <div class="tour-dot-line"><div class="tour-dot-fill" id="dotFill2"></div></div>
-      <button class="tour-dot-btn" data-step="2"></button>
-      <div class="tour-dot-line"><div class="tour-dot-fill" id="dotFill3"></div></div>
-      <button class="tour-dot-btn" data-step="3"></button>
+      <div class="demo-start-text">Demo starten</div>
+      <div class="demo-start-sub">Interaktive Präsentation · ca. 2 Minuten</div>
     </div>
 
-    <button class="tour-btn-next" id="tourBtnNext" disabled>Weiter <span class="arrow">&rarr;</span></button>
+    <!-- Slides -->
+    <div class="demo-slides" id="demoSlides">
+
+      <!-- Slide 1: Problem -->
+      <div class="demo-slide" data-voice="Kennen Sie das? Montag, 9 Uhr. Ihre Steuerfachangestellte ruft den dritten Mandanten an, weil Belege fehlen. Freitagnachmittag dasselbe. Jede Woche gehen so 5 bis 10 Stunden verloren – nur fürs Hinterherrennen.">
+        <div class="slide-icon">📞</div>
+        <div class="slide-title">Das kennt jede Kanzlei</div>
+        <div class="slide-text">Montag, 9 Uhr. Ihre Fachangestellte ruft den dritten Mandanten an – <span class="slide-highlight">schon wieder fehlen Belege.</span></div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">Beleg nachfordern: Müller GmbH</span><span class="value red">offen</span></div>
+          <div class="mock-row"><span class="label">Beleg nachfordern: Schmidt Consulting</span><span class="value red">offen</span></div>
+          <div class="mock-row"><span class="label">Rückruf: Meier Fotografie</span><span class="value red">3. Versuch</span></div>
+          <div class="mock-row"><span class="label">Zeitaufwand diese Woche</span><span class="value red">7,5 Stunden</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Kosten -->
+      <div class="demo-slide" data-voice="Was kostet es, das Problem mit Personal zu lösen? Eine neue Fachangestellte: 3.500 Euro im Monat. Plus Einarbeitung, Krankheit, Urlaub. Und dann schafft sie auch nur 50 Mandanten. Es gibt einen besseren Weg.">
+        <div class="slide-icon">💸</div>
+        <div class="slide-title">Eine Neueinstellung kostet Sie</div>
+        <div class="slide-number red demo-count" data-target="3500" data-suffix=" €/Monat">0 €/Monat</div>
+        <div class="slide-text">Gehalt + Nebenkosten für eine Fachangestellte. Dazu Monate Einarbeitung. <span class="slide-highlight">Und der Fachkräftemangel macht es noch schwerer.</span></div>
+      </div>
+
+      <!-- Slide 3: Lösung Intro -->
+      <div class="demo-slide" data-voice="Jetzt stellen Sie sich vor: Ihre Mandanten öffnen morgens ihr Steuerbase, tragen ihren Beleg ein – Betrag, Kategorie, fertig. 30 Sekunden. Kein Anruf nötig. Kein Schuhkarton.">
+        <div class="slide-icon">💡</div>
+        <div class="slide-title">Was wäre, wenn Ihre Mandanten <span class="slide-highlight">selbst</span> erfassen?</div>
+        <div class="slide-text">Ein einfaches Online-Portal. Ihr Mandant trägt den Beleg ein – Betrag, Kategorie, fertig. <span class="slide-highlight">30 Sekunden statt 30 Minuten Telefon.</span></div>
+      </div>
+
+      <!-- Slide 4: Dashboard -->
+      <div class="demo-slide" data-voice="So sieht das Dashboard Ihres Mandanten aus. Einnahmen, Ausgaben, Gewinn – alles auf einen Blick. Und die USt-Zahllast berechnet sich automatisch. Das bedeutet: Ihr Mandant kennt seine Zahlen – und ruft Sie nicht mehr deswegen an.">
+        <div class="slide-icon">📊</div>
+        <div class="slide-title">Das Mandanten-Dashboard</div>
+        <div class="slide-text">Ihr Mandant sieht <span class="slide-highlight">seine Zahlen in Echtzeit</span> – keine Rückfragen mehr.</div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">Einnahmen (März)</span><span class="value green">12.450 €</span></div>
+          <div class="mock-row"><span class="label">Ausgaben (März)</span><span class="value red">4.230 €</span></div>
+          <div class="mock-row"><span class="label">Gewinn</span><span class="value green">8.220 €</span></div>
+          <div class="mock-row"><span class="label">USt-Zahllast Q1</span><span class="value">1.562,85 €</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 5: Belegerfassung -->
+      <div class="demo-slide" data-voice="Die Belegerfassung ist absichtlich simpel gehalten. Ihr Mandant gibt den Betrag ein, wählt die Kategorie – und das System ordnet automatisch das richtige SKR03-Konto zu. Keine Buchhaltungskenntnisse nötig.">
+        <div class="slide-icon">🧾</div>
+        <div class="slide-title">Belegerfassung – so einfach wie eine SMS</div>
+        <div class="slide-text">Betrag eingeben, Kategorie wählen – <span class="slide-highlight">SKR03-Konto wird automatisch zugeordnet.</span></div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">Beleg</span><span class="value">Büromaterial Amazon</span></div>
+          <div class="mock-row"><span class="label">Betrag</span><span class="value">84,90 € brutto</span></div>
+          <div class="mock-row"><span class="label">Kategorie</span><span class="value">Bürobedarf</span></div>
+          <div class="mock-row"><span class="label">SKR03-Konto</span><span class="value green">4930 – automatisch</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 6: UStVA -->
+      <div class="demo-slide" data-voice="Die Umsatzsteuer-Voranmeldung? Ein Klick. Alle ELSTER-Kennzahlen werden automatisch berechnet. Export als PDF oder XML – fertig für die Abgabe. Keine manuelle Berechnung mehr.">
+        <div class="slide-icon">📋</div>
+        <div class="slide-title">UStVA auf Knopfdruck</div>
+        <div class="slide-text">Alle ELSTER-Kennzahlen automatisch. <span class="slide-highlight">Export als PDF, XML oder CSV.</span></div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">KZ 81 – Umsätze 19%</span><span class="value">9.840,00 €</span></div>
+          <div class="mock-row"><span class="label">KZ 86 – Umsätze 7%</span><span class="value">2.610,00 €</span></div>
+          <div class="mock-row"><span class="label">KZ 66 – Vorsteuer</span><span class="value green">-1.050,35 €</span></div>
+          <div class="mock-row"><span class="label">KZ 83 – Zahllast</span><span class="value">1.562,85 €</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 7: DATEV Export -->
+      <div class="demo-slide" data-voice="Und jetzt das Wichtigste für Sie: Am Ende klicken Sie auf DATEV-Export – und bekommen einen fertigen Buchungsstapel. Den importieren Sie in DATEV und fertig. Ihre Arbeitsweise ändert sich nicht. Nur die Qualität der Daten.">
+        <div class="slide-icon">📤</div>
+        <div class="slide-title">DATEV-Export: 4 Klicks, fertig</div>
+        <div class="slide-text">Fertiger Buchungsstapel für Ihre Kanzlei-Software. <span class="slide-highlight">Ihre Arbeitsweise ändert sich nicht.</span></div>
+        <div class="slide-mock">
+          <div class="mock-row"><span class="label">Schritt 1</span><span class="value green">Zeitraum wählen ✓</span></div>
+          <div class="mock-row"><span class="label">Schritt 2</span><span class="value green">Buchungen prüfen ✓</span></div>
+          <div class="mock-row"><span class="label">Schritt 3</span><span class="value green">Format: DATEV-CSV ✓</span></div>
+          <div class="mock-row"><span class="label">Schritt 4</span><span class="value green">Download starten ✓</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 8: Ergebnis -->
+      <div class="demo-slide" data-voice="Das Ergebnis? Eine Kanzlei mit 200 Mandanten spart rund 4.000 Euro im Monat. Weil Ihre bestehenden Fachangestellten 2-3 mal mehr schaffen – und die Neueinstellung wegfällt. Kostet weniger als ein Bewerbungsgespräch.">
+        <div class="slide-icon">🎯</div>
+        <div class="slide-title">Das Ergebnis für Ihre Kanzlei</div>
+        <div class="slide-number green demo-count" data-target="4000" data-suffix=" €" data-prefix="+">+0 €</div>
+        <div class="slide-text"><span class="slide-highlight">Ersparnis pro Monat (200 Mandanten)</span> – weil die Neueinstellung wegfällt und Ihre Fachangestellten 2-3x mehr schaffen.</div>
+      </div>
+
+      <!-- Slide 9: Angebot -->
+      <div class="demo-slide" data-voice="Mein Angebot an Sie: 90 Tage kostenlos testen, mit bis zu 10 Mandanten. Ich richte alles persönlich für Sie ein – Onboarding, Daten-Migration, alles inklusive. Und wenn es Ihnen nicht mindestens 5 Stunden pro Woche spart – zahlen Sie nichts. Kein Kleingedrucktes. Ich nehme aktuell nur 5 Kanzleien in Hannover auf. Rufen Sie mich an oder schreiben Sie mir eine E-Mail.">
+        <div class="slide-icon">🤝</div>
+        <div class="slide-title">90 Tage kostenlos. Null Risiko.</div>
+        <div class="slide-mock" style="text-align:left;">
+          <div class="mock-row"><span class="label">Testphase</span><span class="value green">90 Tage, 10 Mandanten</span></div>
+          <div class="mock-row"><span class="label">Onboarding</span><span class="value green">Persönlich, durch den Gründer</span></div>
+          <div class="mock-row"><span class="label">Daten-Migration</span><span class="value green">Komplett inklusive</span></div>
+          <div class="mock-row"><span class="label">Garantie</span><span class="value green">Spart es nicht 5h/Woche → 0€</span></div>
+        </div>
+        <div style="margin-top:24px;">
+          <a href="#kontakt" class="btn-primary" style="font-size:16px; padding:16px 36px;">
+            Jetzt Termin vereinbaren
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- Fortschritt + Controls -->
+    <div class="demo-progress" id="demoProgressWrap" style="display:none;">
+      <div class="demo-progress-bar" id="demoProgress" style="width:0%"></div>
+    </div>
+    <div class="demo-controls" id="demoControls" style="display:none;">
+      <div class="demo-step" id="demoStep">1 / 9</div>
+      <div class="demo-btns">
+        <button class="demo-btn" onclick="prevSlide()">← Zurück</button>
+        <button class="demo-btn" onclick="toggleAutoplay()" id="demoPauseBtn">⏸ Pause</button>
+        <button class="demo-btn primary" onclick="nextSlide()" id="demoNextBtn">Weiter →</button>
+      </div>
+    </div>
+
   </div>
 </section>
 
 <!-- Pricing -->
 <section class="pricing reveal" id="preise">
   <div class="section-label">Preise</div>
-  <h2 class="section-title">Transparent. Pro Mandant. Ohne Überraschungen.</h2>
-  <div class="pricing-grid">
-    <div class="price-card stagger">
-      <h3>Starter</h3>
-      <div class="price-amount">14,90€ <span>/Monat</span></div>
-      <div class="price-sub">pro Mandant</div>
+  <h2 class="section-title">Ein Preis. Alles drin. Keine Staffel.</h2>
+  <div style="max-width: 560px; margin: 0 auto;">
+    <div class="price-card featured stagger" style="margin-bottom: 32px;">
+      <div class="price-badge">EIN PREIS FÜR ALLES</div>
+      <h3>Steuerbase</h3>
+      <div class="price-amount">14,90€ <span>/Mandant/Monat</span></div>
+      <div class="price-sub">Flat – keine Staffel, keine versteckten Kosten</div>
       <ul class="price-features">
-        <li>Belegerfassung</li>
-        <li>Dashboard</li>
-        <li>CSV-Export</li>
-        <li>Kassenbuch</li>
-      </ul>
-      <a href="#kontakt" class="btn-secondary">Auswählen</a>
-    </div>
-    <div class="price-card featured stagger">
-      <div class="price-badge">GRÜNDER-KANZLEI</div>
-      <h3>Professional</h3>
-      <div class="price-amount">7€ <span>/Monat</span></div>
-      <div class="price-sub">pro Mandant · dauerhafter Sonderpreis</div>
-      <ul class="price-features">
-        <li>Alles aus Starter</li>
-        <li>DATEV-Export</li>
+        <li>Fachangestellte 2-3x produktiver</li>
+        <li>DATEV-Export + SKR03</li>
         <li>UStVA + EÜR + BWA</li>
-        <li>SKR03-Kontenrahmen</li>
-        <li>Bankzuordnung</li>
+        <li>Belegerfassung + Bankzuordnung</li>
+        <li>Mandanten-Dashboard</li>
         <li>Persönliches Onboarding</li>
         <li>Daten-Migration inklusive</li>
         <li>Direkter Draht zum Gründer</li>
       </ul>
       <a href="#kontakt" class="btn-primary">90 Tage kostenlos testen</a>
     </div>
-    <div class="price-card stagger">
-      <h3>Enterprise</h3>
-      <div class="price-amount" style="font-size:28px; padding-top: 8px;">Auf Anfrage</div>
-      <div class="price-sub">&nbsp;</div>
-      <ul class="price-features">
-        <li>Alles aus Professional</li>
-        <li>API-Zugang</li>
-        <li>Eigenes Kanzlei-Branding</li>
-        <li>Persönlicher Support</li>
-        <li>Individuelle Anpassungen</li>
-      </ul>
-      <a href="#kontakt" class="btn-secondary">Kontakt aufnehmen</a>
+
+    <!-- ROI-Rechenbeispiel -->
+    <div class="solution-box" style="padding: 36px 32px; text-align: left;">
+      <h2 style="font-size: 22px; margin-bottom: 16px; text-align: center;">Rechenbeispiel: Kanzlei mit 200 Mandanten</h2>
+      <div class="slide-mock" style="margin: 0; box-shadow: none; border: none; padding: 0;">
+        <div class="mock-row"><span class="label">Neue Fachangestellte</span><span class="value red">3.500€ / Monat</span></div>
+        <div class="mock-row"><span class="label">Steuerbase (200 Mandanten)</span><span class="value">2.980€ / Monat</span></div>
+        <div class="mock-row"><span class="label">Aber: Keine Neueinstellung nötig</span><span class="value green">-3.500€</span></div>
+        <div class="mock-row" style="border-bottom: 2px solid #059669; font-weight: 700;"><span class="label" style="font-weight: 700; color: #0f172a;">Ihre Ersparnis</span><span class="value green" style="font-size: 18px;">ca. 4.000€ / Monat</span></div>
+      </div>
+      <p style="font-size: 13px; color: #64748b; text-align: center; margin-top: 16px;">Ihre bestehenden Fachangestellten schaffen 2-3x mehr Mandanten. Die Neueinstellung faellt weg.</p>
     </div>
   </div>
 </section>
@@ -1631,481 +1175,237 @@
     +49 151 70857052
   </div>
   <div class="footer-right">
-    <a href="https://app.steuerbase.de/impressum" target="_blank">Impressum</a>
-    <a href="https://app.steuerbase.de/datenschutz" target="_blank">Datenschutz</a>
+    <a href="#">Impressum</a>
+    <a href="#">Datenschutz</a>
   </div>
 </footer>
 
+<!-- Scroll Reveal + Counter Animation + Parallax -->
 <script>
-// === SCROLL REVEAL ===
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, { threshold: 0.15 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// === COUNTER ANIMATION ===
-function animateCounter(el) {
-  const target = parseInt(el.dataset.target);
-  const suffix = el.dataset.suffix || '';
-  const duration = 1500;
-  const start = performance.now();
-  function update(now) {
-    const elapsed = now - start;
-    const progress = Math.min(elapsed / duration, 1);
-    const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-    el.textContent = Math.round(eased * target).toLocaleString('de-DE') + suffix;
-    if (progress < 1) requestAnimationFrame(update);
-    else el.classList.add('counted');
-  }
-  requestAnimationFrame(update);
-}
-const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && !entry.target.dataset.animated) {
-      entry.target.dataset.animated = 'true';
-      animateCounter(entry.target);
-    }
-  });
-}, { threshold: 0.5 });
-document.querySelectorAll('.count-up').forEach(el => counterObserver.observe(el));
-
-// === PARALLAX ===
-let ticking = false;
-window.addEventListener('scroll', () => {
-  if (!ticking) {
-    requestAnimationFrame(() => {
-      const scrolled = window.pageYOffset;
-      const hero = document.querySelector('.hero');
-      if (hero && scrolled < window.innerHeight) {
-        hero.style.transform = 'translateY(' + (scrolled * 0.15) + 'px)';
-        hero.style.opacity = 1 - (scrolled / (window.innerHeight * 0.8));
-      }
-      ticking = false;
-    });
-    ticking = true;
-  }
-});
-
-// === SMOOTH SCROLL ===
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    e.preventDefault();
-    const t = document.querySelector(this.getAttribute('href'));
-    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-});
-
-// === NAV BACKGROUND ===
-const navEl = document.querySelector('nav');
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 50) {
-    navEl.style.background = 'rgba(255,255,255,0.95)';
-    navEl.style.backdropFilter = 'blur(12px)';
-    navEl.style.borderBottom = '1px solid #e2e8f0';
-  } else {
-    navEl.style.background = 'transparent';
-    navEl.style.backdropFilter = 'none';
-    navEl.style.borderBottom = 'none';
-  }
-});
-
-// ================================================================
-// PREMIUM GUIDED TOUR
-// ================================================================
-(function() {
-  var step = 0;
-  var totalSteps = 4;
-  var timers = [];
-  var animated = [false, false, false, false];
-
-  // Elements
-  var panels = [
-    document.getElementById('tPanel1'),
-    document.getElementById('tPanel2'),
-    document.getElementById('tPanel3'),
-    document.getElementById('tPanel4')
-  ];
-  var cursor = document.getElementById('tourCursor');
-  var content = document.getElementById('tourContent');
-  var btnBack = document.getElementById('tourBtnBack');
-  var btnNext = document.getElementById('tourBtnNext');
-  var dots = document.querySelectorAll('.tour-dot-btn');
-  var dotFills = [
-    document.getElementById('dotFill1'),
-    document.getElementById('dotFill2'),
-    document.getElementById('dotFill3')
-  ];
-  var label = document.getElementById('tourLabel');
-
-  var stepLabels = [
-    ['Schritt 1 von 4', 'Belegerfassung'],
-    ['Schritt 2 von 4', 'Dashboard'],
-    ['Schritt 3 von 4', 'UStVA'],
-    ['Schritt 4 von 4', 'DATEV-Export']
-  ];
-
-  var sidebarNavMandant = ['tnOverview','tnDocs','tnNumbers'];
-  var sidebarNavSTB = ['tnCommand'];
-
-  function clear() {
-    timers.forEach(function(t) { clearTimeout(t); });
-    timers = [];
-  }
-
-  function delay(fn, ms) {
-    var t = setTimeout(fn, ms);
-    timers.push(t);
-    return t;
-  }
-
-  function enableNext() { btnNext.disabled = false; }
-
-  // Count-up with easeOutExpo
-  function countUp(el, target, suffix, duration) {
-    suffix = suffix || ' \u20AC';
-    duration = duration || 1400;
-    var s = performance.now();
-    function tick(now) {
-      var p = Math.min((now - s) / duration, 1);
-      var e = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
-      el.textContent = Math.round(e * target).toLocaleString('de-DE') + suffix;
-      if (p < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-
-  // Type text with cursor glow
-  function typeText(el, text, delayMs, cb) {
-    el.textContent = '';
-    el.classList.add('glow');
-    var i = 0;
-    function next() {
-      if (i < text.length) {
-        el.textContent += text[i]; i++;
-        delay(next, 35 + Math.random() * 20);
-      } else {
-        el.classList.remove('glow');
-        el.classList.add('done');
-        if (cb) cb();
-      }
-    }
-    delay(next, delayMs);
-  }
-
-  // Move cursor to element
-  function moveCursor(targetEl, cb) {
-    if (!targetEl || !content) { if (cb) cb(); return; }
-    var cRect = content.getBoundingClientRect();
-    var tRect = targetEl.getBoundingClientRect();
-    var x = tRect.left - cRect.left + tRect.width / 2 - 7;
-    var y = tRect.top - cRect.top + tRect.height / 2 - 7;
-    cursor.style.left = x + 'px';
-    cursor.style.top = y + 'px';
-    cursor.classList.add('visible');
-    delay(function() { if (cb) cb(); }, 650);
-  }
-
-  // Ripple effect
-  function addRipple(btn) {
-    var r = document.createElement('span');
-    r.className = 'ripple';
-    r.style.width = r.style.height = '40px';
-    r.style.left = '50%'; r.style.top = '50%';
-    r.style.marginLeft = '-20px'; r.style.marginTop = '-20px';
-    btn.appendChild(r);
-    setTimeout(function() { r.remove(); }, 600);
-  }
-
-  // Sidebar management
-  function setSidebar(view) {
-    var allItems = document.querySelectorAll('.tour-nav-item');
-    allItems.forEach(function(item) {
-      item.classList.remove('active','show');
-    });
-    allItems.forEach(function(item) {
-      if (item.getAttribute('data-view') === view) {
-        item.classList.add('show');
-      }
-    });
-  }
-
-  function setActiveNav(id) {
-    document.querySelectorAll('.tour-nav-item').forEach(function(n) { n.classList.remove('active'); });
-    var el = document.getElementById(id);
-    if (el) el.classList.add('active');
-  }
-
-  // Stagger show sidebar items
-  function staggerSidebar(view) {
-    var items = document.querySelectorAll('.tour-nav-item[data-view="' + view + '"]');
-    items.forEach(function(item, i) {
-      delay(function() { item.classList.add('show'); }, i * 80);
-    });
-  }
-
-  // ---- STEP ANIMATIONS ----
-
-  function animStep0() {
-    btnNext.disabled = true;
-    if (animated[0]) { enableNext(); return; }
-    animated[0] = true;
-
-    setSidebar('mandant');
-    delay(function() { setActiveNav('tnDocs'); }, 200);
-
-    var f1 = document.getElementById('tf1');
-    var f2 = document.getElementById('tf2');
-    var f3 = document.getElementById('tf3');
-    var f4 = document.getElementById('tf4');
-    var dropdown = document.getElementById('tfDropdown');
-    var autoTag = document.getElementById('tfAutoTag');
-    var saveBtn = document.getElementById('tfSaveBtn');
-    var toast = document.getElementById('tfToast');
-
-    // 1. Cursor moves to Rechnungsnummer
-    delay(function() {
-      moveCursor(f1, function() {
-        typeText(f1, 'ER-2026-0042', 100, function() {
-          // 2. Cursor to Betrag
-          delay(function() {
-            moveCursor(f2, function() {
-              typeText(f2, '84,90 \u20AC', 100, function() {
-                // 3. Cursor to Kategorie (dropdown)
-                delay(function() {
-                  moveCursor(f3, function() {
-                    f3.classList.add('glow');
-                    delay(function() {
-                      dropdown.classList.add('open');
-                      delay(function() {
-                        f3.textContent = 'Bürobedarf';
-                        f3.classList.remove('glow');
-                        f3.classList.add('done');
-                        dropdown.classList.remove('open');
-
-                        // 4. SKR03 auto-fills
-                        delay(function() {
-                          f4.textContent = '4930 \u2013 Büromaterial';
-                          f4.classList.add('auto');
-                          delay(function() {
-                            autoTag.classList.add('show');
-
-                            // 5. Cursor to save button
-                            delay(function() {
-                              moveCursor(saveBtn, function() {
-                                addRipple(saveBtn);
-                                delay(function() {
-                                  cursor.classList.remove('visible');
-                                  toast.classList.add('show');
-                                  enableNext();
-                                }, 300);
-                              });
-                            }, 400);
-                          }, 300);
-                        }, 400);
-                      }, 500);
-                    }, 300);
-                  });
-                }, 200);
-              });
-            });
-          }, 200);
-        });
-      });
-    }, 600);
-  }
-
-  function animStep1() {
-    btnNext.disabled = true;
-    if (animated[1]) { enableNext(); return; }
-    animated[1] = true;
-
-    setSidebar('mandant');
-    delay(function() { setActiveNav('tnOverview'); }, 200);
-
-    var cards = [
-      document.getElementById('tdCard1'),
-      document.getElementById('tdCard2'),
-      document.getElementById('tdCard3'),
-      document.getElementById('tdCard4')
-    ];
-    var vals = [
-      { el: document.getElementById('tdVal1'), target: 12450 },
-      { el: document.getElementById('tdVal2'), target: 4230 },
-      { el: document.getElementById('tdVal3'), target: 8220 },
-      { el: document.getElementById('tdVal4'), target: 1562 }
-    ];
-    var glows = ['glow-green','glow-red','glow-green','glow-amber'];
-    var chart = document.getElementById('tdChart');
-    var warning = document.getElementById('tdWarning');
-
-    cards.forEach(function(c, i) {
-      delay(function() {
-        c.classList.add('show', glows[i]);
-        countUp(vals[i].el, vals[i].target);
-      }, 300 + i * 200);
-    });
-
-    delay(function() {
-      chart.classList.add('show');
-    }, 1100);
-
-    delay(function() {
-      warning.classList.add('show');
-      enableNext();
-    }, 1600);
-  }
-
-  function animStep2() {
-    btnNext.disabled = true;
-    if (animated[2]) { enableNext(); return; }
-    animated[2] = true;
-
-    setSidebar('mandant');
-    delay(function() { setActiveNav('tnNumbers'); }, 200);
-
-    var rows = [
-      document.getElementById('teRow1'),
-      document.getElementById('teRow2'),
-      document.getElementById('teRow3'),
-      document.getElementById('teRow4')
-    ];
-    var btns = [
-      document.getElementById('teBtn1'),
-      document.getElementById('teBtn2'),
-      document.getElementById('teBtn3')
-    ];
-
-    rows.forEach(function(r, i) {
-      delay(function() { r.classList.add('show'); }, 300 + i * 300);
-    });
-
-    btns.forEach(function(b, i) {
-      delay(function() { b.classList.add('show'); }, 1600 + i * 150);
-    });
-
-    delay(function() { enableNext(); }, 2100);
-  }
-
-  function animStep3() {
-    btnNext.disabled = true;
-    if (animated[3]) { enableNext(); return; }
-    animated[3] = true;
-
-    // Switch to STB sidebar
-    setSidebar('stb');
-    staggerSidebar('stb');
-    delay(function() { setActiveNav('tnCommand'); }, 400);
-
-    var items = [
-      document.getElementById('tcItem1'),
-      document.getElementById('tcItem2'),
-      document.getElementById('tcItem3')
-    ];
-    var exportBtn = document.getElementById('tcExportBtn');
-    var progressBar = document.getElementById('tcProgressBar');
-    var result = document.getElementById('tcResult');
-    var finalCta = document.getElementById('tcFinalCta');
-
-    // Checklist items appear
-    items.forEach(function(item, i) {
-      delay(function() { item.classList.add('show'); }, 500 + i * 400);
-    });
-
-    // Export button appears + pulses
-    delay(function() {
-      exportBtn.classList.add('show');
-      delay(function() {
-        exportBtn.classList.add('pulse-invite');
-
-        // Cursor clicks it
-        delay(function() {
-          moveCursor(exportBtn, function() {
-            addRipple(exportBtn);
-            exportBtn.classList.remove('pulse-invite');
-            exportBtn.classList.add('loading');
-            cursor.classList.remove('visible');
-
-            // Progress fills
-            delay(function() {
-              exportBtn.classList.remove('loading');
-              result.classList.add('show');
-
-              // Final CTA
-              delay(function() {
-                finalCta.classList.add('show');
-              }, 600);
-            }, 1400);
-          });
-        }, 800);
-      }, 300);
-    }, 500 + 3 * 400 + 300);
-  }
-
-  var stepAnims = [animStep0, animStep1, animStep2, animStep3];
-
-  // ---- NAVIGATION ----
-
-  function goToStep(index) {
-    if (index < 0 || index >= totalSteps) return;
-    clear();
-    cursor.classList.remove('visible');
-    step = index;
-
-    // Switch panels
-    panels.forEach(function(p) { p.classList.remove('active'); });
-    panels[index].classList.add('active');
-
-    // Update label
-    label.innerHTML = '<span>' + stepLabels[index][0] + '</span> &middot; ' + stepLabels[index][1];
-
-    // Update dots + fills
-    dots.forEach(function(d, i) {
-      d.classList.remove('active');
-      if (i < index) d.classList.add('done');
-      else d.classList.remove('done');
-    });
-    dots[index].classList.add('active');
-
-    dotFills.forEach(function(f, i) {
-      f.style.width = (i < index) ? '100%' : '0%';
-    });
-
-    // Back button
-    btnBack.classList.toggle('hidden', index === 0);
-
-    // Reset next button text
-    btnNext.textContent = '';
-    btnNext.innerHTML = 'Weiter <span class="arrow">&rarr;</span>';
-    btnNext.disabled = true;
-
-    // Trigger animation
-    stepAnims[index]();
-  }
-
-  // Event listeners
-  btnBack.addEventListener('click', function() { goToStep(step - 1); });
-  btnNext.addEventListener('click', function() { goToStep(step + 1); });
-  dots.forEach(function(dot) {
-    dot.addEventListener('click', function() {
-      goToStep(parseInt(this.dataset.step));
-    });
-  });
-
-  // Start when visible
-  var tourObs = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
+  // Scroll Reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
       if (entry.isIntersecting) {
-        goToStep(0);
-        tourObs.unobserve(entry.target);
+        entry.target.classList.add('visible');
       }
     });
-  }, { threshold: 0.2 });
+  }, { threshold: 0.15 });
 
-  var tourSection = document.getElementById('app-preview');
-  if (tourSection) tourObs.observe(tourSection);
-})();
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Counter Animation
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const duration = 1500;
+    const start = performance.now();
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutExpo
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = Math.round(eased * target);
+      el.textContent = current.toLocaleString('de-DE') + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      } else {
+        el.classList.add('counted');
+      }
+    }
+    requestAnimationFrame(update);
+  }
+
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !entry.target.dataset.animated) {
+        entry.target.dataset.animated = 'true';
+        animateCounter(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.count-up').forEach(el => counterObserver.observe(el));
+
+  // Subtle parallax on scroll for background elements
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const scrolled = window.pageYOffset;
+        const hero = document.querySelector('.hero');
+        if (hero && scrolled < window.innerHeight) {
+          hero.style.transform = 'translateY(' + (scrolled * 0.12) + 'px)';
+          hero.style.opacity = Math.max(0, 1 - (scrolled / (window.innerHeight * 1.2)));
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // === DEMO PLAYER ===
+  let currentSlide = 0;
+  let autoplayTimer = null;
+  let isPlaying = false;
+  const SLIDE_DURATION = 8000; // 8 Sekunden pro Slide
+
+  function startDemo() {
+    document.getElementById('demoStart').style.display = 'none';
+    document.getElementById('demoSlides').classList.add('active');
+    document.getElementById('demoSubtitle').style.display = 'block';
+    document.getElementById('demoProgressWrap').style.display = 'block';
+    document.getElementById('demoControls').style.display = 'flex';
+    currentSlide = 0;
+    showSlide(0);
+    startAutoplay();
+  }
+
+  function showSlide(index) {
+    const slides = document.querySelectorAll('.demo-slide');
+    if (index < 0 || index >= slides.length) return;
+
+    slides.forEach(s => s.classList.remove('active'));
+    currentSlide = index;
+    slides[index].classList.add('active');
+
+
+    // Update progress
+    const pct = ((index + 1) / slides.length) * 100;
+    document.getElementById('demoProgress').style.width = pct + '%';
+    document.getElementById('demoStep').textContent = (index + 1) + ' / ' + slides.length;
+
+    // Update button text on last slide
+    const nextBtn = document.getElementById('demoNextBtn');
+    if (index === slides.length - 1) {
+      nextBtn.textContent = '↻ Nochmal';
+    } else {
+      nextBtn.textContent = 'Weiter →';
+    }
+
+    // Animate counters in this slide
+    slides[index].querySelectorAll('.demo-count').forEach(el => {
+      if (!el.dataset.animated) {
+        el.dataset.animated = 'true';
+        animateDemoCount(el);
+      }
+    });
+
+    // Animate mock bars if present
+    setTimeout(() => {
+      slides[index].querySelectorAll('.mock-bar').forEach(bar => {
+        bar.style.height = bar.dataset.height;
+      });
+    }, 400);
+  }
+
+  function animateDemoCount(el) {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const prefix = el.dataset.prefix || '';
+    const duration = 1200;
+    const start = performance.now();
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = Math.round(eased * target);
+      el.textContent = prefix + current.toLocaleString('de-DE') + suffix;
+
+      if (progress < 1) requestAnimationFrame(update);
+      else el.classList.add('counted');
+    }
+    requestAnimationFrame(update);
+  }
+
+  function nextSlide() {
+    const slides = document.querySelectorAll('.demo-slide');
+    if (currentSlide >= slides.length - 1) {
+      // Restart
+      currentSlide = -1;
+      document.querySelectorAll('.demo-count').forEach(el => el.dataset.animated = '');
+    }
+    showSlide(currentSlide + 1);
+    if (isPlaying) restartAutoplay();
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      showSlide(currentSlide - 1);
+      if (isPlaying) restartAutoplay();
+    }
+  }
+
+  function startAutoplay() {
+    isPlaying = true;
+    document.getElementById('demoPauseBtn').textContent = '⏸ Pause';
+    autoplayTimer = setInterval(() => {
+      const slides = document.querySelectorAll('.demo-slide');
+      if (currentSlide < slides.length - 1) {
+        nextSlide();
+      } else {
+        stopAutoplay();
+      }
+    }, SLIDE_DURATION);
+  }
+
+  function stopAutoplay() {
+    isPlaying = false;
+    clearInterval(autoplayTimer);
+    document.getElementById('demoPauseBtn').textContent = '▶ Abspielen';
+  }
+
+  function restartAutoplay() {
+    clearInterval(autoplayTimer);
+    autoplayTimer = setInterval(() => {
+      const slides = document.querySelectorAll('.demo-slide');
+      if (currentSlide < slides.length - 1) {
+        nextSlide();
+      } else {
+        stopAutoplay();
+      }
+    }, SLIDE_DURATION);
+  }
+
+  function toggleAutoplay() {
+    if (isPlaying) stopAutoplay();
+    else startAutoplay();
+  }
+
+  // Keyboard navigation for demo
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('demoSlides').classList.contains('active')) return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+    if (e.key === 'Escape') stopAutoplay();
+  });
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Nav background on scroll
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      nav.style.background = 'rgba(255, 255, 255, 0.95)';
+      nav.style.backdropFilter = 'blur(12px)';
+      nav.style.borderBottom = '1px solid #e2e8f0';
+    } else {
+      nav.style.background = 'transparent';
+      nav.style.backdropFilter = 'none';
+      nav.style.borderBottom = 'none';
+    }
+  });
 </script>
 
 </body>
