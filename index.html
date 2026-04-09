@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Steuerbase – Das Mandanten-Portal für Steuerkanzleien</title>
 <meta name="description" content="Löst das Personalproblem: Ihre Fachangestellten werden 2-3x produktiver. 14,90€ pro Mandant – günstiger als jede Neueinstellung.">
+<!-- Vercel Web Analytics (DSGVO-konform, kein Cookie-Banner nötig) -->
+<script defer src="/_vercel/insights/script.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
 <style>
@@ -693,6 +695,45 @@
   .cta-btn:active {
     transform: translateY(-1px) scale(0.99);
   }
+  .cta-btn[type="submit"] {
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .cta-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 520px;
+    margin: 24px auto 20px;
+    position: relative;
+  }
+  .form-row {
+    display: flex;
+    gap: 12px;
+  }
+  .form-input {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-input::placeholder { color: rgba(255,255,255,0.45); }
+  .form-input:focus { border-color: #3b82f6; background: rgba(255,255,255,0.12); }
+  select.form-input { cursor: pointer; }
+  select.form-input option { background: #1e293b; color: #fff; }
+  @media (max-width: 600px) {
+    .form-row { flex-direction: column; }
+  }
   .cta-trust {
     display: flex;
     justify-content: center;
@@ -1154,10 +1195,34 @@
         <span><strong>Persönliches Onboarding</strong> durch den Gründer</span>
       </div>
     </div>
-    <a href="mailto:info@steuerbase.de?subject=Steuerbase%20testen&body=Hallo%20Herr%20Rezo%2C%0A%0Aich%20interessiere%20mich%20f%C3%BCr%20das%20Steuerbase%20und%20w%C3%BCrde%20es%20gerne%20testen.%0A%0AKanzlei%3A%20%0AAnzahl%20Mandanten%3A%20%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen" class="cta-btn">
-      Jetzt Demo anfordern
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </a>
+    <!-- Kontaktformular -->
+    <form id="kontaktForm" class="cta-form" onsubmit="return handleFormSubmit(event)">
+      <div class="form-row">
+        <input type="text" name="kanzlei" placeholder="Name Ihrer Kanzlei" required class="form-input">
+        <input type="text" name="name" placeholder="Ihr Name" required class="form-input">
+      </div>
+      <div class="form-row">
+        <input type="email" name="email" placeholder="E-Mail-Adresse" required class="form-input">
+        <input type="tel" name="telefon" placeholder="Telefon (optional)" class="form-input">
+      </div>
+      <select name="mandanten" class="form-input" required>
+        <option value="" disabled selected>Anzahl Mandanten</option>
+        <option value="1-50">1 – 50</option>
+        <option value="51-200">51 – 200</option>
+        <option value="201-500">201 – 500</option>
+        <option value="500+">Über 500</option>
+      </select>
+      <button type="submit" class="cta-btn" id="submitBtn">
+        Jetzt Demo anfordern
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <div id="formSuccess" style="display:none; text-align:center; padding:16px; background:#ecfdf5; border-radius:12px; color:#059669; font-weight:600; margin-top:12px;">
+        Vielen Dank! Wir melden uns innerhalb von 24 Stunden bei Ihnen.
+      </div>
+      <div id="formError" style="display:none; text-align:center; padding:16px; background:#fef2f2; border-radius:12px; color:#dc2626; font-weight:600; margin-top:12px;">
+        Etwas ist schiefgelaufen. Bitte schreiben Sie uns direkt an <a href="mailto:info@steuerbase.de">info@steuerbase.de</a>
+      </div>
+    </form>
     <div class="cta-trust">
       <div class="cta-trust-item">🔒 DSGVO-konform</div>
       <div class="cta-trust-item">💳 Keine Kreditkarte</div>
@@ -1398,6 +1463,48 @@
       nav.style.borderBottom = 'none';
     }
   });
+  // --- Kontaktformular ---
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    const form = document.getElementById('kontaktForm');
+    const btn = document.getElementById('submitBtn');
+    const data = new FormData(form);
+    const kanzlei = data.get('kanzlei');
+    const name = data.get('name');
+    const email = data.get('email');
+    const telefon = data.get('telefon') || 'nicht angegeben';
+    const mandanten = data.get('mandanten');
+
+    btn.textContent = 'Wird gesendet...';
+    btn.disabled = true;
+
+    // Sende als mailto-Fallback (funktioniert immer)
+    const subject = encodeURIComponent('Demo-Anfrage: ' + kanzlei);
+    const body = encodeURIComponent(
+      'Neue Demo-Anfrage über steuerbase.de\n\n' +
+      'Kanzlei: ' + kanzlei + '\n' +
+      'Name: ' + name + '\n' +
+      'E-Mail: ' + email + '\n' +
+      'Telefon: ' + telefon + '\n' +
+      'Mandanten: ' + mandanten + '\n\n' +
+      'Gesendet am: ' + new Date().toLocaleString('de-DE')
+    );
+
+    // Öffne mailto im Hintergrund
+    const mailLink = document.createElement('a');
+    mailLink.href = 'mailto:info@steuerbase.de?subject=' + subject + '&body=' + body;
+    mailLink.style.display = 'none';
+    document.body.appendChild(mailLink);
+    mailLink.click();
+    document.body.removeChild(mailLink);
+
+    // Erfolg anzeigen
+    document.getElementById('formSuccess').style.display = 'block';
+    document.getElementById('formError').style.display = 'none';
+    form.reset();
+    btn.innerHTML = 'Jetzt Demo anfordern <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+    btn.disabled = false;
+  }
 </script>
 
 </body>
