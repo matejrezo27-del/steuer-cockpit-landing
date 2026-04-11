@@ -547,7 +547,7 @@
 
   /* --- Demo Tabs --- */
   .demo-tabs-container {
-    max-width: 900px;
+    max-width: 1120px;
     margin: 0 auto;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
@@ -564,14 +564,14 @@
   }
   .demo-tab {
     flex: 1;
-    padding: 16px 20px;
+    padding: 18px 24px;
     font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     color: #64748b;
     background: transparent;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-bottom: 3px solid transparent;
     cursor: pointer;
     transition: color 0.2s, border-color 0.2s, background 0.2s;
     white-space: nowrap;
@@ -587,11 +587,13 @@
   }
   .demo-tab-content {
     display: none;
-    min-height: 400px;
     animation: tabFadeIn 0.4s ease;
   }
   .demo-tab-content.active {
     display: block;
+  }
+  .demo-tab-content iframe {
+    min-height: 620px;
   }
   @keyframes tabFadeIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -602,7 +604,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 400px;
+    min-height: 500px;
     gap: 12px;
     color: #94a3b8;
   }
