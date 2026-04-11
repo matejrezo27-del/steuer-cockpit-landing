@@ -547,6 +547,82 @@
   .demo-btn.primary:hover { background: #3b82f6; }
 
 
+  /* --- Demo Tabs --- */
+  .demo-tabs-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  .demo-tabs {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    background: #fff;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .demo-tab {
+    flex: 1;
+    padding: 16px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    white-space: nowrap;
+  }
+  .demo-tab:hover {
+    color: #0f172a;
+    background: #f8fafc;
+  }
+  .demo-tab.active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+    font-weight: 600;
+  }
+  .demo-tab-content {
+    display: none;
+    min-height: 400px;
+    animation: tabFadeIn 0.4s ease;
+  }
+  .demo-tab-content.active {
+    display: block;
+  }
+  @keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .demo-tab-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 12px;
+    color: #94a3b8;
+  }
+  .placeholder-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+  .demo-tab-placeholder h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #334155;
+  }
+  .demo-tab-placeholder p {
+    font-size: 15px;
+    color: #94a3b8;
+  }
+
   /* --- Pricing --- */
   .pricing {
     max-width: 1120px;
@@ -1137,16 +1213,49 @@
   </div>
 </section>
 
-<!-- Interactive Demo -->
+<!-- Super Demos -->
 <section class="video-section reveal" id="demo">
-  <div class="section-label">Demo</div>
-  <h2 class="section-title">Sehen Sie selbst – in 2 Minuten</h2>
+  <div class="section-label">Super Demos</div>
+  <h2 class="section-title">Erleben Sie Steuerbase in Aktion</h2>
 
-  <div class="demo-player" id="demoPlayer">
-    <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden;">
-      <iframe src="https://drive.google.com/file/d/104zeBPy-pbyXrLdxFhEvYt4xy0dDz0SG/preview"
-        style="position:absolute; top:0; left:0; width:100%; height:100%; border:none; border-radius:16px;"
-        allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  <div class="demo-tabs-container">
+    <div class="demo-tabs">
+      <button class="demo-tab active" data-tab="stb-controlling">Steuerberater / Controlling</button>
+      <button class="demo-tab" data-tab="stb-operativ">Steuerberater / Operativ</button>
+      <button class="demo-tab" data-tab="fachkraft">Fachkraftansicht</button>
+      <button class="demo-tab" data-tab="mandant">Mandantenansicht</button>
+    </div>
+
+    <div class="demo-tab-content active" id="tab-stb-controlling">
+      <div class="demo-tab-placeholder">
+        <div class="placeholder-icon">📊</div>
+        <h3>Steuerberater / Controlling</h3>
+        <p>Inhalte werden in Kürze hinzugefügt.</p>
+      </div>
+    </div>
+
+    <div class="demo-tab-content" id="tab-stb-operativ">
+      <div class="demo-tab-placeholder">
+        <div class="placeholder-icon">⚙️</div>
+        <h3>Steuerberater / Operativ</h3>
+        <p>Inhalte werden in Kürze hinzugefügt.</p>
+      </div>
+    </div>
+
+    <div class="demo-tab-content" id="tab-fachkraft">
+      <div class="demo-tab-placeholder">
+        <div class="placeholder-icon">👩‍💼</div>
+        <h3>Fachkraftansicht</h3>
+        <p>Inhalte werden in Kürze hinzugefügt.</p>
+      </div>
+    </div>
+
+    <div class="demo-tab-content" id="tab-mandant">
+      <div class="demo-tab-placeholder">
+        <div class="placeholder-icon">🏢</div>
+        <h3>Mandantenansicht</h3>
+        <p>Inhalte werden in Kürze hinzugefügt.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1375,6 +1484,16 @@
 
 <!-- Scroll Reveal + Counter Animation + Parallax -->
 <script>
+  // Demo Tabs
+  document.querySelectorAll('.demo-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.demo-tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
   // Scroll Reveal
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
