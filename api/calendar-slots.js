@@ -109,6 +109,17 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ week: weekParam, slots: freeSlots });
   } catch (err) {
     console.error('Calendar slots error:', err);
-    return res.status(500).json({ error: 'Termine konnten nicht geladen werden.' });
+    return res.status(500).json({
+      error: 'Termine konnten nicht geladen werden.',
+      debug: {
+        message: err.message,
+        code: err.code,
+        status: err.status,
+        hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+        hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+        hasRefreshToken: !!process.env.GOOGLE_REFRESH_TOKEN,
+        calendarId: process.env.GOOGLE_CALENDAR_ID || 'NOT SET',
+      }
+    });
   }
 };
