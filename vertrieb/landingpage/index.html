@@ -1045,23 +1045,22 @@
   .funnel-btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
   .funnel-btn.loading { pointer-events: none; opacity: 0.7; }
   .funnel-back-btn {
-    position: absolute;
-    top: 40px;
-    left: 36px;
     background: #f1f5f9;
     border: 1px solid #e2e8f0;
     color: #475569;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    display: flex;
+    display: none;
     align-items: center;
     gap: 6px;
     padding: 8px 16px 8px 12px;
     border-radius: 10px;
     transition: all 0.2s;
     font-family: 'DM Sans', sans-serif;
+    margin-bottom: 16px;
   }
+  .funnel-back-btn.visible { display: inline-flex; }
   .funnel-back-btn:hover { background: #e2e8f0; color: #2563eb; border-color: #cbd5e1; }
 
   /* Calendar Picker */
@@ -1411,7 +1410,7 @@
     .funnel-container { padding: 32px 20px; }
     .funnel-choices { grid-template-columns: 1fr; }
     .funnel-form-row { grid-template-columns: 1fr; }
-    .funnel-back-btn { top: 32px; left: 20px; padding: 6px 12px 6px 8px; font-size: 13px; }
+    .funnel-back-btn { padding: 6px 12px 6px 8px; font-size: 13px; }
     .calendar-grid { grid-template-columns: repeat(3, 1fr); }
     .funnel-step-dot .label { font-size: 10px; }
     .funnel-step-dot .dot { width: 24px; height: 24px; }
@@ -1629,6 +1628,12 @@
   <h2 class="section-title">Kostenlose Demo buchen</h2>
   <p class="funnel-intro">In <strong>5 kurzen Schritten</strong> zum persönlichen Demo-Termin — beantworten Sie 3 schnelle Fragen, hinterlassen Sie Ihre Kontaktdaten und wählen Sie Ihren Wunschtermin. <strong>Dauert keine 2 Minuten.</strong></p>
   <div class="funnel-container">
+    <!-- Back Button (above progress bar, visible from step 2) -->
+    <button class="funnel-back-btn" id="funnelBack" onclick="funnelPrev()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Zurück
+    </button>
+
     <!-- Progress Bar -->
     <div class="funnel-progress">
       <div class="funnel-progress-fill" id="progressFill" style="width: 0%"></div>
@@ -1653,12 +1658,6 @@
         <span class="label">Termin</span>
       </div>
     </div>
-
-    <!-- Back Button (hidden on step 1) -->
-    <button class="funnel-back-btn" id="funnelBack" style="display:none" onclick="funnelPrev()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      Zurück
-    </button>
 
     <div class="funnel-steps-wrapper">
       <!-- Step 1: Kanzleigröße -->
@@ -1954,7 +1953,7 @@
 
     // Back button
     const backBtn = document.getElementById('funnelBack');
-    backBtn.style.display = (step > 1 && step <= 5) ? 'flex' : 'none';
+    if (step > 1 && step <= 5) { backBtn.classList.add('visible'); } else { backBtn.classList.remove('visible'); }
 
     // Load calendar on step 5
     if (step === 5) {
@@ -2136,7 +2135,7 @@
 
       // Hide progress dots and back button
       document.querySelector('.funnel-progress').style.display = 'none';
-      document.getElementById('funnelBack').style.display = 'none';
+      document.getElementById('funnelBack').classList.remove('visible');
 
       funnelGoTo(6);
     } catch (err) {
