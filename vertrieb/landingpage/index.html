@@ -834,8 +834,19 @@
   }
   .funnel-section .section-title {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 12px;
   }
+  .funnel-intro {
+    text-align: center;
+    color: #64748b;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .funnel-intro strong { color: #0f172a; }
   .funnel-container {
     background: #fff;
     border: 1px solid #e2e8f0;
@@ -1037,20 +1048,21 @@
     position: absolute;
     top: 40px;
     left: 36px;
-    background: none;
-    border: none;
-    color: #64748b;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: color 0.2s;
+    gap: 6px;
+    padding: 8px 16px 8px 12px;
+    border-radius: 10px;
+    transition: all 0.2s;
     font-family: 'DM Sans', sans-serif;
   }
-  .funnel-back-btn:hover { color: #2563eb; }
+  .funnel-back-btn:hover { background: #e2e8f0; color: #2563eb; border-color: #cbd5e1; }
 
   /* Calendar Picker */
   .calendar-nav {
@@ -1399,7 +1411,7 @@
     .funnel-container { padding: 32px 20px; }
     .funnel-choices { grid-template-columns: 1fr; }
     .funnel-form-row { grid-template-columns: 1fr; }
-    .funnel-back-btn { top: 32px; left: 20px; }
+    .funnel-back-btn { top: 32px; left: 20px; padding: 6px 12px 6px 8px; font-size: 13px; }
     .calendar-grid { grid-template-columns: repeat(3, 1fr); }
     .funnel-step-dot .label { font-size: 10px; }
     .funnel-step-dot .dot { width: 24px; height: 24px; }
@@ -1615,6 +1627,7 @@
 <!-- Funnel -->
 <section class="funnel-section reveal" id="kontakt">
   <h2 class="section-title">Kostenlose Demo buchen</h2>
+  <p class="funnel-intro">In <strong>5 kurzen Schritten</strong> zum persönlichen Demo-Termin — beantworten Sie 3 schnelle Fragen, hinterlassen Sie Ihre Kontaktdaten und wählen Sie Ihren Wunschtermin. <strong>Dauert keine 2 Minuten.</strong></p>
   <div class="funnel-container">
     <!-- Progress Bar -->
     <div class="funnel-progress">
