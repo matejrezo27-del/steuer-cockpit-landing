@@ -1,0 +1,7 @@
+{
+  "name": "steuer-cockpit-landing",
+  "private": true,
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
+}
