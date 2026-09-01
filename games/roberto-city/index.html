@@ -57,6 +57,21 @@ h2{font-size:16px;font-weight:500;margin:0}
 .ware button.on{border-color:var(--amber);background:rgba(239,159,39,.12)}
 .ware button[disabled]{opacity:.45;cursor:default}
 .ware b{display:block;font-size:14px;font-weight:500}
+.telh{font-size:13px;font-weight:500;color:var(--muted);margin:14px 0 2px;
+ text-transform:uppercase;letter-spacing:.05em}
+.lieflist{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 4px}
+.lieflist button{padding:8px 7px;border-radius:9px;border:1px solid var(--edge);cursor:pointer;
+ background:transparent;color:var(--ink);text-align:left;line-height:1.3}
+.lieflist button.on{border-color:var(--amber);background:rgba(239,159,39,.12)}
+.lieflist button[disabled]{opacity:.45;cursor:default}
+.lieflist b{display:block;font-size:13px;font-weight:500}
+.lieflist span{font-size:11px;color:var(--muted)}
+.kaufbtn{display:flex;gap:6px}
+.kaufbtn button{min-width:46px}
+.row button.onbtn{border-color:var(--green);color:var(--green)}
+.vertrau{display:inline-block;width:52px;height:4px;background:var(--edge);border-radius:2px;
+ vertical-align:middle;margin-left:6px;overflow:hidden}
+.vertrau i{display:block;height:100%;background:var(--green)}
 .ware span{font-size:11px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;margin:12px 0 0}
 .kv{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
@@ -125,6 +140,11 @@ footer{font-size:12px;color:var(--muted);margin:20px 0 8px;line-height:1.6}
 <div class="court" id="gerichttext"></div>
 </div>
 
+<div class="sec" id="sectel">
+<div class="shead"><h2>Telefon</h2><span class="lab" id="tellab"></span></div>
+<div id="tel"></div>
+</div>
+
 <div class="sec" id="secware">
 <div class="shead"><h2>Was nimmst du mit?</h2><span class="lab" id="warelab"></span></div>
 <div class="ware" id="ware"></div>
@@ -150,36 +170,52 @@ var c=document.getElementById('gc'),x=c.getContext('2d');
 var FONT='sans-serif',DT=1/60,MAXSTEP=5,CELL=90,MARG=30;
 var NIGHT=75,TOL=7,PINT=16;
 var RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-var SKEY='robertoCity.v4',OLD3='robertoCity.v3',OLD2='robertoCity.v2',SVER=4;
+var SKEY='robertoCity.v5',OLD4='robertoCity.v4',OLD3='robertoCity.v3',SVER=5;
 
 /* ---------- Städte ---------- */
 var STADT=[
- {n:'Altstadt',cols:3,rows:4,lager:{i:0,j:0},bunker:{i:2,j:3},wache:{i:2,j:0},rang:1},
- {n:'Hafenviertel',cols:4,rows:5,lager:{i:0,j:2},bunker:{i:3,j:4},wache:{i:1,j:0},rang:5},
- {n:'Neustadt',cols:5,rows:5,lager:{i:2,j:2},bunker:{i:0,j:4},wache:{i:4,j:0},rang:10}];
-var stadt=0,W=330,H=420,XS=[],YS=[],LAG,TRAP,WACHE,BLK=[];
+ {n:'Altstadt',cols:3,rows:4,lager:{i:0,j:0},bunker:{i:2,j:3},wache:{i:2,j:0},
+  versteck:{i:0,j:3},rang:1},
+ {n:'Hafenviertel',cols:4,rows:5,lager:{i:0,j:2},bunker:{i:3,j:4},wache:{i:1,j:0},
+  versteck:{i:3,j:0},rang:5},
+ {n:'Neustadt',cols:5,rows:5,lager:{i:2,j:2},bunker:{i:0,j:4},wache:{i:4,j:0},
+  versteck:{i:4,j:4},rang:10}];
+var stadt=0,W=330,H=420,XS=[],YS=[],LAG,TRAP,WACHE,VERS,BLK=[];
 function buildCity(){
  var s=STADT[stadt];
  W=s.cols*CELL+MARG*2;H=s.rows*CELL+MARG*2;
  XS=[];YS=[];
  for(var i=0;i<=s.cols;i++)XS.push(MARG+i*CELL);
  for(var j=0;j<=s.rows;j++)YS.push(MARG+j*CELL);
- LAG=s.lager;TRAP=s.bunker;WACHE=s.wache;
+ LAG=s.lager;TRAP=s.bunker;WACHE=s.wache;VERS=s.versteck;
  BLK=[];
  for(i=0;i<s.cols;i++)for(j=0;j<s.rows;j++){
   if(i===LAG.i&&j===LAG.j)continue;
   if(i===TRAP.i&&j===TRAP.j)continue;
   if(i===WACHE.i&&j===WACHE.j)continue;
+  if(i===VERS.i&&j===VERS.j)continue;
   BLK.push({i:i,j:j})}
  fit()}
 function bc(i,j){return{x:XS[i]+CELL/2,y:YS[j]+CELL/2}}
-function key(i,j){return stadt+'-'+i+'-'+j}
+function nahWache(i,j){return Math.abs(i-WACHE.i)<=1&&Math.abs(j-WACHE.j)<=1}
 
 /* ---------- Ware ---------- */
+var LIEF=[
+ {k:'hafen',n:'Container am Hafen',d:'Immer da, nimmt aber den größten Schnitt.',
+  faktor:0.55,max:8,rang:1},
+ {k:'tarek',n:'Tarek vom Kiosk',d:'Kennt jeden. Rechnet fair, wenn er dich mag.',
+  faktor:0.44,max:14,rang:3},
+ {k:'nadja',n:'Nadja',d:'Fragt nichts und liefert viel.',faktor:0.36,max:22,rang:6},
+ {k:'werft',n:'Die alte Werft',d:'Großhandel. Wer hier kauft, spielt oben mit.',
+  faktor:0.28,max:40,rang:9}];
+var lieferant=0,vorrat=0;
+var NAMEN=['Kalle','Mesut','Sonja','Der Lange','Bine','Ratko','Frau Özdemir','Pit',
+ 'Jenny','Der Doktor','Ali','Schwester Marion','Uwe','Lucia','Bruno','Tanja',
+ 'Der Student','Miro','Hanne','Gino','Vera','Schrauber-Olli'];
 var WARE=[
- {k:'gras',n:'Cannabis',preis:40,hitze:0.30,xp:6,rang:1},
- {k:'speed',n:'Speed',preis:95,hitze:0.55,xp:14,rang:4},
- {k:'koks',n:'Kokain',preis:210,hitze:0.95,xp:30,rang:8}];
+ {k:'gras',n:'Cannabis',preis:40,hitze:0.28,xp:6,rang:1},
+ {k:'speed',n:'Speed',preis:95,hitze:0.48,xp:14,rang:4},
+ {k:'koks',n:'Kokain',preis:210,hitze:0.75,xp:30,rang:8}];
 var ware=0;
 
 /* ---------- Ränge. Zuwachs je Stufe rund 1,35x, nie das Doppelte. ---------- */
@@ -192,28 +228,34 @@ function rang(){var r=1;for(var i=0;i<RANG.length;i++)if(xp>=RANG[i].xp)r=i+1;re
 
 /* ---------- Ausrüstung. Manches sieht man an Roberto. ---------- */
 var UP=[
- {k:'brille',n:'Sonnenbrille',d:'Sieht man. Fahndung fällt 20 % schneller',lv:0,max:1,p:[120],rang:1},
+ {k:'brille',n:'Sonnenbrille',d:'Sieht man. Fahndung kühlt 30 % schneller ab',lv:0,max:1,p:[120],rang:1},
  {k:'tasche',n:'Bauchtasche',d:'Sieht man. +2 Ware pro Ladung',lv:0,max:1,p:[280],rang:2},
  {k:'schuhe',n:'Laufschuhe',d:'+12 % Tempo je Stufe',lv:0,max:3,p:[180,420,900],rang:1},
  {k:'kapuze',n:'Kapuzenjacke',d:'Sieht man. Streifen erkennen dich 25 % später',lv:0,max:1,p:[520],rang:3},
  {k:'anwalt',n:'Anwalt auf Abruf',d:'Halbe Geldstrafe, ein Hafttag weniger',lv:0,max:1,p:[800],rang:3},
- {k:'scanner',n:'Funkscanner',d:'Wache reagiert später',lv:0,max:1,p:[650],rang:4},
- {k:'handy',n:'Zweithandy',d:'+25 % pro Lieferung',lv:0,max:1,p:[1100],rang:6},
+ {k:'scanner',n:'Funkscanner',d:'Wache rückt später aus, Abkühlen beginnt früher',lv:0,max:1,p:[650],rang:4},
+ {k:'handy',n:'Zweithandy',d:'+25 % pro Lieferung, ein Auftrag mehr pro Nacht',lv:0,max:1,p:[1100],rang:6},
  {k:'auto',n:'Gebrauchtwagen',d:'Sieht man. Viel schneller, +3 Ware, aber weithin sichtbar',lv:0,max:1,p:[3800],rang:9}];
 function lv(k){for(var i=0;i<UP.length;i++)if(UP[i].k===k)return UP[i].lv;return 0}
-var SPD,CAP,PAYM,SICHT,DECAY;
+var SPD,CAP,PAYM,SICHT,KUEHL,RUHEZEIT,MAXAUF;
 function apply(){
  SPD=(2.5+lv('schuhe')*0.30)*(lv('auto')?1.6:1);
  CAP=3+lv('tasche')*2+(lv('auto')?3:0);
  PAYM=lv('handy')?1.25:1;
  SICHT=(lv('kapuze')?0.75:1)*(lv('auto')?1.4:1);
- DECAY=0.09*(lv('brille')?1.2:1)*(lv('scanner')?2.2:1)}
+ /* Fahndung kühlt erst ab, wenn dich RUHEZEIT Sekunden lang keiner gesehen hat.
+    Dann aber zügig: ein Stern alle zwei Sekunden. */
+ KUEHL=0.5*(lv('brille')?1.3:1);
+ RUHEZEIT=lv('scanner')?3.5:6;
+ MAXAUF=2+Math.floor(rang()/3)+(lv('handy')?1:0)}
 
 /* ---------- Fortschritt ---------- */
-var bunker=0,high=0,mute=false,day=1,xp=0,kunden={},
+var STARTGELD=200;
+var bunker=STARTGELD,high=0,mute=false,day=1,xp=0,
     akten=0,gerichtTag=0,haftbefehl=false,haft=0,phase='tag',dayF=1;
-var ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0};
-var NI={cash:0,drops:0,busts:0,combo:0,done:false,start:0};
+var kontakte=[],angebote=[],auftraege=[],angebotTag=0,nextId=1;
+var ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0,kontakte:0,geplatzt:0};
+var NI={cash:0,drops:0,busts:0,combo:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:''};
 
 /* ---------- Ton ---------- */
 var AC=null,MG=null,sirO=null,sirG=null,audioOK=false;
@@ -269,24 +311,25 @@ function setMute(m){
 
 /* ---------- Speicherstand ---------- */
 function save(){try{localStorage.setItem(SKEY,JSON.stringify({
- v:SVER,b:bunker,h:high,m:mute,day:day,xp:xp,stadt:stadt,ware:ware,kunden:kunden,
+ v:SVER,b:bunker,h:high,m:mute,day:day,xp:xp,stadt:stadt,ware:ware,
  akten:akten,ger:gerichtTag,hb:haftbefehl,haft:haft,st:ST,
+ kontakte:kontakte,vorrat:vorrat,lief:lieferant,nid:nextId,
+ ang:angebote,angTag:angebotTag,
  u:UP.map(function(u){return u.lv})}))}catch(e){}}
 function num(v,d){return typeof v==='number'&&isFinite(v)&&v>=0?Math.floor(v):d}
 function load(){
  var o=null,alt=0;
  try{var s=localStorage.getItem(SKEY);if(s)o=JSON.parse(s)}catch(e){o=null}
  if(!o||typeof o!=='object'){
-  try{var s3=localStorage.getItem(OLD3);if(s3){o=JSON.parse(s3);alt=3}}catch(e){o=null}}
+  try{var s4=localStorage.getItem(OLD4);if(s4){o=JSON.parse(s4);alt=4}}catch(e){o=null}}
  if(!o||typeof o!=='object'){
-  try{var s2=localStorage.getItem(OLD2);if(s2){o=JSON.parse(s2);alt=2}}catch(e){o=null}}
- if(!o||typeof o!=='object'){apply();return}
+  try{var s3=localStorage.getItem(OLD3);if(s3){o=JSON.parse(s3);alt=3}}catch(e){o=null}}
+ if(!o||typeof o!=='object'){apply();return}   /* frischer Start, STARTGELD bleibt */
  try{
   bunker=num(o.b,0);high=num(o.h,0);day=Math.max(1,num(o.day,1));
   if(typeof o.m==='boolean')mute=o.m;
-  if(alt){
-   /* v2 und v3 kannten weder Rang noch Ausrüstungsschema. Fortschritt in XP
-      umrechnen, statt ihn wegzuwerfen. */
+  if(alt===3){
+   /* v3 kannte weder Rang noch das neue Ausrüstungsschema. */
    xp=Math.min(RANG[3].xp,num(o.h,0));
    if(o.st)ST.naechte=num(o.st.nights,0),ST.drops=num(o.st.drops,0),
      ST.busts=num(o.st.busts,0),ST.best=num(o.st.best,0);
@@ -296,28 +339,53 @@ function load(){
   else{
    xp=num(o.xp,0);stadt=Math.min(STADT.length-1,num(o.stadt,0));
    ware=Math.min(WARE.length-1,num(o.ware,0));
-   if(o.kunden&&typeof o.kunden==='object')kunden=o.kunden;
    akten=num(o.akten,0);gerichtTag=num(o.ger,0);
    haftbefehl=!!o.hb;haft=num(o.haft,0);
    if(o.st&&typeof o.st==='object')
     ST={naechte:num(o.st.naechte,0),drops:num(o.st.drops,0),busts:num(o.st.busts,0),
-        best:num(o.st.best,0),prozesse:num(o.st.prozesse,0),hafttage:num(o.st.hafttage,0)};
+        best:num(o.st.best,0),prozesse:num(o.st.prozesse,0),hafttage:num(o.st.hafttage,0),
+        kontakte:num(o.st.kontakte,0),geplatzt:num(o.st.geplatzt,0)};
    if(o.u&&o.u.length)for(var i=0;i<UP.length&&i<o.u.length;i++)
-    UP[i].lv=Math.max(0,Math.min(UP[i].max,num(o.u[i],0)))}
+    UP[i].lv=Math.max(0,Math.min(UP[i].max,num(o.u[i],0)));
+   if(alt===4){
+    /* v4 hatte anonyme Kunden je Block. Aus jedem aufgebauten Block wird ein
+       benannter Kontakt mit demselben Vertrauen, sonst wäre die Arbeit weg. */
+    if(o.kunden&&typeof o.kunden==='object')for(var kk in o.kunden){
+     var t=kk.split('-');if(t.length!==3)continue;
+     var stv=+t[0],iv=+t[1],jv=+t[2],vt=o.kunden[kk];
+     if(!(vt>0))continue;
+     kontakte.push({id:nextId++,n:NAMEN[kontakte.length%NAMEN.length],
+      stadt:stv,i:iv,j:jv,v:Math.min(5,vt),typ:'abnehmer'})}}
+   else{
+    if(o.kontakte&&o.kontakte.length)for(var q=0;q<o.kontakte.length;q++){
+     var c2=o.kontakte[q];
+     if(c2&&typeof c2==='object'&&typeof c2.n==='string')
+      kontakte.push({id:num(c2.id,nextId++),n:c2.n,stadt:num(c2.stadt,0),
+       i:num(c2.i,0),j:num(c2.j,0),v:Math.max(0,Math.min(5,+c2.v||0)),typ:'abnehmer'})}
+    vorrat=num(o.vorrat,0);lieferant=Math.min(LIEF.length-1,num(o.lief,0));
+    nextId=Math.max(nextId,num(o.nid,1));
+    if(o.ang&&o.ang.length&&num(o.angTag,0)===day){
+     angebotTag=day;
+     for(q=0;q<o.ang.length;q++){var g=o.ang[q];
+      if(g&&typeof g==='object'&&kontaktById(num(g.kid,-1)))
+       angebote.push({kid:g.kid,n:String(g.n),i:num(g.i,0),j:num(g.j,0),
+        v:Math.max(0,Math.min(5,+g.v||0)),menge:Math.max(1,num(g.menge,1)),an:!!g.an})}}}}
   while(stadt<STADT.length-1&&rang()>=STADT[stadt+1].rang)stadt++;
   if(WARE[ware].rang>rang())ware=0;
   apply();if(alt)save()}
- catch(e){bunker=0;high=0;day=1;xp=0;stadt=0;kunden={};akten=0;gerichtTag=0;
-  haftbefehl=false;haft=0;ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0};apply()}}
+ catch(e){bunker=STARTGELD;high=0;day=1;xp=0;stadt=0;kontakte=[];vorrat=0;lieferant=0;
+  akten=0;gerichtTag=0;haftbefehl=false;haft=0;
+  ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0,kontakte:0,geplatzt:0};apply()}}
 function setLv(k,v){for(var i=0;i<UP.length;i++)if(UP[i].k===k)UP[i].lv=Math.min(UP[i].max,v)}
 function wipe(){
- try{localStorage.removeItem(SKEY);localStorage.removeItem(OLD3);localStorage.removeItem(OLD2)}catch(e){}
- bunker=0;high=0;day=1;xp=0;stadt=0;ware=0;kunden={};akten=0;gerichtTag=0;
+ try{localStorage.removeItem(SKEY);localStorage.removeItem(OLD4);localStorage.removeItem(OLD3)}catch(e){}
+ bunker=STARTGELD;high=0;day=1;xp=0;stadt=0;ware=0;akten=0;gerichtTag=0;
  haftbefehl=false;haft=0;phase='tag';dayF=1;
- ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0};
- NI={cash:0,drops:0,busts:0,combo:0,done:false,start:0};
+ kontakte=[];angebote=[];auftraege=[];angebotTag=0;vorrat=0;lieferant=0;nextId=1;
+ ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0,kontakte:0,geplatzt:0};
+ NI={cash:0,drops:0,busts:0,combo:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:''};
  for(var i=0;i<UP.length;i++)UP[i].lv=0;
- apply();buildCity();p=idleP();ui();hud()}
+ apply();buildCity();startKontakte();p=idleP();tagBeginn();ui();hud()}
 
 /* ---------- Palette ---------- */
 var PAL={
@@ -365,21 +433,53 @@ function drawFx(){
  x.globalAlpha=1}
 
 /* ---------- Nachtzustand ---------- */
-var p,packs,cash,stars,targets,cops,shiftT,jailT,jailPos,flash,flashT,
- pulse=0,combo=0,comboT=0,prevStars=0,dispatchT=0,COMBOW=10;
+var p,packs,cash,stars,cops,shiftT,jailT,jailPos,flash,flashT,leads,
+ pulse=0,combo=0,comboT=0,prevStars=0,dispatchT=0,ruhe=0,leadT=0,COMBOW=10;
 function idx(val,arr){for(var i=0;i<arr.length;i++)if(Math.abs(val-arr[i])<TOL)return i;return -1}
-function kd(i,j){var v=kunden[key(i,j)];return typeof v==='number'?v:0}
-function newTarget(){
- var pool=[],i,w;
- for(i=0;i<BLK.length;i++){
-  var frei=1;
-  for(var m=0;m<targets.length;m++)if(targets[m].i===BLK[i].i&&targets[m].j===BLK[i].j)frei=0;
-  if(!frei)continue;
-  w=1+kd(BLK[i].i,BLK[i].j)*1.5;
-  for(var q=0;q<w;q++)pool.push(BLK[i])}
- if(!pool.length)pool=BLK;
- var b=pool[Math.floor(Math.random()*pool.length)];
- return{i:b.i,j:b.j,t:PINT}}
+
+/* ---------- Kontakte ---------- */
+function kontaktAt(i,j){
+ for(var q=0;q<kontakte.length;q++){var k=kontakte[q];
+  if(k.stadt===stadt&&k.i===i&&k.j===j)return k}
+ return null}
+function kontaktById(id){
+ for(var q=0;q<kontakte.length;q++)if(kontakte[q].id===id)return kontakte[q];
+ return null}
+function freieBloecke(){
+ var f=[];for(var i=0;i<BLK.length;i++)if(!kontaktAt(BLK[i].i,BLK[i].j))f.push(BLK[i]);
+ return f}
+function neuerKontakt(wo){
+ var frei=freieBloecke();if(!wo&&!frei.length)return null;
+ var b=wo||frei[Math.floor(Math.random()*frei.length)],benutzt={},q,pool=[];
+ for(q=0;q<kontakte.length;q++)benutzt[kontakte[q].n]=1;
+ for(q=0;q<NAMEN.length;q++)if(!benutzt[NAMEN[q]])pool.push(NAMEN[q]);
+ var nm=pool.length?pool[Math.floor(Math.random()*pool.length)]:'Nummer '+nextId;
+ var k={id:nextId++,n:nm,stadt:stadt,i:b.i,j:b.j,v:0.5,typ:'abnehmer'};
+ kontakte.push(k);ST.kontakte++;
+ return k}
+function startKontakte(){
+ var n=0;
+ for(var q=0;q<kontakte.length;q++)if(kontakte[q].stadt===stadt)n++;
+ while(n<2&&neuerKontakt())n++}
+
+/* ---------- Tagesangebote. Wer dir vertraut, meldet sich öfter und bestellt mehr. ---------- */
+function tagBeginn(){
+ if(angebotTag===day)return;
+ angebotTag=day;angebote=[];auftraege=[];
+ for(var q=0;q<kontakte.length;q++){
+  var k=kontakte[q];
+  if(k.stadt!==stadt)continue;
+  if(Math.random()<0.28-k.v*0.045)continue;
+  angebote.push({kid:k.id,n:k.n,i:k.i,j:k.j,v:k.v,
+   menge:1+Math.floor(Math.random()*(1+Math.min(2,Math.floor(k.v)))),an:false})}
+ if(!angebote.length){
+  var hier=[];
+  for(q=0;q<kontakte.length;q++)if(kontakte[q].stadt===stadt)hier.push(kontakte[q]);
+  if(hier.length){var k2=hier[Math.floor(Math.random()*hier.length)];
+   angebote.push({kid:k2.id,n:k2.n,i:k2.i,j:k2.j,v:k2.v,menge:1,an:false})}}}
+function angenommen(){var n=0;
+ for(var q=0;q<angebote.length;q++)if(angebote[q].an)n++;return n}
+function einkaufspreis(){return Math.max(5,Math.round(WARE[ware].preis*LIEF[lieferant].faktor/5)*5)}
 function idleP(){var k=bc(LAG.i,LAG.j);return{x:k.x,y:YS[LAG.j+1],dx:0,dy:0,want:null,face:1}}
 function mkcop(px2,py,dx,dy){return{x:px2,y:py,dx:dx,dy:dy,cool:0,ch:false,heim:false}}
 function wachePos(){return{x:XS[WACHE.i]+CELL/2,y:YS[WACHE.j+1]}}
@@ -392,24 +492,40 @@ function spawnCop(){
 function nightStart(){
  audioOK=true;ac();apply();
  phase='nacht';
- var s=bc(LAG.i,LAG.j);
+ var s=bc(LAG.i,LAG.j),q;
  p={x:s.x,y:YS[LAG.j+1],dx:1,dy:0,want:null,face:1};
- packs=0;cash=0;stars=0;combo=0;comboT=0;prevStars=0;targets=[];fx=[];cops=[];
- dispatchT=0;
- for(var i=0;i<3;i++)targets.push(newTarget());
+ packs=0;cash=0;stars=0;combo=0;comboT=0;prevStars=0;fx=[];cops=[];leads=[];
+ dispatchT=0;ruhe=99;leadT=14;
+ auftraege=[];
+ for(q=0;q<angebote.length;q++)if(angebote[q].an){
+  var a=angebote[q];
+  auftraege.push({kid:a.kid,n:a.n,i:a.i,j:a.j,v:a.v,menge:a.menge,offen:a.menge,
+   t:Math.min(NIGHT,34+Math.random()*40)})}
  shiftT=NIGHT;jailT=0;jailPos=null;flash=0;freeze=0;shake=0;redV=0;
- NI={cash:0,drops:0,busts:0,combo:0,done:false,start:bunker};
+ NI={cash:0,drops:0,busts:0,combo:0,done:false,start:bunker,erfuellt:0,geplatzt:0,grund:''};
  sNight();ui()}
-function nightEnd(){
- phase='tag';siren(0);sDawn();
+function nightEnd(grund){
+ phase='tag';siren(0);
+ if(grund==='knast')sHammer();else sDawn();
+ NI.grund=grund||'feierabend';
+ /* Nicht bediente Aufträge kosten Ruf. Wer zusagt und nicht liefert, verliert
+    den Kontakt langsam wieder. */
+ for(var q=0;q<auftraege.length;q++){
+  var a=auftraege[q];if(a.offen<=0)continue;
+  var k=kontaktById(a.kid);
+  if(k){k.v=Math.max(0,k.v-0.6);NI.geplatzt++;ST.geplatzt++}}
+ auftraege=[];
  NI.cash=bunker-NI.start;NI.done=true;
  ST.naechte++;ST.drops+=NI.drops;ST.busts+=NI.busts;
  if(NI.cash>ST.best)ST.best=NI.cash;
  if(bunker>high)high=bunker;
  if(akten>0&&!gerichtTag)gerichtTag=day+3;
  nextDay();
+ /* Was Roberto noch am Mann hat, wandert zurück in den Vorrat. Bezahlt ist bezahlt,
+    verloren geht Ware nur beim Zugriff. */
+ if(packs>0)vorrat+=packs;
  p=idleP();cash=0;packs=0;
- save();ui()}
+ tagBeginn();save();ui()}
 function nextDay(){day++}
 function addXP(n){
  var vor=rang();
@@ -494,13 +610,22 @@ function moveCop(o,sp,tx,ty){
  if(o.y>B){o.y=B;o.dy=-1;o.cool=0}}
 function bust(){
  var lost=cash;
+ NI.busts++;akten++;
+ /* Knast gibt es sofort, nicht erst beim Prozess: bei offenem Haftbefehl,
+    beim dritten Zugriff derselben Nacht, oder wenn die Fahndung ganz oben stand. */
+ var knast=0;
+ if(haftbefehl)knast=2;
+ else if(NI.busts>=3)knast=1;
+ else if(stars>=4.5)knast=1;
  flashT='Zugriff: '+lost+' € weg';flash=1.9;
  ftxt(p.x,p.y-20,'-'+lost+' €','#E2585A');fring(p.x,p.y,44,'#E2585A');
- packs=0;cash=0;combo=0;comboT=0;stars=0;NI.busts++;akten++;
- jailT=haftbefehl?2.6:1.2;
- var s=bc(LAG.i,LAG.j);jailPos={x:s.x,y:YS[LAG.j+1]};
+ packs=0;cash=0;combo=0;comboT=0;
+ stars=Math.min(stars,1.2);ruhe=99;
  freeze=0.22;kick(14);redV=1;siren(0);sBust();
  for(var i=0;i<cops.length;i++)cops[i].heim=true;
+ if(knast){haft+=knast;save();nightEnd('knast');return}
+ jailT=1.2;
+ var s=bc(LAG.i,LAG.j);jailPos={x:s.x,y:YS[LAG.j+1]};
  save()}
 
 function step(){
@@ -519,41 +644,76 @@ function step(){
  var L=XS[0],R=XS[XS.length-1],T=YS[0],B=YS[YS.length-1];
  if(p.x<L){p.x=L;p.dx=0}if(p.x>R){p.x=R;p.dx=0}
  if(p.y<T){p.y=T;p.dy=0}if(p.y>B){p.y=B;p.dy=0}
+ var i;
+ /* Nachschub liegt am Hafen und ist bezahlt. Ist er leer, ist die Nacht gelaufen. */
  var kl=bc(LAG.i,LAG.j),dxl=p.x-kl.x,dyl=p.y-kl.y;
- if(packs<CAP&&dxl*dxl+dyl*dyl<48*48){
-  packs=CAP;sPick();fring(kl.x,kl.y,26,'#F0B84B');
-  ftxt(kl.x,kl.y-20,WARE[ware].n+' geladen','#F0C070')}
+ if(packs<CAP&&vorrat>0&&dxl*dxl+dyl*dyl<48*48){
+  var nimm=Math.min(CAP-packs,vorrat);
+  packs+=nimm;vorrat-=nimm;
+  sPick();fring(kl.x,kl.y,26,'#F0B84B');
+  ftxt(kl.x,kl.y-20,nimm+'x '+WARE[ware].n,'#F0C070')}
  var kt=bc(TRAP.i,TRAP.j),dxt=p.x-kt.x,dyt=p.y-kt.y;
  if(cash>0&&dxt*dxt+dyt*dyt<48*48){
   bunker+=cash;if(bunker>high)high=bunker;
   ftxt(kt.x,kt.y-22,'+'+cash+' €',COL.cash);fring(kt.x,kt.y,34,'#B9B2FF');fcoin(kt.x,kt.y,10);
   flashT='+'+cash+' € im Bunker';flash=1.4;
   kick(cash>=300?5:3);freeze=0.07;sBank();
-  cash=0;stars=Math.max(0,stars-1.5);save()}
+  cash=0;stars=Math.max(0,stars-1);ruhe+=2;save()}
+ /* Versteck: hier verliert dich die Streife und die Fahndung fällt schnell,
+    aber die Uhr läuft weiter. */
+ var kv=bc(VERS.i,VERS.j),dxv=p.x-kv.x,dyv=p.y-kv.y,drin=dxv*dxv+dyv*dyv<44*44;
+ if(drin){
+  ruhe=99;
+  if(stars>0){stars=Math.max(0,stars-1.5*DT);
+   if(Math.random()<0.10)fring(kv.x,kv.y,20,'#7FB0F0')}}
  if(comboT>0){comboT-=DT;if(comboT<=0){comboT=0;combo=0}}
- var i;
- for(i=0;i<targets.length;i++){
-  targets[i].t-=DT;
-  if(targets[i].t<=0){targets[i]=newTarget();continue}
-  var kk=bc(targets[i].i,targets[i].j),ddx=p.x-kk.x,ddy=p.y-kk.y;
-  if(packs>0&&ddx*ddx+ddy*ddy<48*48){
-   var K=kd(targets[i].i,targets[i].j),wr=WARE[ware];
-   packs--;combo++;comboT=COMBOW;NI.drops++;
+ /* Aufträge. Keine Zufallspins mehr: nur wer heute zugesagt hat, wartet auf dich. */
+ for(i=0;i<auftraege.length;i++){
+  var a=auftraege[i];
+  if(a.offen<=0)continue;
+  a.t-=DT;
+  if(a.t<=0)continue;
+  var ka=bc(a.i,a.j),adx=p.x-ka.x,ady=p.y-ka.y;
+  if(packs>0&&adx*adx+ady*ady<48*48){
+   var wr=WARE[ware];
+   packs--;a.offen--;combo++;comboT=COMBOW;NI.drops++;
    if(combo>NI.combo)NI.combo=combo;
-   var pay=Math.round((wr.preis*(1+K*0.12)*(1+stars*0.25)
+   var pay=Math.round((wr.preis*(1+a.v*0.14)*(1+stars*0.22)
      +Math.min(combo,5)*wr.preis*0.1)*PAYM/5)*5;
-   cash+=pay;stars=Math.min(5,stars+wr.hitze);
-   var kk2=key(targets[i].i,targets[i].j);
-   kunden[kk2]=Math.min(5,(kunden[kk2]||0)+0.34);
-   addXP(Math.round(wr.xp*(1+K*0.15)));
-   ftxt(kk.x,kk.y-16,'+'+pay+' €',COL.cash);fring(kk.x,kk.y,30,'#FFD9D9');
-   if(combo>1)ftxt(kk.x,kk.y-36,'x'+combo,COL.star);
+   cash+=pay;
+   stars=Math.min(5,stars+wr.hitze*(nahWache(a.i,a.j)?1.3:1));
+   ruhe=0;
+   addXP(Math.round(wr.xp*(1+a.v*0.15)));
+   ftxt(ka.x,ka.y-16,'+'+pay+' €',COL.cash);fring(ka.x,ka.y,30,'#FFD9D9');
+   if(combo>1)ftxt(ka.x,ka.y-36,'x'+combo,COL.star);
    freeze=0.05;kick(2.5);sDeliver(combo);
-   targets[i]=newTarget();break}}
+   if(a.offen<=0){
+    var kk=kontaktById(a.kid);
+    if(kk)kk.v=Math.min(5,kk.v+0.55);
+    NI.erfuellt++;addXP(8);
+    ftxt(ka.x,ka.y-52,a.n+' zufrieden',COL.cash)}
+   break}}
+ /* Neue Bekanntschaften. Wer hinfährt, hat morgen einen Abnehmer mehr. */
+ leadT-=DT;
+ if(leadT<=0&&!leads.length){
+  var fb=freieBloecke();
+  if(fb.length){var lb=fb[Math.floor(Math.random()*fb.length)];
+   leads.push({i:lb.i,j:lb.j,t:15});sStar()}
+  leadT=26}
+ for(i=leads.length-1;i>=0;i--){
+  var L=leads[i];L.t-=DT;
+  if(L.t<=0){leads.splice(i,1);continue}
+  var kL=bc(L.i,L.j),ldx=p.x-kL.x,ldy=p.y-kL.y;
+  if(ldx*ldx+ldy*ldy<44*44){
+   var neu=neuerKontakt({i:L.i,j:L.j});
+   leads.splice(i,1);
+   if(neu){addXP(12);fring(kL.x,kL.y,32,'#7FB0F0');
+    ftxt(kL.x,kL.y-18,neu.n+' notiert','#9CC4F0');
+    flashT='Neuer Kontakt: '+neu.n;flash=1.8}}}
  if(Math.floor(stars)>prevStars){sStar();kick(1.5)}
  prevStars=Math.floor(stars);
  /* Streifen kommen aus der Wache, nicht vom Rand. */
- var soll=(stars>=1||haftbefehl)?Math.min(4,1+Math.floor(stars)):0;
+ var soll=drin?0:((stars>=1||haftbefehl)?Math.min(4,1+Math.floor(stars)):0);
  if(dispatchT>0)dispatchT-=DT;
  if(cops.length<soll&&dispatchT<=0){spawnCop();dispatchT=lv('scanner')?3.4:2.2}
  var jagd=false,near=1e9;
@@ -565,18 +725,21 @@ function step(){
   if(heim){
    var w=wachePos();
    moveCop(o,1.6,w.x,w.y);
-   if(Math.abs(o.x-w.x)+Math.abs(o.y-w.y)<14){cops.splice(i,1)}
+   if(Math.abs(o.x-w.x)+Math.abs(o.y-w.y)<14)cops.splice(i,1);
    o.ch=false;continue}
-  var ch=(stars>=1||haftbefehl)&&dd<rad;o.ch=ch;
+  var ch=!drin&&(stars>=1||haftbefehl)&&dd<rad;o.ch=ch;
   if(ch){jagd=true;if(dd<near)near=dd}
   moveCop(o,1.5+stars*0.22,ch?p.x:null,ch?p.y:null);
-  if(dd<15&&(packs>0||cash>0)){bust();return}}
- if(!jagd)stars=Math.max(0,stars-DECAY*DT);
+  if(dd<15&&!drin&&(packs>0||cash>0)){bust();return}}
+ /* Die Fahndung fällt nicht dauernd ein bisschen, sondern erst wenn dich
+    RUHEZEIT Sekunden lang niemand gesehen hat. Dann aber zügig. */
+ if(jagd)ruhe=0;else ruhe+=DT;
+ if(ruhe>=RUHEZEIT)stars=Math.max(0,stars-KUEHL*DT);
  var ci=jagd?Math.max(0.25,1-Math.min(near,220)/220):0;
  if(jagd&&near<55)redV=Math.max(redV,0.3+(55-near)/55*0.3);
  siren(ci);
  shiftT-=DT;
- if(shiftT<=0){shiftT=0;nightEnd()}}
+ if(shiftT<=0){shiftT=0;nightEnd('feierabend')}}
 
 /* ---------- Zeichnen ---------- */
 function pouch(bx,by,s){
@@ -585,12 +748,20 @@ function pouch(bx,by,s){
  x.lineTo(bx+s*0.85,by+s);x.lineTo(bx+s*0.15,by+s);x.closePath();x.fill();x.stroke();
  x.beginPath();x.moveTo(bx+s*0.2,by+s*0.25);x.lineTo(bx+s*0.3,by);
  x.lineTo(bx+s*0.7,by);x.lineTo(bx+s*0.8,by+s*0.25);x.stroke()}
-function star(sx,sy,r,fill){
+function star(sx,sy,r,f){
+ /* f von 0 bis 1. Der laufende Stern füllt sich mit, sonst sieht man die
+    Fahndung erst, wenn sie schon einen Sprung gemacht hat. */
+ var i,a,rr;
  x.beginPath();
- for(var i=0;i<10;i++){var a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*0.45:r;
+ for(i=0;i<10;i++){a=-Math.PI/2+i*Math.PI/5;rr=i%2?r*0.45:r;
   x[i?'lineTo':'moveTo'](sx+Math.cos(a)*rr,sy+Math.sin(a)*rr)}
- x.closePath();x.fillStyle=fill?COL.star:'rgba(255,255,255,0.12)';x.fill();
- x.strokeStyle=fill?'#8A5A0E':'rgba(255,255,255,0.25)';x.lineWidth=1;x.stroke()}
+ x.closePath();
+ x.fillStyle='rgba(255,255,255,0.12)';x.fill();
+ if(f>0){x.save();x.clip();
+  x.fillStyle=COL.star;
+  x.fillRect(sx-r-1,sy-r-1,(2*r+2)*Math.min(1,f),2*r+2);
+  x.restore()}
+ x.strokeStyle=f>=1?'#8A5A0E':'rgba(255,255,255,0.25)';x.lineWidth=1;x.stroke()}
 function auto(){
  x.save();x.translate(p.x,p.y);x.rotate(p.dy?(p.dy>0?Math.PI/2:-Math.PI/2):(p.face>0?0:Math.PI));
  x.fillStyle='#8C3B34';x.strokeStyle=COL.line;x.lineWidth=1.6;
@@ -708,10 +879,15 @@ function draw(){
  for(i=0;i<s.cols;i++)for(j=0;j<s.rows;j++){
   var bx=XS[i]+18,by=YS[j]+18,
       isL=(i===LAG.i&&j===LAG.j),isT=(i===TRAP.i&&j===TRAP.j),isW=(i===WACHE.i&&j===WACHE.j),
-      tg=null;
-  if(phase==='nacht')for(var m2=0;m2<targets.length;m2++)
-   if(targets[m2].i===i&&targets[m2].j===j)tg=targets[m2];
-  x.fillStyle=isL?COL.lager:(isT?COL.trap:(isW?COL.wache:((i*7+j*3)%3===0?COL.b2:((i+j)%2?COL.b1:COL.b3))));
+      isV=(i===VERS.i&&j===VERS.j),tg=null,lead=null,m2;
+  if(phase==='nacht'){
+   for(m2=0;m2<auftraege.length;m2++)
+    if(auftraege[m2].i===i&&auftraege[m2].j===j&&auftraege[m2].offen>0&&auftraege[m2].t>0)
+     tg=auftraege[m2];
+   for(m2=0;m2<leads.length;m2++)
+    if(leads[m2].i===i&&leads[m2].j===j)lead=leads[m2]}
+  x.fillStyle=isL?COL.lager:(isT?COL.trap:(isW?COL.wache:(isV?'#3B3F46':
+   ((i*7+j*3)%3===0?COL.b2:((i+j)%2?COL.b1:COL.b3)))));
   x.strokeStyle=COL.line;x.lineWidth=1.4;
   x.beginPath();x.roundRect(bx,by,BW,BW,5);x.fill();x.stroke();
   x.textAlign='center';
@@ -726,9 +902,19 @@ function draw(){
     x.fillStyle='#12300B';x.font='500 11px '+FONT;x.fillText('€',0,3);x.restore()}}
   else if(isL){
    x.fillStyle='rgba(0,0,0,0.28)';x.fillRect(bx+9,by+10,BW-18,16);
-   x.fillStyle='#3A2405';x.font='500 11px '+FONT;x.fillText('LAGER',bx+BW/2,by+BW-8);
-   if(phase==='nacht'&&packs<CAP){var g2=1+Math.sin(pulse*2)*0.1;
-    x.save();x.translate(bx+BW/2,by+8);x.scale(g2,g2);pouch(-6,-6,12);x.restore()}}
+   x.fillStyle='#3A2405';x.font='500 11px '+FONT;x.fillText('HAFEN',bx+BW/2,by+BW-8);
+   x.fillStyle=vorrat>0?'#FFE7B0':'#8A6A2A';x.font='600 12px '+FONT;
+   x.fillText(vorrat+'', bx+BW/2,by+22);
+   if(phase==='nacht'&&packs<CAP&&vorrat>0){var g2=1+Math.sin(pulse*2)*0.1;
+    x.save();x.translate(bx+BW/2,by+BW-24);x.scale(g2,g2);pouch(-6,-6,11);x.restore()}}
+  else if(isV){
+   x.strokeStyle='#6C7481';x.lineWidth=2;
+   x.beginPath();x.moveTo(bx+10,by+BW-14);x.lineTo(bx+BW/2,by+10);x.lineTo(bx+BW-10,by+BW-14);
+   x.stroke();
+   x.fillStyle='#9AA3B0';x.font='500 10px '+FONT;x.fillText('VERSTECK',bx+BW/2,by+BW-4);
+   if(phase==='nacht'&&stars>0){var gv=1+Math.sin(pulse*2.5)*0.12;
+    x.globalAlpha=0.5;x.strokeStyle='#7FB0F0';x.lineWidth=2;
+    x.beginPath();x.arc(bx+BW/2,by+BW/2,BW*0.42*gv,0,6.3);x.stroke();x.globalAlpha=1}}
   else if(isW){
    x.fillStyle='rgba(255,255,255,0.85)';
    x.fillRect(bx+BW/2-13,by+8,26,7);
@@ -738,25 +924,45 @@ function draw(){
   else{
    x.fillStyle=COL.win;
    x.fillRect(bx+9,by+9,10,10);x.fillRect(bx+BW-19,by+9,10,10);x.fillRect(bx+9,by+BW-19,10,10);
-   var K=kd(i,j);
-   if(K>=1){
+   var kon=kontaktAt(i,j);
+   if(kon){
     x.fillStyle=phase==='tag'?'rgba(40,90,60,0.85)':'rgba(123,201,111,0.85)';
-    for(var q=0;q<Math.floor(K);q++)x.fillRect(bx+BW-13-q*6,by+BW-11,4,4)}}
+    for(var q=0;q<Math.max(1,Math.floor(kon.v));q++)x.fillRect(bx+BW-13-q*6,by+BW-11,4,4)}}
+  if(lead){
+   var gl=1+Math.sin(pulse*3)*0.14;
+   x.save();x.translate(bx+BW/2,by+BW/2);x.scale(gl,gl);
+   x.fillStyle='#4E8FE0';x.strokeStyle=COL.line;x.lineWidth=1.4;
+   x.beginPath();x.roundRect(-11,-8,22,16,3);x.fill();x.stroke();
+   x.fillStyle='#DCE9F8';x.font='600 11px '+FONT;x.textAlign='center';
+   x.fillText('?',0,4);x.restore();
+   x.strokeStyle='#9CC4F0';x.lineWidth=2;
+   x.beginPath();x.arc(bx+BW/2,by+BW/2,17,-Math.PI/2,-Math.PI/2+6.283*(lead.t/15));x.stroke()}
   if(tg){var sc=1+Math.sin(pulse)*0.12;
    x.save();x.translate(bx+BW/2,by+22);x.scale(sc,sc);
-   x.fillStyle=tg.t<5&&Math.sin(pulse*4)>0?'#F09595':COL.pin;
+   x.fillStyle=tg.t<8&&Math.sin(pulse*4)>0?'#F09595':COL.pin;
    x.strokeStyle=COL.line;x.lineWidth=1.4;
    x.beginPath();x.arc(0,-4,9,0,6.3);x.fill();x.stroke();
    x.beginPath();x.moveTo(-5,2);x.lineTo(5,2);x.lineTo(0,12);x.closePath();x.fill();x.stroke();
-   x.fillStyle='#FFECEC';x.beginPath();x.arc(0,-4,3.5,0,6.3);x.fill();x.restore();
-   x.strokeStyle=tg.t<5?'#F09595':'rgba(255,255,255,0.4)';x.lineWidth=2;
-   x.beginPath();x.arc(bx+BW/2,by+22,16,-Math.PI/2,-Math.PI/2+6.283*(tg.t/PINT));x.stroke()}}
+   x.fillStyle='#FFECEC';x.font='600 10px '+FONT;x.textAlign='center';
+   x.fillText(tg.offen+'',0,-1);x.restore();
+   x.strokeStyle=tg.t<8?'#F09595':'rgba(255,255,255,0.4)';x.lineWidth=2;
+   x.beginPath();x.arc(bx+BW/2,by+22,16,-Math.PI/2,-Math.PI/2+6.283*Math.max(0,tg.t/74));x.stroke();
+   x.fillStyle=phase==='tag'?'#1E2126':'#ECEAE4';x.font='500 9px '+FONT;
+   x.fillText(tg.n,bx+BW/2,by+BW-4)}}
  if(phase==='nacht'){ghost();for(var k=0;k<cops.length;k++)copcar(cops[k])}
  roberto();
  drawFx();
  if(phase==='nacht'){
   for(var w=0;w<packs;w++)pouch(8+w*15,7,12);
-  for(var st=0;st<5;st++)star(W-16-st*20,16,8,stars>=st+1);
+  if(stars>=4){
+   var wp=0.35+Math.sin(pulse*5)*0.25;
+   x.globalAlpha=Math.max(0,wp);
+   x.fillStyle=COL.pin;
+   x.beginPath();x.roundRect(W-108,4,104,24,6);x.fill();
+   x.globalAlpha=1;
+   x.textAlign='right';x.font='600 10px '+FONT;x.fillStyle='#FFD9D9';
+   x.fillText('FAHNDUNG AM ANSCHLAG',W-8,38)}
+  for(var st=0;st<5;st++)star(W-16-st*20,16,8,stars-st);
   if(combo>1){
    x.textAlign='left';x.font='600 13px '+FONT;x.fillStyle=COL.star;
    x.fillText('Kombo x'+combo,10,H-16);
@@ -786,11 +992,13 @@ function tagKarte(){
  if(haft>0)L.push(['Du sitzt. Noch '+haft+(haft===1?' Tag':' Tage'),15,'#F0A8A8']);
  else if(gerichtTag&&day>=gerichtTag)L.push(['Heute ist Verhandlung',15,'#F0C070']);
  else if(NI.done){
-  L.push([NI.cash>0?'Letzte Nacht: +'+NI.cash+' €':'Letzte Nacht: nichts im Bunker',15,'#E7E4DC']);
-  if(NI.drops>0){
-   L.push([NI.drops+' Lieferungen · '+NI.busts+' Zugriffe',13,'#B6BCC6']);
-   if(NI.combo>1)L.push(['beste Kombo x'+NI.combo,13,'#B6BCC6'])}
-  else L.push(['Keine Lieferung geschafft',13,'#B6BCC6'])}
+  if(NI.grund==='knast')L.push(['Die Nacht endete in der Zelle',15,'#F0A8A8']);
+  else L.push([NI.cash>0?'Letzte Nacht: +'+NI.cash+' €':'Letzte Nacht: nichts im Bunker',
+   15,'#E7E4DC']);
+  if(NI.drops>0)L.push([NI.drops+' Packs · '+NI.erfuellt+' Aufträge erfüllt',13,'#B6BCC6']);
+  else L.push(['Keine Lieferung geschafft',13,'#B6BCC6']);
+  if(NI.geplatzt>0)
+   L.push([NI.geplatzt+' Zusage'+(NI.geplatzt>1?'n':'')+' geplatzt',13,'#F0C070'])}
  else L.push(['Roberto wartet auf den Sonnenuntergang',15,'#E7E4DC']);
  if(akten>0&&haft<=0)
   L.push([akten+' offene '+(akten===1?'Akte':'Akten')+
@@ -855,13 +1063,14 @@ function ui(){
  document.getElementById('shopstate').textContent=nacht?'nachts geschlossen':(sitzt?'du sitzt':'offen');
  document.getElementById('kitnote').textContent=nacht?'Nacht '+day:'Stand an Tag '+day;
  document.getElementById('secware').style.display=nacht||ger||sitzt?'none':'';
+ document.getElementById('sectel').style.display=ger?'none':'';
  document.getElementById('secgericht').style.display=(ger||sitzt||letztesUrteil)&&!nacht?'':'none';
  document.getElementById('hint').textContent=nacht
   ?'Pfeiltasten, Wischen oder die Tasten unten.'
   :(ger?'Erscheinen kostet Geld. Nicht erscheinen kostet mehr.'
    :(sitzt?'Aus der Zelle geht nichts. Tage abwarten.'
     :'Leertaste oder Knopf startet die Nacht. Höchststand: '+high+' €'));
- gericht();warePicker();kit();shop()}
+ gericht();telefon();warePicker();kit();shop()}
 function gericht(){
  var el=document.getElementById('gerichttext'),h='';
  if(haft>0){
@@ -886,31 +1095,111 @@ function gericht(){
      (letztesUrteil.tage===1?'Tag':'Tage')+'</b>':' · keine Haft')+'</p>'+
     '<p class="muted">Die Akten sind vom Tisch. Bis zum nächsten Mal.</p>'}
  el.innerHTML=h}
+function telefon(){
+ var nacht=phase==='nacht',zu=nacht||haft>0,h='',i,q;
+ var lf=LIEF[lieferant],pr=einkaufspreis();
+ document.getElementById('tellab').textContent=
+  nacht?'nachts kein Empfang':(haft>0?'kein Empfang in der Zelle'
+   :angenommen()+' von '+MAXAUF+' Aufträgen');
+ h+='<h3 class="telh">Nachschub</h3><div class="lieflist">';
+ for(i=0;i<LIEF.length;i++){
+  var L=LIEF[i],frei=rang()>=L.rang;
+  h+='<button class="'+(i===lieferant&&frei?'on':'')+'" data-l="'+i+'"'+
+   (frei&&!zu?'':' disabled')+'><b>'+L.n+'</b><span>'+
+   (frei?Math.round(L.faktor*100)+' % vom Straßenpreis · bis '+L.max+' Pack'
+    :'ab Rang '+L.rang)+'</span></button>'}
+ h+='</div><p class="desc">'+lf.d+'</p>';
+ h+='<div class="row"><div><p class="name">'+WARE[ware].n+' kaufen</p>'+
+  '<p class="desc">'+pr+' € je Pack · am Hafen liegen <b>'+vorrat+'</b> von '+lf.max+'</p>'+
+  (vorrat===0&&!zu?'<p class="err">Ohne Ware kannst du nachts nichts ausliefern</p>':'')+
+  '</div><div class="kaufbtn">'+
+  '<button data-buy="1"'+(zu?' disabled':'')+'>+1</button>'+
+  '<button data-buy="5"'+(zu?' disabled':'')+'>+5</button></div></div>';
+ h+='<h3 class="telh">Aufträge für heute Nacht</h3>';
+ if(nacht)h+='<p class="desc">Die Nacht läuft. Zugesagt ist zugesagt.</p>';
+ else if(haft>0)h+='<p class="desc">Aus der Zelle nimmst du keine Aufträge an.</p>';
+ else if(!angebote.length)
+  h+='<p class="desc">Heute meldet sich niemand. Fahr nachts raus und sammle die blauen '+
+   'Fragezeichen ein, das sind neue Leute.</p>';
+ for(i=0;i<angebote.length;i++){
+  var a=angebote[i],voll=!a.an&&angenommen()>=MAXAUF;
+  h+='<div class="row"><div><p class="name">'+a.n+'</p>'+
+   '<p class="desc">'+a.menge+' Pack · '+
+   (nahWache(a.i,a.j)?'gleich neben der Wache':'ruhige Ecke')+
+   ' · Vertrauen '+a.v.toFixed(1)+'</p></div>'+
+   '<button data-a="'+i+'"'+(zu||voll?' disabled':'')+(a.an?' class="onbtn"':'')+'>'+
+   (a.an?'zugesagt':'annehmen')+'</button></div>'}
+ h+='<h3 class="telh">Kontakte in '+STADT[stadt].n+'</h3>';
+ var meine=[];
+ for(q=0;q<kontakte.length;q++)if(kontakte[q].stadt===stadt)meine.push(kontakte[q]);
+ if(!meine.length)h+='<p class="desc">Noch niemand. Hier kennt dich keiner.</p>';
+ for(q=0;q<meine.length;q++){
+  var k=meine[q];
+  h+='<div class="row"><div><p class="name">'+k.n+'</p>'+
+   '<p class="desc">Vertrauen '+k.v.toFixed(1)+' / 5'+
+   '<span class="vertrau"><i style="width:'+Math.round(k.v/5*100)+'%"></i></span></p></div>'+
+   '<span class="own">'+(nahWache(k.i,k.j)?'heikle Lage':'Bezirk '+(k.i+1)+'/'+(k.j+1))+
+   '</span></div>'}
+ var el=document.getElementById('tel');
+ el.innerHTML=h;
+ var bs=el.querySelectorAll('button[data-l]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
+  var n=+e.currentTarget.getAttribute('data-l');
+  if(rang()<LIEF[n].rang)return;
+  if(vorrat>LIEF[n].max){sNope();return}
+  lieferant=n;audioOK=true;ac();sBuy();save();telefon()});
+ bs=el.querySelectorAll('button[data-buy]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
+  kaufen(+e.currentTarget.getAttribute('data-buy'))});
+ bs=el.querySelectorAll('button[data-a]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
+  var n=+e.currentTarget.getAttribute('data-a'),a=angebote[n];
+  audioOK=true;ac();
+  if(!a.an&&angenommen()>=MAXAUF){sNope();return}
+  a.an=!a.an;sBuy();save();telefon()})}
+function kaufen(n){
+ if(phase==='nacht'||haft>0)return;
+ audioOK=true;ac();
+ var lf=LIEF[lieferant],pr=einkaufspreis(),platz=lf.max-vorrat;
+ n=Math.min(n,platz);
+ if(n<=0){sNope();return}
+ if(pr*n>bunker)n=Math.floor(bunker/pr);
+ if(n<=0){sNope();return}
+ bunker-=pr*n;vorrat+=n;
+ sBuy();save();telefon();kit();hud()}
 function warePicker(){
- var el=document.getElementById('ware'),h='',r=rang();
+ var el=document.getElementById('ware'),h='',r=rang(),gesperrt=vorrat>0;
  for(var i=0;i<WARE.length;i++){
   var w=WARE[i],frei=r>=w.rang;
-  h+='<button data-w="'+i+'"'+(frei?'':' disabled')+(i===ware&&frei?' class="on"':'')+'>'+
+  h+='<button data-w="'+i+'"'+(frei&&!gesperrt?'':' disabled')+
+   (i===ware&&frei?' class="on"':'')+'>'+
    '<b>'+w.n+'</b><span>'+(frei?w.preis+' € Basis · Hitze '+w.hitze.toFixed(2)
     :'ab Rang '+w.rang)+'</span></button>'}
  el.innerHTML=h;
- document.getElementById('warelab').textContent='Teurer heißt heißer';
+ document.getElementById('warelab').textContent=
+  gesperrt?'erst die '+vorrat+' Pack am Hafen loswerden':'Teurer heißt heißer';
  var bs=el.querySelectorAll('button');
  for(var b=0;b<bs.length;b++)bs[b].addEventListener('click',function(e){
   var i=+e.currentTarget.getAttribute('data-w');
-  if(rang()>=WARE[i].rang){ware=i;audioOK=true;ac();sBuy();save();warePicker()}})}
+  if(vorrat>0){sNope();return}
+  if(rang()>=WARE[i].rang){ware=i;audioOK=true;ac();sBuy();save();warePicker();telefon()}})}
+function hierKontakte(){var n=0;
+ for(var q=0;q<kontakte.length;q++)if(kontakte[q].stadt===stadt)n++;return n}
 function kit(){
  var rows=[
   ['Tempo',Math.round(SPD/2.5*100)+' %',lv('schuhe')>0||lv('auto')>0],
   ['Ladung',CAP+' Ware',lv('tasche')>0||lv('auto')>0],
   ['Auszahlung',Math.round(PAYM*100)+' %',lv('handy')>0],
   ['Sichtbarkeit',Math.round(SICHT*100)+' %',lv('kapuze')>0],
+  ['Ware am Hafen',vorrat+' Pack',vorrat>0],
+  ['Kontakte hier',hierKontakte()+' von '+kontakte.length,hierKontakte()>2],
   ['Offene Akten',String(akten)+(haftbefehl?' + Haftbefehl':''),false],
   ['Gerichtstermin',gerichtTag?'Tag '+gerichtTag:'keiner',false],
   ['Nächte gearbeitet',String(ST.naechte),false],
   ['Lieferungen gesamt',String(ST.drops),false],
   ['Zugriffe gesamt',String(ST.busts),false],
   ['Prozesse',String(ST.prozesse),false],
+  ['Geplatzte Zusagen',String(ST.geplatzt),false],
   ['Hafttage abgesessen',String(ST.hafttage),false],
   ['Beste Nacht',ST.best+' €',false]];
  var h='';
@@ -951,7 +1240,9 @@ function mainAction(){
  letztesUrteil=null;
  var vorStadt=stadt;
  while(stadt<STADT.length-1&&rang()>=STADT[stadt+1].rang)stadt++;
- if(stadt!==vorStadt){buildCity();p=idleP()}
+ if(stadt!==vorStadt){
+  buildCity();startKontakte();p=idleP();
+  angebotTag=0;tagBeginn();ui();return}
  nightStart()}
 document.addEventListener('keydown',function(e){
  var k=e.key;
@@ -996,10 +1287,12 @@ window.addEventListener('resize',fit);
 if(!x.roundRect)x.roundRect=function(a,b,w,h,r){this.rect(a,b,w,h)};
 load();
 buildCity();
+startKontakte();
+tagBeginn();
 document.getElementById('bmute').textContent=mute?'Ton aus':'Ton an';
-p=idleP();packs=0;cash=0;stars=0;combo=0;targets=[];cops=[];
+p=idleP();packs=0;cash=0;stars=0;combo=0;cops=[];leads=[];
 shiftT=NIGHT;jailT=0;flash=0;
-palette();ui();hud();requestAnimationFrame(loop);
+palette();ui();hud();save();requestAnimationFrame(loop);
 })();
 </script>
 </body>

@@ -41,15 +41,80 @@ Drei Warenstufen, jede teurer und heißer als die davor. Ausgewählt wird tagsü
 Kokain zahlt gut das Fünffache, treibt die Fahndung aber dreimal so schnell hoch.
 Mit einer Ladung Koks ist der vierte Streifenwagen nach wenigen Lieferungen da.
 
-## Kundenstamm
+## Telefon, Kontakte, Aufträge
 
-Jeder Block ist ein Kunde, der bei null anfängt. Jede Lieferung dorthin hebt ihn um
-ein Drittel einer Stufe, maximal Stufe 5. Eine höhere Stufe zahlt +12 % je Stufe und
-lässt dort öfter einen Pin erscheinen. Die grünen Balken unten rechts am Haus zeigen
-den Stand. Kunden bleiben über Nächte hinweg erhalten, pro Stadt getrennt.
+Es liegen keine Zufallspins mehr herum. Wer nachts auf dich wartet, hat dich vorher
+angerufen.
 
-Ein frischer Block wirft also wenig ab und meldet sich selten. Erst der aufgebaute
-Stamm trägt.
+**Kontakte** sind benannte Abnehmer in je einem Bezirk. Du fängst mit zweien an und
+kennst sonst niemanden. Nachts taucht alle 26 Sekunden ein blaues Fragezeichen auf:
+hinfahren heißt einen Kontakt mehr, und der bleibt.
+
+**Aufträge** kommen tagsüber aufs Telefon. Wer dir vertraut, meldet sich öfter und
+bestellt mehr Packs. Du kannst nur eine begrenzte Zahl zusagen:
+
+> Aufträge pro Nacht = 2 + Rang / 3, plus einen mit dem Zweithandy
+
+**Vertrauen** entscheidet über alles. Ein voll erfüllter Auftrag bringt +0,55 und zahlt
++14 % je Stufe. Eine Zusage, die du nicht bedienst, kostet **0,6** — mehr, als eine
+Erfüllung bringt. Zusagen sind also keine Wunschliste, sondern eine Verpflichtung.
+
+## Nachschub
+
+Ware fällt nicht mehr vom Himmel. Du kaufst sie tagsüber auf eigene Rechnung, sie
+liegt am **Hafen**, und nachts musst du sie dort abholen. Ist der Hafen leer, ist die
+Nacht gelaufen.
+
+| Lieferant | ab Rang | Einkaufspreis | Höchstmenge |
+|---|---|---|---|
+| Container am Hafen | 1 | 55 % vom Straßenpreis | 8 Pack |
+| Tarek vom Kiosk | 3 | 44 % | 14 Pack |
+| Nadja | 6 | 36 % | 22 Pack |
+| Die alte Werft | 9 | 28 % | 40 Pack |
+
+Cannabis kostet am Hafen 20 € und bringt auf der Straße ab 40 €. Bei der Werft kostet
+Kokain 60 € und bringt ab 210 €. Der Aufstieg liegt also nicht nur im Verkaufspreis,
+sondern genauso im Einkauf.
+
+Startkapital sind 200 €. Was du am Morgen noch am Mann hast, wandert zurück in den
+Vorrat. Verloren geht Ware nur beim Zugriff.
+
+Die Warenstufe lässt sich nur wechseln, wenn der Hafen leer ist. Sonst würde billig
+gekauftes Cannabis beim Umschalten zu teurem Kokain.
+
+## Fahndung
+
+Das alte System war kaputt, und zwar messbar:
+
+| Alt | Folge |
+|---|---|
+| Abbau 0,09 pro Sekunde, also 55 s für fünf Sterne | in einer 75-Sekunden-Nacht praktisch nie |
+| Abbau stoppte komplett, solange dich ein Wagen sah | bei vier Sternen deckt der Sichtradius 286 px fast die Karte ab, also Todesspirale |
+| Zugriff setzte die Fahndung auf null | Erwischtwerden war die beste Art, Hitze loszuwerden |
+| Fünf ganze Sterne aus einem Fließkommawert | man sah die Fahndung erst, wenn sie schon gesprungen war |
+
+Neu ist ein Abkühlsystem statt eines Dauerabbaus:
+
+1. Jede Lieferung heizt auf. Neben der Wache 30 % mehr.
+2. Solange dich ein Wagen sieht, passiert **nichts**. Die Ruhezeit steht bei null.
+3. Hast du sie abgeschüttelt, läuft eine Ruhezeit von 6 Sekunden. Mit Funkscanner 3,5.
+4. Danach fällt die Fahndung um 0,5 pro Sekunde, mit Sonnenbrille 0,65. Ein Stern
+   alle zwei Sekunden.
+5. Das **Versteck** setzt die Ruhezeit sofort auf null, kühlt mit 1,5 pro Sekunde und
+   macht dich für die Streife unsichtbar. Die Uhr läuft trotzdem weiter.
+6. Ein Zugriff setzt die Fahndung nicht mehr auf null, sondern auf gut einen Stern.
+
+Der laufende Stern füllt sich jetzt teilweise, ab vier Sternen pulst eine Warnung.
+
+Gemessen über 26 Sekunden Dauerbetrieb ergibt das drei klar verschiedene Profile:
+
+| Ware | Hitze je Lieferung | Verlauf | Ausgang |
+|---|---|---|---|
+| Cannabis | 0,28 | pendelt zwischen 0 und 2 | Nacht überlebt |
+| Speed | 0,48 | pendelt zwischen 0 und 2, Spitze 2 | Nacht überlebt |
+| Kokain | 0,75 | 2 auf 5 in zwei Sekunden | Zugriff, Nacht endet im Knast |
+
+Das Pendeln ist das Abkühlen zwischen zwei Lieferungen. Genau das fehlte vorher.
 
 ## Städte
 
@@ -59,8 +124,9 @@ Stamm trägt.
 | Hafenviertel | 5 | 4 × 5 |
 | Neustadt | 10 | 5 × 5 |
 
-Die Karte wächst mit, das Canvas ebenfalls. Jede Stadt hat Lager, Bunker und Wache an
-anderer Stelle, und einen eigenen Kundenstamm.
+Die Karte wächst mit, das Canvas ebenfalls. Jede Stadt hat Hafen, Bunker, Wache und
+Versteck an anderer Stelle. Kontakte gelten **pro Stadt**: wer aufsteigt, fängt in der
+neuen Stadt wieder bei zwei Bekannten an. Die alten bleiben gespeichert.
 
 ## Polizei
 
@@ -77,8 +143,17 @@ nichts rein.
 
 ## Gericht und Haft
 
-Ein Zugriff kostet das Bargeld und bringt eine kurze Festnahme auf der Straße, aber
-nicht mehr die alte Wartestrafe. Stattdessen wächst eine **Akte**.
+Ein Zugriff kostet Bargeld und Ware. Was dann passiert, hängt davon ab, wie tief du
+schon drinsteckst:
+
+| Lage beim Zugriff | Folge |
+|---|---|
+| Normal | kurze Festnahme auf der Straße, eine Akte mehr |
+| Dritter Zugriff derselben Nacht | **1 Tag Haft**, die Nacht ist sofort vorbei |
+| Fahndung stand bei fünf Sternen | **1 Tag Haft**, die Nacht ist sofort vorbei |
+| Offener Haftbefehl | **2 Tage Haft**, die Nacht ist sofort vorbei |
+
+Knast gibt es also nicht erst beim Prozess. Aus den Akten wird trotzdem ein Verfahren.
 
 1. Beim ersten Eintrag wird ein Termin auf **Tag + 3** gesetzt.
 2. Am Termin ersetzt das Amtsgericht die Tagesansicht. Zwei Knöpfe.
@@ -106,13 +181,13 @@ Roberto fängt mit nichts an. Vier Dinge sieht man ihm an.
 
 | Stück | ab Rang | Preis | Wirkung | sichtbar |
 |---|---|---|---|---|
-| Sonnenbrille | 1 | 120 € | Fahndung fällt 20 % schneller | ja |
+| Sonnenbrille | 1 | 120 € | Fahndung kühlt 30 % schneller ab | ja |
 | Laufschuhe I–III | 1 | 180 / 420 / 900 € | je +12 % Tempo | nein |
 | Bauchtasche | 2 | 280 € | +2 Ware | ja |
 | Kapuzenjacke | 3 | 520 € | 25 % später erkannt | ja |
 | Anwalt auf Abruf | 3 | 800 € | halbe Strafe, ein Hafttag weniger | nein |
-| Funkscanner | 4 | 650 € | Wache rückt später aus | nein |
-| Zweithandy | 6 | 1100 € | +25 % je Lieferung | nein |
+| Funkscanner | 4 | 650 € | Wache rückt später aus, Ruhezeit nur 3,5 s | nein |
+| Zweithandy | 6 | 1100 € | +25 % je Lieferung, ein Auftrag mehr | nein |
 | Gebrauchtwagen | 9 | 3800 € | +60 % Tempo, +3 Ware, 40 % besser sichtbar | ja |
 
 Das Auto ist kein reiner Gewinn. Es ist schnell und fasst viel, aber die Streife sieht
@@ -126,7 +201,9 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 |---|---|
 | `STADT` / `buildCity()` | Raster, Canvasgröße, Lage von Lager, Bunker und Wache |
 | `WARE` / `RANG` / `UP` | Warenstufen, Rangschwellen, Ausrüstung mit Rangsperre |
-| `kunden` / `kd()` / `newTarget()` | Kundenstamm und gewichtete Pin-Verteilung |
+| `kontakte` / `neuerKontakt()` | benannte Abnehmer, Vertrauen, neue Bekanntschaften |
+| `tagBeginn()` / `telefon()` | Tagesangebote und die Telefonoberfläche |
+| `LIEF` / `kaufen()` | Lieferanten, Einkaufspreise, Vorrat am Hafen |
 | `spawnCop()` / `moveCop()` | Ausrücken aus der Wache, Verfolgung, Rückfahrt |
 | `urteil()` / `zumGericht()` | Strafzumessung, Haft, Haftbefehl |
 | `roberto()` / `auto()` | Figur samt sichtbarer Ausrüstung |
@@ -183,6 +260,11 @@ Fehler.
 - **Die Ökonomie ist nicht durchgerechnet.** Der `balance-review`-Skill liegt im Repo,
   seine Spike-Regel ist auf die Rangkurve angewandt, aber der volle Durchlauf steht aus.
   Ob 3800 € für das Auto zum Ertrag bei Rang 9 passen, ist geschätzt, nicht geprüft.
+- **Kokain ist hart an der Grenze.** Im Messlauf war die Fahndung nach zwei Sekunden am
+  Anschlag. Der Testbot nutzt allerdings weder Versteck noch Rückzug. Ob das für einen
+  Menschen spielbar ist oder nur frustriert, ist ungetestet.
+- **Kontakte in verlassenen Städten sind totes Kapital.** Wer aufsteigt, kann nicht
+  zurück. Die Zahl unter "Kontakte hier" zeigt deshalb beides.
 - **Overload bei gleichzeitigen Ereignissen** bleibt bei 1/2 aus dem Feel-Pass.
   Einzahlen während einer Verfolgung stapelt Vignette, Ruckeln, Münzen und Fließtext.
 - Kein Zwischenspeichern innerhalb einer Nacht. Wer den Tab schließt, verliert die
