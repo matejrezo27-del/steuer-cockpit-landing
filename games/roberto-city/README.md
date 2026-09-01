@@ -1,47 +1,122 @@
 # Roberto City
 
-Ein Liefer- und Fluchtspiel im Browser. Reines HTML5-Canvas, keine Abhängigkeiten,
-kein Build. `index.html` doppelklicken, fertig.
+Ein Liefer- und Fluchtspiel im Browser. Nachts liefern, tags aufsteigen, und
+irgendwann vor den Richter. Reines HTML5-Canvas, keine Abhängigkeiten, kein Build.
+`index.html` doppelklicken, fertig.
+
+Steuerung nachts: Pfeiltasten oder WASD, am Handy die Tasten unter dem Feld oder
+Wischen. Leertaste startet die Nacht, `M` schaltet den Ton.
 
 ## Tag und Nacht
 
 Das Spiel läuft in Runden aus zwei Phasen.
 
-**Nacht** ist das Spiel: 110 Sekunden ausliefern, bunkern, der Streife entkommen.
-Nur nachts bewegt sich Roberto, nur nachts fahren Streifen, nur nachts gibt es Pins.
+**Nacht** ist das Spiel: 75 Sekunden ausliefern, bunkern, der Streife entkommen.
+Nur nachts bewegt sich Roberto.
 
-**Tag** ist die Kasse: der Shop hat auf, unter *Robertos Sachen* steht, was die
-gekauften Dinge konkret bewirken, und die Bilanz der letzten Nacht liegt auf dem
-Feld. Roberto steht vor dem Lager und wartet. Bewegen lässt er sich nicht.
+**Tag** ist alles andere: Ware für die kommende Nacht wählen, im Shop kaufen, die
+Bilanz der letzten Nacht lesen, und an manchen Tagen vor den Richter.
 
-Leertaste oder der Knopf startet die nächste Nacht, der Tageszähler läuft mit.
-Der Shop ist nachts gesperrt, die Knöpfe sind dann sichtbar deaktiviert.
+## Rang und Ware
 
-## Spielregeln
+Zwölf Ränge vom Läufer bis zur Legende. XP kommen aus Lieferungen, nicht aus Geld.
+Der Bedarf je Stufe wächst um rund das 1,35-fache, nie um das Doppelte: der
+`balance-review`-Skill wertet einen Sprung über 2× als Klippe.
 
-- **Lager** (oranges Haus, oben links): auffüllen, Grundkapazität 3 Ladungen
-- **Kundenpins** (rot): mit Ware ranlaufen zahlt aus, Pin verfällt nach 18 Sekunden,
-  der Ring um den Pin zeigt die Restzeit
-- **Bunker** (lila Haus, unten rechts): Cash einzahlen. Der Bunker ist gleichzeitig
-  das Konto für den Shop und bei einem Zugriff unantastbar
-- **Kombo**: jede Lieferung zählt hoch und bringt bis zu 50 € Aufschlag. Das Fenster
-  läuft 12 Sekunden, danach steht die Kombo wieder auf null
-- **Fahndung**: 5 Sterne. Jede Lieferung +0,55. Ab 1 Stern nehmen Streifenwagen die
-  Verfolgung auf, pro Stern kommt ein Wagen dazu (max. 4) und sie werden schneller.
-  Ein Wagen, der dich verfolgt, trägt einen roten Ring
-- **Bust**: Ware und Bargeld weg, kurze Haft, Fahndung zurück auf null
-- **Haft**: Tasten hämmern verkürzt sie, jeder Tastendruck 0,09 Sekunden
-- **Schicht**: 110 Sekunden
+| Rang | | Rang | | Rang | |
+|---|---|---|---|---|---|
+| 1 Läufer | 0 XP | 5 Bezirksmann | 700 | 9 Konsul | 3900 |
+| 2 Zusteller | 80 | 6 Großhändler | 1150 | 10 Pate | 5500 |
+| 3 Stammkraft | 200 | 7 Statthalter | 1800 | 11 Don | 7600 |
+| 4 Dealer | 400 | 8 Boss | 2700 | 12 Legende | 10400 |
 
-Bunker, Tag, Statistik und gekaufte Upgrades liegen im `localStorage` und überleben
-den Tab-Neustart. Der Knopf unter dem Feld löscht sie wieder.
+Drei Warenstufen, jede teurer und heißer als die davor. Ausgewählt wird tagsüber.
 
-## Steuerung
+| Ware | ab Rang | Basis | Hitze je Lieferung | XP |
+|---|---|---|---|---|
+| Cannabis | 1 | 40 € | 0,30 | 6 |
+| Speed | 4 | 95 € | 0,55 | 14 |
+| Kokain | 8 | 210 € | 0,95 | 30 |
 
-Nachts Pfeiltasten oder WASD, am Handy die Tasten unter dem Feld oder Wischen auf dem
-Feld. Leertaste startet die Nacht, `M` schaltet den Ton. Bewegung ist Pac-Man-artig: Richtung vorgeben, Roberto läuft
-bis zur nächsten Kreuzung weiter. Eine vorgewählte Richtung erscheint als Pfeil an
-der Kreuzung, an der sie greift.
+Kokain zahlt gut das Fünffache, treibt die Fahndung aber dreimal so schnell hoch.
+Mit einer Ladung Koks ist der vierte Streifenwagen nach wenigen Lieferungen da.
+
+## Kundenstamm
+
+Jeder Block ist ein Kunde, der bei null anfängt. Jede Lieferung dorthin hebt ihn um
+ein Drittel einer Stufe, maximal Stufe 5. Eine höhere Stufe zahlt +12 % je Stufe und
+lässt dort öfter einen Pin erscheinen. Die grünen Balken unten rechts am Haus zeigen
+den Stand. Kunden bleiben über Nächte hinweg erhalten, pro Stadt getrennt.
+
+Ein frischer Block wirft also wenig ab und meldet sich selten. Erst der aufgebaute
+Stamm trägt.
+
+## Städte
+
+| Stadt | ab Rang | Raster |
+|---|---|---|
+| Altstadt | 1 | 3 × 4 |
+| Hafenviertel | 5 | 4 × 5 |
+| Neustadt | 10 | 5 × 5 |
+
+Die Karte wächst mit, das Canvas ebenfalls. Jede Stadt hat Lager, Bunker und Wache an
+anderer Stelle, und einen eigenen Kundenstamm.
+
+## Polizei
+
+Streifen kommen aus der **Wache** und nirgendwo sonst. Steigt die Fahndung auf einen
+Stern, rollt alle 2,2 Sekunden ein Wagen raus, bis das Soll erreicht ist. Fällt die
+Fahndung, drehen die Wagen um, fahren zurück und verschwinden im Tor. Wer in der Nähe
+der Wache arbeitet, hat sie sofort im Nacken. Wer weit weg liefert, gewinnt Sekunden.
+
+Der **Funkscanner** verlangsamt das Ausrücken auf 3,4 Sekunden. Das ist der Unterschied
+zwischen einer Lieferung mehr und einem Zugriff.
+
+Die **Mauer** schließt die Stadt ringsum ab. Raus geht nicht, und von außen kommt auch
+nichts rein.
+
+## Gericht und Haft
+
+Ein Zugriff kostet das Bargeld und bringt eine kurze Festnahme auf der Straße, aber
+nicht mehr die alte Wartestrafe. Stattdessen wächst eine **Akte**.
+
+1. Beim ersten Eintrag wird ein Termin auf **Tag + 3** gesetzt.
+2. Am Termin ersetzt das Amtsgericht die Tagesansicht. Zwei Knöpfe.
+3. **Zum Gericht**: der Richter urteilt nach Aktenlage.
+
+| Akten | Geldstrafe | Haft |
+|---|---|---|
+| 1 | 180 € | keine |
+| 2 bis 3 | 260 € je Akte | keine |
+| 4 bis 5 | 300 € je Akte | 2 Tage |
+| ab 6 | 350 € je Akte | 4 Tage |
+
+Der **Anwalt** halbiert die Geldstrafe und nimmt einen Hafttag weg. Reicht der Bunker
+nicht, wandelt das Gericht je angefangene 400 € in einen weiteren Hafttag um.
+
+4. **Nicht hingehen**: Haftbefehl, eine Akte mehr, Termin zwei Tage später. Mit
+   Haftbefehl jagen die Streifen ab null Sternen und die Festnahme dauert doppelt so
+   lang. Beim nächsten Prozess zählen zwei Akten extra.
+5. **Haft** heißt aussetzen. Der einzige Knopf ist "Tag verstreichen lassen", der Shop
+   ist zu, der Bunker bleibt unangetastet.
+
+## Ausrüstung
+
+Roberto fängt mit nichts an. Vier Dinge sieht man ihm an.
+
+| Stück | ab Rang | Preis | Wirkung | sichtbar |
+|---|---|---|---|---|
+| Sonnenbrille | 1 | 120 € | Fahndung fällt 20 % schneller | ja |
+| Laufschuhe I–III | 1 | 180 / 420 / 900 € | je +12 % Tempo | nein |
+| Bauchtasche | 2 | 280 € | +2 Ware | ja |
+| Kapuzenjacke | 3 | 520 € | 25 % später erkannt | ja |
+| Anwalt auf Abruf | 3 | 800 € | halbe Strafe, ein Hafttag weniger | nein |
+| Funkscanner | 4 | 650 € | Wache rückt später aus | nein |
+| Zweithandy | 6 | 1100 € | +25 % je Lieferung | nein |
+| Gebrauchtwagen | 9 | 3800 € | +60 % Tempo, +3 Ware, 40 % besser sichtbar | ja |
+
+Das Auto ist kein reiner Gewinn. Es ist schnell und fasst viel, aber die Streife sieht
+es aus dem Anderthalbfachen der Entfernung.
 
 ## Aufbau
 
@@ -49,140 +124,82 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 
 | Bereich | Was da passiert |
 |---|---|
-| `XS` / `YS` | Fahrspurraster, bestimmt Stadtlayout und Kollision |
-| `UP` / `apply()` | Shop-Upgrades und ihre Effekte auf die Spielwerte |
-| `ac()` / `tone()` / `noise()` | Tonerzeugung über die Web Audio API, ohne Dateien |
-| `siren()` | Dauerton der Streife, Lautstärke folgt der Distanz |
-| `fx` / `stepFx()` / `drawFx()` | Zahlen, Ringe, Münzen |
-| `kick()` / `shake` / `freeze` | Kameraruckeln und Standbild-Frames |
-| `moveCop()` | Streifen-KI, Kreuzungsentscheidung mit `cool`-Sperre |
-| `step()` | Spiellogik pro Frame |
-| `draw()` | gesamte Darstellung |
-| `nightStart()` / `nightEnd()` | Phasenwechsel, Bilanz und Statistik |
-| `PAL` / `palette()` / `dayF` | Tag- und Nachtpalette, Dämmerung dazwischen |
+| `STADT` / `buildCity()` | Raster, Canvasgröße, Lage von Lager, Bunker und Wache |
+| `WARE` / `RANG` / `UP` | Warenstufen, Rangschwellen, Ausrüstung mit Rangsperre |
+| `kunden` / `kd()` / `newTarget()` | Kundenstamm und gewichtete Pin-Verteilung |
+| `spawnCop()` / `moveCop()` | Ausrücken aus der Wache, Verfolgung, Rückfahrt |
+| `urteil()` / `zumGericht()` | Strafzumessung, Haft, Haftbefehl |
+| `roberto()` / `auto()` | Figur samt sichtbarer Ausrüstung |
+| `mauer()` | geschlossene Umrandung |
 | `loop()` | feste Schrittweite, entkoppelt von der Bildwiederholrate |
-| `kit()` | Panel "Robertos Sachen", zeigt die Wirkung der Upgrades |
-| `save()` / `load()` / `wipe()` | Fortschritt im `localStorage`, versioniert |
+| `save()` / `load()` | Fortschritt im `localStorage`, versioniert und migriert |
 
 Der `cool`-Zähler in `moveCop()` ist kein Schmuck: ohne ihn gilt ein Wagen mehrere
 Frames lang als "an der Kreuzung", setzt sich jedes Mal zurück und zappelt auf der
 Stelle.
 
-`AudioContext` entsteht erst beim ersten Tastendruck oder Tipp. Wird er beim Laden
-angelegt, blockt ihn der Browser und der Ton bleibt für die ganze Sitzung stumm.
+`AudioContext` entsteht erst beim ersten Tastendruck. Wird er beim Laden angelegt,
+blockt ihn der Browser und der Ton bleibt für die Sitzung stumm.
 
-`freeze` hält die Spiellogik an, nicht die Darstellung. Effekte und Uhr laufen
-darüber weiter, deshalb schiebt jeder Freeze-Frame `t0` um dieselbe Zeit nach hinten,
-sonst kostet ein Bust Schichtzeit.
+`loop()` sammelt die vergangene Zeit in `acc` und ruft `step()` in festen Schritten von
+1/60 s auf. Vorher lief ein `step()` pro Frame mit fest verdrahteten `1/60`, das koppelt
+die Spielgeschwindigkeit an die Bildwiederholrate. Gemessen: bei 240 Hz verbrauchte eine
+Schicht in 30 s Wanduhr nur 17 s. Nach dem Umbau verbrauchen 30, 60, 144 und 240 Hz
+exakt gleich viel.
 
-Beim Bust wird Roberto erst nach dem Freeze in die Ecke gesetzt (`jailPos`). Sonst
-steht er schon im Gefängnis, während der Aufprallring noch am Tatort hängt.
-
-`prefers-reduced-motion: reduce` schaltet das Kameraruckeln ab, der Rest bleibt.
-
-`loop()` sammelt die vergangene Zeit in `acc` und ruft `step()` in festen Schritten
-von 1/60 s auf. Vorher lief ein `step()` pro Frame mit fest verdrahteten `1/60`, das
-koppelt die gesamte Spielgeschwindigkeit an die Bildwiederholrate des Monitors.
-`MAXSTEP` deckelt das Nachholen auf fünf Schritte, sonst holt ein zurückgekehrter
-Hintergrund-Tab minutenlang auf.
-
-Haft und Standbild ziehen keine Schichtzeit ab. Eine Nacht dauert deshalb 110 Sekunden
+Haft und Standbild ziehen keine Schichtzeit ab. Eine Nacht dauert deshalb 75 Sekunden
 Spielzeit, aber mehr Wanduhr, je öfter Roberto hochgeht.
 
-Der Speicherstand trägt ein `v`-Feld. `load()` liest zuerst `robertoCity.v3`, fällt
-sonst auf den alten Schlüssel `robertoCity.v2` zurück, hebt ihn auf das neue Schema
-und schreibt ihn einmal als v3 zurück. Kaputtes JSON landet im `catch` und setzt auf
-Startwerte, statt das Spiel zu blockieren. Der alte Schlüssel bleibt als Sicherung
-liegen.
+Hafttage werden in `tagVerstreichen()` abgezogen, nicht in `nextDay()`. Sonst zieht das
+Urteil selbst schon einen Tag ab und das Spiel meldet direkt nach "2 Tage Haft" nur noch
+"Noch 1 Tag".
+
+Der Speicherstand trägt ein `v`-Feld. `load()` liest `robertoCity.v4`, fällt sonst auf
+v3 und dann v2 zurück, rechnet alte Stände in XP und das neue Ausrüstungsschema um und
+schreibt einmal als v4 zurück. Kaputtes JSON landet im `catch` und setzt auf Startwerte,
+statt das Spiel zu blockieren. Alte Schlüssel bleiben als Sicherung liegen.
+
+`prefers-reduced-motion: reduce` schaltet das Kameraruckeln ab.
 
 ## Messungen statt Vermutungen
 
-Der Skill `performance-optimization` hat eine harte Regel: erst profilen, dann fixen.
-Gemessen wurde in Chromium, 30 s Lauf, geseedetes `Math.random`, `requestAnimationFrame`
-durch einen festen Timer ersetzt.
+Der Skill `performance-optimization` verlangt: erst profilen, dann fixen. Gemessen in
+Chromium, geseedetes `Math.random`, `requestAnimationFrame` durch einen festen Timer
+ersetzt.
 
 | Messwert | vorher | nachher | Budget bei 60 fps |
 |---|---|---|---|
 | CPU pro Frame, Mittel | 0,378 ms | 0,282 ms | 16,67 ms |
-| CPU pro Frame, p95 | 0,5 ms | 0,4 ms | — |
-| CPU pro Frame bei `devicePixelRatio` 3 | — | 0,463 ms (p95 1,1) | 16,67 ms |
-| Canvas-Aufrufe pro Frame | 353 | 371 | — |
+| CPU pro Frame bei `devicePixelRatio` 3 | — | 0,463 ms | 16,67 ms |
+| Schichtzeit nach 40 s bei 240 Hz | 17 s statt 40 | 40 s | — |
 
-**Das Spiel war nie langsam.** Es braucht 2,3 % des Frame-Budgets. Der Befund war ein
-anderer: die Spiellogik hing an der Bildwiederholrate.
+Das Spiel war nie langsam, es braucht 2,3 % des Budgets. Der Defekt war die Kopplung an
+die Bildwiederholrate. Die statische Stadt vorzurendern wurde bewusst gelassen: bei der
+Auslastung ist das Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als
+Fehler.
 
-| Schichtzeit verbraucht nach 40 s Wanduhr, ohne Eingaben | vorher | nachher |
-|---|---|---|
-| 30 Hz | — | 40 s |
-| 60 Hz | 30 s | 40 s |
-| 144 Hz | — | 40 s |
-| 240 Hz | 17 s | 40 s |
+## Offen
 
-Auf einem 120-Hz-Handy lief Roberto doppelt so schnell, Pins verfielen doppelt so
-schnell, und jeder Haft-Frame schob die Uhr um 16,67 ms vor, während real 8,33 ms
-vergingen. Die Haft *erzeugte* Schichtzeit. Behoben durch die feste Schrittweite in
-`loop()` und einen Schichtzähler in Spielsekunden statt `Date.now()`.
-
-Bewusst **nicht** gemacht: die statische Stadt in ein zweites Canvas vorrendern. Das
-hätte die 371 Aufrufe pro Frame etwa halbiert, aber bei 2,3 % Budgetauslastung ist das
-Komplexität ohne messbaren Gewinn. Der Skill nennt das ausdrücklich als Fehler.
-
-Gemacht: `devicePixelRatio`-Skalierung. Das Canvas war 360 × 440 und wurde per CSS
-hochgezogen, auf Retina-Displays also unscharf. Jetzt 1080 × 1320 bei dpr 3, und die
-gemessenen 0,463 ms zeigen, dass das Budget das trägt.
-
-## Was im Shop kaputt war
-
-- Kaufen ging mechanisch, aber **nichts zeigte die Wirkung**. "+12 % Tempo" stand als
-  Text da, der tatsächliche Wert war nirgends sichtbar. Jetzt listet *Robertos Sachen*
-  Tempo, Ladung, Auszahlung, Sichtweite, Haft und Bust-Rettung als konkrete Zahlen,
-  Verbessertes in Grün.
-- Die Meldung "Bunker reicht nicht" blieb kleben, auch nach Klicks auf andere Zeilen.
-  Jetzt steht an jeder unbezahlbaren Zeile, **wie viel genau fehlt**, und der Text
-  aktualisiert sich nach jedem Kauf.
-- Unbezahlbare Knöpfe sahen aus wie kaufbare. Jetzt gestrichelter Rand.
-- Einkaufen mitten in der 110-Sekunden-Schicht war möglich, aber sinnlos. Der Shop hat
-  jetzt nur tagsüber offen.
-
-## Feel-Pass
-
-Überarbeitet mit dem Skill [`feel-pass`](https://github.com/fagemx/gstack-game) aus
-`fagemx/gstack-game` (v0.5.0, Commit `7259ab9`). Zielbild: Ausliefern soll knackig
-sein, der Zugriff soll wehtun.
-
-| Dimension | vorher | nachher | Was sich geändert hat |
-|---|---|---|---|
-| Responsiveness | 1/2 | 2/2 | Vorgewählte Richtung war unsichtbar, bis zu 570 ms bis zur nächsten Kreuzung ohne Rückmeldung. Jetzt Pfeil an der Zielkreuzung |
-| Clarity | 1/2 | 2/2 | Verfolgerstatus war nicht ablesbar. Jetzt roter Ring am verfolgenden Wagen, Restzeit-Arc am Pin, grüner Ring wenn Roberto Cash trägt |
-| Impact | 0/2 | 2/2 | Lieferung war eine Zahlenänderung im HTML über dem Feld. Jetzt Zahl, Ring, 50 ms Standbild, Ruckeln, Zweiklang. Bust: 220 ms Standbild, 14 px Ruckeln, Vignette |
-| Rhythm | 1/2 | 2/2 | Sirene steigt mit der Nähe, Kombo-Fenster erzeugt Druck. Der Tag/Nacht-Wechsel gibt der langen Sitzung endlich eine Gliederung, das war der offene Punkt aus der ersten Runde |
-| Payoff | 1/2 | 2/2 | Betrag am Lieferort, Kombo-Anzeige, Münzkaskade beim Einzahlen. Dazu die Tagesbilanz als Abschluss der Nacht |
-| Dead Time | 1/2 | 2/2 | 2,5 s Haft ohne Eingabe. Jetzt Hämmern statt Warten |
-| Overload | 2/2 | 1/2 | Einzahlen während einer Verfolgung stapelt Vignette, Ruckeln, Münzen und Fließtext. Unverändert offen |
-| **Summe** | **7/14 FLAT** | **13/14 ALIVE** | |
-
-Offen bleibt der Overload-Stapel bei gleichzeitigen Ereignissen. Eine Prioritätsregel
-für Effekte fehlt.
-
-## Nicht gemacht
-
-Der Skill `balance-review` liegt im Repo, ist aber **nicht gelaufen**. Die Shop-Preise
-stammen aus der Zeit ohne Tagesphase: damals wurde mitten in der Schicht gekauft, jetzt
-gesammelt zwischen zwei Nächten. Ob 150 bis 600 € pro Stufe nach einer Nacht mit
-250 bis 800 € Ertrag passen, ist ungeprüft.
+- **Die Ökonomie ist nicht durchgerechnet.** Der `balance-review`-Skill liegt im Repo,
+  seine Spike-Regel ist auf die Rangkurve angewandt, aber der volle Durchlauf steht aus.
+  Ob 3800 € für das Auto zum Ertrag bei Rang 9 passen, ist geschätzt, nicht geprüft.
+- **Overload bei gleichzeitigen Ereignissen** bleibt bei 1/2 aus dem Feel-Pass.
+  Einzahlen während einer Verfolgung stapelt Vignette, Ruckeln, Münzen und Fließtext.
+- Kein Zwischenspeichern innerhalb einer Nacht. Wer den Tab schließt, verliert die
+  laufende Schicht, nicht aber den Rang.
 
 ## Ideenliste
 
 Grafik: Schatten unter Figuren, Straßenlaternen, Zebrastreifen, laufende Beine,
 Lichtkegel bei Verfolgung.
 
-Gameplay: Sprint mit Ausdauer, Gassen als Abkürzung, Zivilverkehr als Hindernis,
-Straßensperren ab 4 Sternen, wechselndes Stadtlayout pro Nacht, Wochentage mit
-unterschiedlichen Sätzen, Miete oder Schulden als Ausgabe am Tag.
+Gameplay: Sprint mit Ausdauer, Gassen als Abkürzung, Zivilverkehr, Straßensperren ab
+4 Sternen, Wochentage mit unterschiedlichen Sätzen, Miete als feste Ausgabe, Konkurrenz
+um dieselben Kunden, Bestechung statt Prozess.
 
 Feeling: kurze Zeitlupe vor dem Zugriff, Prioritätsregel für gleichzeitige Effekte.
 
-Technik: Highscore-Tabelle, Musik mit Tempo nach Fahndungsstufe.
+Technik: Highscore, Musik mit Tempo nach Fahndungsstufe.
 
 ## Game-Dev-Skills nachrüsten
 
@@ -211,7 +228,7 @@ Im Repo liegen unter `.claude/skills/` bereits sechs Stück:
 | `save-systems` | awesome-gamedev | Versioniertes Schema, Migration von v2, defensives Laden |
 | `game-ui-ux` | awesome-gamedev | HUD schreibt nur bei Änderung, Phasenwechsel als Zustand |
 | `game-feel` | awesome-gamedev | Standbilder, Ruckeln, Easing |
-| `balance-review` | gstack-game | noch nicht gelaufen, siehe oben |
+| `balance-review` | gstack-game | Spike-Regel auf die Rangkurve, voller Durchlauf offen |
 
 ## Lizenz
 
