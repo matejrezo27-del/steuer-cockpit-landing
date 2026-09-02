@@ -279,7 +279,49 @@ zusätzlichen Hafttag. Eine Verurteilung kostet zusätzlich 5 Ansehen.
 Gegen ein Urteil des Amtsgerichts kannst du Berufung einlegen: 600 € Gerichtskosten,
 Strafe und Haft werden ausgesetzt, und die Große Strafkammer verhandelt vier Tage neu.
 Mit Anwalt fällt das neue Urteil zu 55 % um ein Drittel milder aus, sonst 25 % härter.
-Gegen ein Urteil des Landgerichts gibt es diesen Weg nicht mehr.
+
+### Revision zum Bundesgerichtshof
+
+Gegen ein Urteil der Großen Strafkammer gibt es keine Berufung mehr, sondern die
+Revision. Die ist **etwas ganz anderes als eine Verhandlung**: der Senat hört keine
+Zeugen, stellt keine Tatsachen fest und tagt in der Regel gar nicht. Er entscheidet nach
+Aktenlage im Beschlusswege, § 349 StPO. Im Spiel gibt es dafür keinen Saal, sondern
+sechs Tage später Post aus Karlsruhe.
+
+**Nur mit Anwalt.** Die Revisionsbegründung muss von einem Verteidiger unterschrieben
+sein, § 345 Abs. 2 StPO. Ohne den Anwalt aus dem Shop steht der Weg nicht offen.
+
+Beim Einlegen wählst du die Rüge:
+
+| Rüge | Kosten | Wirkung |
+|---|---|---|
+| **Sachrüge** | 2 500 € | Die allgemeine Rüge, immer zulässig. Der Senat prüft nur das Urteil selbst. |
+| **Verfahrensrüge** | 3 200 € | Wirkt fast nur, wenn im Prozess wirklich ein Fehler passiert ist. |
+| **Beide** | 5 000 € | Teuer, deckt aber beides ab. |
+
+Ob ein Verfahrensfehler vorlag, entscheidet sich **während des Prozesses**. Bei der
+Großen Strafkammer passiert es in 38 % der Fälle, dass die Kammer einen Beweisantrag
+ohne Begründung ablehnt. Wenn das geschieht, steht es in der Beweisaufnahme auf dem
+Bildschirm. Wer aufpasst, weiß später, ob sich die Verfahrensrüge lohnt.
+
+Erfolgsaussicht: 12 % Grundchance, +18 % für die Sachrüge, +35 % für die Verfahrensrüge
+**wenn ein Fehler vorlag**, sonst nur +3 %. Über 24 Testläufe mit beiden Rügen gemessen:
+
+| | erfolgreich | verworfen |
+|---|---|---|
+| mit Verfahrensfehler | 8 von 12 | 4 von 12 |
+| ohne | 3 von 12 | 9 von 12 |
+
+Vier mögliche Beschlüsse:
+
+| Beschluss | Folge |
+|---|---|
+| **Verworfen** (§ 349 II) | Das Urteil ist rechtskräftig, Strafe und Haft werden vollstreckt, die Kosten sind weg. |
+| **Strafausspruch aufgehoben** (§ 353) | Nur die Strafzumessung fällt, neu festgesetzt auf 55 % und zwei Hafttage weniger. |
+| **Aufgehoben und zurückverwiesen** (§ 354 II) | Eine andere Strafkammer verhandelt vier Tage von vorn, eine Vorstrafe fällt weg. |
+| **Freispruch** (§ 354 I) | Der Senat entscheidet selbst. Vorstrafe getilgt, +12 Ansehen. |
+
+Bis der Beschluss da ist, wird **nichts vollstreckt** und du spielst normal weiter.
 
 ### Die Zelle
 
@@ -323,6 +365,9 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `prozessWeiter()` | Schritt und Verhandlungstag, Übergang in den nächsten Spieltag |
 | `forderung()` / `urteilSprechen()` | Antrag der Anklage und Strafzumessung |
 | `berufung()` | Rechtsmittel ans Landgericht |
+| `RUEGEN` / `revisionEinlegen()` | Sach- und Verfahrensrüge, Kosten, Aussetzung |
+| `revisionEntscheiden()` | der Beschluss des Senats nach Aktenlage |
+| `revisionSzene()` | Post aus Karlsruhe statt Gerichtssaal |
 | `gerichtSzene()` / `richter()` / `schoeffe()` / `zeuge()` | Saal je nach Besetzung |
 | `zelleSzene()` / `flugSzene()` / `gespraechSzene()` | die weiteren Einzelbilder |
 | `loop()` | feste Schrittweite, entkoppelt von der Bildwiederholrate |

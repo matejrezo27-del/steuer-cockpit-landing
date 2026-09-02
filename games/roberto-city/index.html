@@ -312,7 +312,17 @@ var GERICHTE=[
   tage:[['anklage','einlassung'],['beweis'],['zeugen'],['plaedoyer','urteil']]}];
 var ZEUGEN=['ein Streifenbeamter','eine Nachbarin aus der Altstadt','ein Kollege vom Hafen',
  'ein verdeckter Ermittler','der Wirt von gegenüber'];
-var prozess=null,berufungOffen=false;
+var prozess=null,berufungOffen=false,revisionOffen=false,revision=null;
+var RUEGEN=[
+ {k:'sach',n:'Sachrüge',kosten:2500,
+  d:'Die allgemeine Rüge: das Gericht hat das Recht falsch angewandt. Immer zulässig, '+
+    'aber der Senat prüft nur das Urteil selbst.'},
+ {k:'verfahren',n:'Verfahrensrüge',kosten:3200,
+  d:'Nur erfolgreich, wenn im Prozess wirklich etwas schiefgelaufen ist. Dein Anwalt '+
+    'muss den Fehler genau bezeichnen.'},
+ {k:'beides',n:'Beide Rügen',kosten:5000,
+  d:'Teuer, deckt aber beides ab. Wer einen Verfahrensfehler in der Hand hat, geht so '+
+    'am ehesten durch.'}];
 function zustaendig(a){
  if(a>=6||vorstrafen>=4||ware===2)return 2;
  if(a>=3||vorstrafen>=2)return 1;
@@ -390,7 +400,7 @@ function save(){try{localStorage.setItem(SKEY,JSON.stringify({
  v:SVER,b:bunker,h:high,m:mute,day:day,xp:xp,ans:ansehen,ware:ware,
  akten:akten,ger:gerichtTag,hb:haftbefehl,haft:haft,vs:vorstrafen,
   stf:steuerFaellig,stt:steuerTag,nk:nachtKasse,offen:offen,meine:meine,crew:crew,ausland:ausland,
- proz:prozess,ber:berufungOffen,
+ proz:prozess,ber:berufungOffen,revOffen:revisionOffen,rev:revision,
  kontakte:kontakte,vorrat:vorrat,lief:lieferant,nid:nextId,
  st:ST,
  u:UP.map(function(u){return u.lv})}))}catch(e){}}
@@ -436,7 +446,12 @@ function load(){
      beweis:o.proz.beweis||null,zeugen:o.proz.zeugen||null,wort:o.proz.wort||null,
      instanz:num(o.proz.instanz,0),zeuge:String(o.proz.zeuge||ZEUGEN[0])};
     if(prozess.tag>=GERICHTE[prozess.g].tage.length)prozess=null}
-   berufungOffen=!!o.ber;
+   berufungOffen=!!o.ber;revisionOffen=!!o.revOffen;
+   if(o.rev&&typeof o.rev==='object')
+    revision={ruegen:String(o.rev.ruegen||'sach'),tag:num(o.rev.tag,day),
+     fehler:!!o.rev.fehler,strafe:num(o.rev.strafe,0),tage:num(o.rev.tage,0),
+     ergebnis:o.rev.ergebnis||null,neuStrafe:num(o.rev.neuStrafe,0),
+     neuTage:num(o.rev.neuTage,0)};
    if(o.kontakte&&o.kontakte.length)for(q=0;q<o.kontakte.length;q++){
     var c6=o.kontakte[q];if(!c6||typeof c6!=='object')continue;
     kontakte.push({id:num(c6.id,nextId++),n:String(c6.n||'Unbekannt'),
@@ -463,6 +478,7 @@ function wipe(){
  meine={};crew={};ausland={};kontakte=[];auftraege=[];anruf=null;
  vorrat=0;lieferant=0;nextId=1;phase='tag';dayF=1;
  zellText='';zellStrich=0;flugZiel=null;flugRest=0;prozess=null;berufungOffen=false;
+ revisionOffen=false;revision=null;
  for(var k in ST)ST[k]=0;
  NI={cash:0,drops:0,busts:0,combo:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
  for(var i=0;i<UP.length;i++)UP[i].lv=0;
@@ -971,15 +987,19 @@ function urteilSprechen(pr){
    txt.push(weg.n+' nimmt keine Anrufe mehr an.')}}
  if(!frei2){vorstrafen++;ansehen=Math.max(0,ansehen-5)}
  berufungOffen=!frei2&&!pr.instanz&&GERICHTE[pr.g].k!=='lg';
+ revisionOffen=!frei2&&GERICHTE[pr.g].k==='lg';
  return{strafe:strafe,tage:tage,txt:txt.join(' '),frei:frei2,
-  gericht:G.n+' · '+G.kammer,gefordert:f}}
+  gericht:G.n+' · '+G.kammer,gefordert:f,fehler:!!pr.fehler,g:pr.g}}
 var letztesUrteil=null;
 function zumGericht(){
  audioOK=true;ac();
  if(!prozess){
   var a=akten+(haftbefehl?2:0);
-  prozess={g:zustaendig(a),tag:0,schritt:0,akten:akten,hb:haftbefehl,
+  var gi=zustaendig(a);
+  prozess={g:gi,tag:0,schritt:0,akten:akten,hb:haftbefehl,
    plea:null,beweis:null,zeugen:null,wort:null,instanz:0,
+   /* Nur die Kammer verhandelt lang genug, dass ein Verfahrensfehler auffällt. */
+   fehler:GERICHTE[gi].k==='lg'&&Math.random()<0.38,
    zeuge:ZEUGEN[Math.floor(Math.random()*ZEUGEN.length)]}}
  phase='gericht';hammerT=0;letztesUrteil=null;
  tone(300,220,0.5,'sawtooth',0.07);save();ui()}
@@ -1032,6 +1052,74 @@ function berufung(){
  bunker+=letztesUrteil.strafe;
  letztesUrteil=null;gerichtTag=day+4;
  sGross();save();ui();hud()}
+function revisionEinlegen(k){
+ if(!revisionOffen||!letztesUrteil||!lv('anwalt'))return;
+ var i,R=null;
+ for(i=0;i<RUEGEN.length;i++)if(RUEGEN[i].k===k)R=RUEGEN[i];
+ if(!R||bunker<R.kosten){sNope();return}
+ audioOK=true;ac();
+ bunker-=R.kosten;
+ /* Bis Karlsruhe entschieden hat, wird nichts vollstreckt. */
+ bunker+=letztesUrteil.strafe;
+ haft=Math.max(0,haft-letztesUrteil.tage);
+ revision={ruegen:k,tag:day+6,fehler:letztesUrteil.fehler,
+  strafe:letztesUrteil.strafe,tage:letztesUrteil.tage};
+ revisionOffen=false;berufungOffen=false;letztesUrteil=null;
+ sGross();save();ui();hud()}
+function revisionFaellig(){return revision&&day>=revision.tag}
+function revisionOeffnen(){
+ audioOK=true;ac();
+ phase='revision';
+ if(!revision.ergebnis)revision.ergebnis=revisionEntscheiden();
+ sHammer();save();ui()}
+function revisionEntscheiden(){
+ var r=revision,p2=0.12,txt=[],art;
+ if(r.ruegen==='sach'||r.ruegen==='beides')p2+=0.18;
+ if(r.ruegen==='verfahren'||r.ruegen==='beides')p2+=r.fehler?0.35:0.03;
+ var erfolg=Math.random()<p2;
+ if(!erfolg){
+  art='verworfen';
+  txt.push('Die Revision wird als offensichtlich unbegründet verworfen, '+
+   'Paragraf 349 Absatz 2 der Strafprozessordnung.');
+  if(r.ruegen!=='sach'&&!r.fehler)
+   txt.push('Der gerügte Verfahrensfehler lag nicht vor.');
+  bunker-=r.strafe;haft+=r.tage;
+  txt.push('Das Urteil ist rechtskräftig. Strafe und Haft werden vollstreckt.')}
+ else{
+  var w=Math.random();
+  if(w<0.55){
+   art='strafmass';
+   var neuStrafe=Math.round(r.strafe*0.55/10)*10,neuTage=Math.max(0,r.tage-2);
+   txt.push('Das Urteil wird im Strafausspruch aufgehoben, Paragraf 353 StPO. '+
+    'Die Kammer hat die Strafzumessung nicht tragfähig begründet.');
+   txt.push('Neu festgesetzt: '+neuStrafe+' €'+
+    (neuTage?' und '+neuTage+' Tage Haft.':' ohne Haft.'));
+   bunker-=neuStrafe;haft+=neuTage;
+   revision.neuStrafe=neuStrafe;revision.neuTage=neuTage}
+  else if(w<0.90){
+   art='zurueck';
+   txt.push('Das Urteil wird aufgehoben und die Sache an eine andere Strafkammer '+
+    'des Landgerichts zurückverwiesen, Paragraf 354 Absatz 2 StPO.');
+   txt.push('Es wird neu verhandelt. Vier Tage, von vorn.');
+   vorstrafen=Math.max(0,vorstrafen-1);
+   prozess={g:2,tag:0,schritt:0,akten:Math.max(1,r.tage+2),hb:false,
+    plea:null,beweis:null,zeugen:null,wort:null,instanz:1,
+    fehler:Math.random()<0.38,
+    zeuge:ZEUGEN[Math.floor(Math.random()*ZEUGEN.length)]};
+   gerichtTag=day+3}
+  else{
+   art='frei';
+   txt.push('Der Senat entscheidet in der Sache selbst und spricht frei, '+
+    'Paragraf 354 Absatz 1 StPO. Die Feststellungen tragen keine Verurteilung.');
+   vorstrafen=Math.max(0,vorstrafen-1);ansehen+=12;
+   txt.push('Die Vorstrafe ist getilgt.')}}
+ return{art:art,txt:txt.join(' ')}}
+function revisionSchliessen(){
+ audioOK=true;ac();
+ revision=null;
+ phase=haft>0?'zelle':'tag';
+ if(phase==='zelle'){zellText='';zellStrich=0}
+ nextDay();tagBeginn();save();ui();hud()}
 function gerichtSchwaenzen(){
  audioOK=true;ac();sNope();
  haftbefehl=true;akten++;gerichtTag=day+2;letztesUrteil=null;
@@ -1425,6 +1513,7 @@ function tagKarte(){
    (NI.drops>0?' · '+NI.drops+' Packs':'')+
    (NI.geplatzt>0?' · '+NI.geplatzt+' geplatzt':'')}
  else{z1='Tag '+day;z2='Roberto wartet auf den Sonnenuntergang'}
+ if(revision)z2+=revisionFaellig()?' · Post vom BGH':' · Revision bis Tag '+revision.tag;
  if(steuerFaellig>0)z2+=' · Steuern '+steuerFaellig+' € offen';
  else if(akten>0)z2+=' · '+akten+' Akten offen';
  x.globalAlpha=Math.min(1,dayF*1.4);
@@ -1626,7 +1715,51 @@ function gespraechSzene(){
  x.fillText(flugZiel?flugZiel.n.toUpperCase():'',VW/2,VH*0.10);
  band(gesprOk===null?'Sie hören dir zu':(gesprOk?'Abgemacht':'Kein Geschäft'),
   gesprText||'Drei Wege. Einer davon kostet dich den Flug.')}
+function revisionSzene(){
+ var i,e=revision&&revision.ergebnis;
+ x.fillStyle='#2A2621';x.fillRect(0,0,VW,VH);
+ x.fillStyle='#33302A';
+ for(i=0;i<14;i++)x.fillRect(0,i*(VH/14)+2,VW,VH/14-4);
+ var lw=VW*0.80,lh=VH*0.66,lx=(VW-lw)/2,ly=VH*0.13;
+ x.save();x.translate(VW/2,ly+lh/2);x.rotate(-0.018);x.translate(-VW/2,-(ly+lh/2));
+ x.fillStyle='rgba(0,0,0,0.35)';
+ x.beginPath();x.roundRect(lx+4,ly+6,lw,lh,3);x.fill();
+ x.fillStyle='#F4F1E8';x.strokeStyle='#C9C2B0';x.lineWidth=1.5;
+ x.beginPath();x.roundRect(lx,ly,lw,lh,3);x.fill();x.stroke();
+ x.strokeStyle='#8A0F1E';x.lineWidth=2;
+ x.beginPath();x.arc(lx+lw/2,ly+30,13,0,6.3);x.stroke();
+ x.beginPath();x.moveTo(lx+lw/2-7,ly+30);x.lineTo(lx+lw/2+7,ly+30);x.stroke();
+ x.beginPath();x.moveTo(lx+lw/2,ly+23);x.lineTo(lx+lw/2,ly+37);x.stroke();
+ x.textAlign='center';x.fillStyle='#1E1B16';x.font='600 13px '+FONT;
+ x.fillText('BUNDESGERICHTSHOF',VW/2,ly+62);
+ x.font='400 10px '+FONT;x.fillStyle='#6B665C';
+ x.fillText('3. Strafsenat · Karlsruhe',VW/2,ly+78);
+ x.strokeStyle='#C9C2B0';x.lineWidth=1;
+ x.beginPath();x.moveTo(lx+18,ly+90);x.lineTo(lx+lw-18,ly+90);x.stroke();
+ x.font='600 15px '+FONT;x.fillStyle='#1E1B16';
+ x.fillText('B E S C H L U S S',VW/2,ly+114);
+ x.font='400 11px '+FONT;x.fillStyle='#3A362E';
+ var zeilen=e?(e.art==='verworfen'?['Die Revision des Angeklagten','wird verworfen.']
+  :(e.art==='strafmass'?['Das Urteil wird im','Strafausspruch aufgehoben.']
+   :(e.art==='zurueck'?['Das Urteil wird aufgehoben','und zurückverwiesen.']
+    :['Der Angeklagte wird','freigesprochen.'])))
+  :['Der Senat hat entschieden.'];
+ for(i=0;i<zeilen.length;i++)x.fillText(zeilen[i],VW/2,ly+142+i*17);
+ x.strokeStyle='#C9C2B0';
+ for(i=0;i<5;i++){x.beginPath();x.moveTo(lx+22,ly+lh-72+i*11);
+  x.lineTo(lx+lw-22-(i===4?60:0),ly+lh-72+i*11);x.stroke()}
+ x.fillStyle='rgba(138,15,30,0.85)';
+ x.beginPath();x.arc(lx+lw-42,ly+lh-34,17,0,6.3);x.fill();
+ x.strokeStyle='rgba(255,255,255,0.4)';x.lineWidth=1;
+ x.beginPath();x.arc(lx+lw-42,ly+lh-34,12,0,6.3);x.stroke();
+ x.restore();
+ band(e?(e.art==='verworfen'?'Verworfen':(e.art==='frei'?'Freispruch':
+   (e.art==='zurueck'?'Aufgehoben und zurückverwiesen':'Strafausspruch aufgehoben')))
+  :'Post aus Karlsruhe',
+  e&&e.art==='verworfen'?'Das Urteil ist rechtskräftig'
+   :'Ohne Hauptverhandlung, nach Aktenlage')}
 function draw(){
+ if(phase==='revision'){revisionSzene();return}
  if(phase==='gericht'){gerichtSzene();return}
  if(phase==='zelle'){zelleSzene();return}
  if(phase==='flug'){flugSzene();return}
@@ -1679,7 +1812,7 @@ function setTab(t){
  ui()}
 function ui(){
  var nacht=phase==='nacht',szeneAn=phase==='gericht'||phase==='zelle'||
-     phase==='flug'||phase==='gespraech',
+     phase==='flug'||phase==='gespraech'||phase==='revision',
      ger=gerichtHeute(),sitzt=haft>0;
  document.body.className=nacht?'':'tag';
  document.getElementById('pad').className='pad'+(nacht||phase==='tag'?'':' off');
@@ -1695,6 +1828,8 @@ function ui(){
   else if(ph==='anklage'){bm.textContent='Anklage anhören';bm.disabled=false}
   else{bm.textContent='Verhandlungstag beenden';bm.disabled=false}}
  else if(phase==='zelle'){bm.textContent='Tag absitzen';bm.disabled=false}
+ else if(phase==='revision'){bm.textContent='Beschluss weglegen';bm.disabled=false}
+ else if(revisionFaellig()){bm.textContent='Post vom BGH';bm.disabled=false}
  else if(phase==='flug'){
   bm.textContent=flugRest>0?'Der Flieger ist in der Luft':'Landen';bm.disabled=flugRest>0}
  else if(phase==='gespraech'){
@@ -1714,17 +1849,19 @@ function ui(){
  document.getElementById('secimperium').style.display=panels&&tab==='imperium'?'':'none';
  document.getElementById('secshop').style.display=panels&&tab==='shop'?'':'none';
  document.getElementById('seckit').style.display=panels&&tab==='sachen'?'':'none';
- document.getElementById('secszene').style.display=(szeneAn||ger||sitzt||letztesUrteil)&&!nacht?'':'none';
+ document.getElementById('secszene').style.display=
+  (szeneAn||ger||sitzt||letztesUrteil||revision)&&!nacht?'':'none';
  document.getElementById('hint').textContent=nacht
   ?'Halten zum Laufen. Enter sagt einem Anruf zu, im Versteck macht Leertaste Feierabend.'
   :(phase==='gericht'?'Der Saal ist voll. Was du sagst, steht nachher im Urteil.'
-   :(phase==='zelle'?'Jeder Tag zählt. Manchmal passiert etwas.'
+   :(phase==='revision'?'Karlsruhe entscheidet nach Aktenlage, nicht im Saal.'
+    :(phase==='zelle'?'Jeder Tag zählt. Manchmal passiert etwas.'
     :(phase==='flug'?'Rückenlehnen senkrecht.'
      :(phase==='gespraech'?'Drei Wege. Einer kann den Flug verbrennen.'
       :(ger?'Erscheinen kostet Geld. Nicht erscheinen kostet mehr.'
        :(sitzt?'Du musst deine Tage noch absitzen.'
         :'Leertaste startet die Nacht. Pfeiltasten schieben die Karte, '+
-        'ein Tipp auf ein Lokal kauft es.'))))));
+        'ein Tipp auf ein Lokal kauft es.')))))));
  szene();telefon();warePicker();imperium();kit();shop()}
 function szene(){
  var el=document.getElementById('szenetext'),kopf=document.getElementById('szenekopf'),
@@ -1756,6 +1893,8 @@ function szene(){
       :'Ohne Anwalt riskant: 35 % mehr Strafe und ein Tag drauf.')+'</span></button></div>'}
   else if(ph==='beweis'){
    h='<p class="big">Beweisaufnahme.</p><p>'+prozess.zeuge+' sagt gegen dich aus.</p>'+
+     (prozess.fehler?'<p class="ok">Die Kammer lehnt den Beweisantrag deines Anwalts '+
+      'ohne Begründung ab. Merk dir das, in der Revision ist so etwas Gold wert.</p>':'')+
      '<div class="wahl">'+
      '<button data-b="widersprechen"><b>Widersprechen</b><span>'+(anw
       ?'Mit Anwalt sitzt der Widerspruch: Strafe auf 85 %.'
@@ -1818,6 +1957,24 @@ function szene(){
       Math.round(flugZiel.flug*0.3)+' € extra, klappt sicher und bringt Ansehen.'+
       '</span></button></div>'}
   else h='<p class="big">'+(gesprOk?'Abgemacht.':'Kein Geschäft.')+'</p><p>'+gesprText+'</p>'}
+ else if(phase==='revision'){
+  kopf.textContent='Bundesgerichtshof';lab.textContent='3. Strafsenat';
+  var e2=revision&&revision.ergebnis;
+  h='<p class="big">Beschluss.</p>'+
+    '<p class="muted">Der Senat entscheidet ohne Hauptverhandlung. Es werden keine '+
+    'Zeugen mehr gehört, geprüft wird nur, ob das Urteil rechtlich trägt.</p>'+
+    '<p>'+(e2?e2.txt:'')+'</p>'}
+ else if(revision){
+  kopf.textContent='Bundesgerichtshof';
+  lab.textContent=revisionFaellig()?'Post ist da':'anhängig';
+  h='<p class="big">'+(revisionFaellig()?'Der Beschluss ist da.'
+    :'Die Revision liegt in Karlsruhe.')+'</p>'+
+    '<p class="muted">Eingelegt mit der '+
+    (revision.ruegen==='sach'?'Sachrüge':(revision.ruegen==='verfahren'?'Verfahrensrüge'
+     :'Sach- und Verfahrensrüge'))+'.</p>'+
+    (revisionFaellig()?'<p class="muted">Der Knopf oben öffnet den Umschlag.</p>'
+     :'<p class="muted">Entscheidung an <b>Tag '+revision.tag+'</b>. Solange wird nichts '+
+      'vollstreckt, und du kannst weiterarbeiten.</p>')}
  else if(haft>0){
   kopf.textContent='Justizvollzug';lab.textContent='offen';
   h='<p class="big">Du musst noch '+haft+' '+(haft===1?'Tag':'Tage')+' absitzen.</p>'+
@@ -1847,7 +2004,20 @@ function szene(){
       'Gerichtskosten. Die Große Strafkammer am Landgericht verhandelt neu, vier Tage. '+
       'Strafe und Haft aus diesem Urteil werden erst einmal ausgesetzt. Mit Anwalt 55 % '+
       'auf ein milderes Urteil, sonst wird es teurer.</span></button></div>'
-     :'<p class="muted">Rechtsmittel sind hier nicht mehr möglich.</p>')}
+     :(revisionOffen?(lv('anwalt')
+       ?'<p class="muted">Gegen ein Urteil der Großen Strafkammer geht die <b>Revision '+
+        'zum Bundesgerichtshof</b>. Der Senat hört keine Zeugen mehr und prüft nur, ob '+
+        'das Urteil rechtlich trägt. Entschieden wird nach sechs Tagen, ohne '+
+        'Hauptverhandlung.'+(letztesUrteil.fehler
+         ?' Dein Anwalt hat einen Verfahrensfehler notiert.':'')+'</p><div class="wahl">'+
+        RUEGEN.map(function(R){
+         return '<button data-rev="'+R.k+'"'+(bunker<R.kosten?' disabled':'')+'><b>'+R.n+
+          ' · '+R.kosten+' €</b><span>'+R.d+
+          (bunker<R.kosten?' Dir fehlen '+(R.kosten-bunker)+' €.':'')+'</span></button>'
+        }).join('')+'</div>'
+       :'<p class="err">Revision zum Bundesgerichtshof geht nur über einen Anwalt. '+
+        'Die Begründung muss von einem Verteidiger unterschrieben sein.</p>')
+      :'<p class="muted">Rechtsmittel sind hier nicht mehr möglich.</p>'))}
  el.innerHTML=h;
  var pb=el.querySelectorAll('button[data-p]');
  for(i=0;i<pb.length;i++)pb[i].addEventListener('click',function(e){
@@ -1865,7 +2035,10 @@ function szene(){
  for(i=0;i<wb.length;i++)wb[i].addEventListener('click',function(e){
   letztesWort(e.currentTarget.getAttribute('data-w'))});
  var rb=el.querySelectorAll('button[data-ber]');
- for(i=0;i<rb.length;i++)rb[i].addEventListener('click',berufung)}
+ for(i=0;i<rb.length;i++)rb[i].addEventListener('click',berufung);
+ var rv=el.querySelectorAll('button[data-rev]');
+ for(i=0;i<rv.length;i++)rv[i].addEventListener('click',function(e3){
+  revisionEinlegen(e3.currentTarget.getAttribute('data-rev'))})}
 function telefon(){
  var nacht=phase==='nacht',zu=nacht||haft>0,h='',i,q;
  var lf=LIEF[lieferant],pr=einkaufspreis();
@@ -2031,7 +2204,7 @@ function kit(){
   ['Offene Akten',String(akten)+(haftbefehl?' + Haftbefehl':''),false],
   ['Vorstrafen',String(vorstrafen),false],
   ['Verfahren',prozess?GERICHTE[prozess.g].kammer+' · Tag '+(prozess.tag+1)+'/'+
-   GERICHTE[prozess.g].tage.length:'keines',false],
+   GERICHTE[prozess.g].tage.length:(revision?'Revision beim BGH':'keines'),false],
   ['Steuern offen',steuerFaellig+' €',false],
   ['Nächte gearbeitet',String(ST.naechte),false],
   ['Lieferungen gesamt',String(ST.drops),false],
@@ -2074,7 +2247,9 @@ function buy(k){
   bunker-=pr;u.lv++;apply();sBuy();save();shop();kit();hud();return}}
 function mainAction(){
  if(phase==='nacht')return;
+ if(phase==='revision'){revisionSchliessen();return}
  if(phase==='gericht'){prozessWeiter();return}
+ if(revisionFaellig()){revisionOeffnen();return}
  if(phase==='zelle'){tagAbsitzen();return}
  if(phase==='flug'){if(flugRest<=0)angekommen();return}
  if(phase==='gespraech'){if(gesprOk!==null)heimflug();return}
