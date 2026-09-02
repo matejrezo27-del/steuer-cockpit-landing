@@ -297,6 +297,87 @@ function betriebSumme(){var s=0;
  return Math.round(s)}
 function steuersatz(){return Math.max(0.05,0.30-(nCrew('buchhalter')?0.10:0))}
 
+/* ---------- Geld leihen ---------- */
+/* Zwei Quellen, zwei Preise. Die Bank will Zahlen sehen, die Straße Leute.
+   Der Zins läuft täglich auf die Restschuld und wird sofort abgebucht; die
+   Schuld selbst bleibt stehen, bis du tilgst. */
+var schuldB=0,schuldS=0,pleiteB=0,pleiteS=0;
+var ZINSS=0.12;
+function lokalWert(){var s=0,i;
+ for(i=0;i<LOKALE.length;i++)if(meine[LOKALE[i].k])s+=LOKALE[i].preis;return s}
+function bonitaet(){
+ /* Was eine Bank sehen kann: angemeldetes Vermögen, gezahlte Steuern, ein
+    Buchhalter. Was sie abschreckt: offene Steuern, Akten, Vorstrafen. Das
+    Nachtgeschäft taucht nirgends auf und zählt deshalb auch nicht. */
+ var b=lokalWert()/1200+ST.steuer/1500+(nCrew('buchhalter')?12:0)
+      -(steuerFaellig>0?18:0)-akten*6-vorstrafen*14-(haftbefehl?20:0);
+ return Math.max(0,Math.min(100,Math.round(b)))}
+function zinsB(){return Math.max(0.012,0.030-bonitaet()/100*0.018)}
+function limitB(){var b=bonitaet();return b<20?0:Math.round(b*b*9/100)*100}
+function limitS(){var n=hierKontakte();
+ return n<2?0:Math.round((ansehen*60+n*400)/100)*100}
+function schuldSumme(){return schuldB+schuldS}
+function geldgeber(){
+ /* Der Mann von der Straße ist einer deiner Kontakte, nicht irgendwer. */
+ var b=null,q;
+ for(q=0;q<kontakte.length;q++){
+  var k=kontakte[q];
+  if(!frei(k.i,k.j))continue;
+  if(!b||k.v>b.v)b=k}
+ return b?b.n:'Die Straße'}
+function leihen(k,n){
+ if(phase!=='tag'||inHaft())return;
+ audioOK=true;ac();
+ n=Math.min(n,k==='bank'?limitB()-schuldB:limitS()-schuldS);
+ if(n<=0){sNope();return}
+ if(k==='bank')schuldB+=n;else schuldS+=n;
+ bunker+=n;sBank();save();ui();hud()}
+function tilgen(k,n){
+ if(phase!=='tag'||inHaft())return;
+ audioOK=true;ac();
+ var s=k==='bank'?schuldB:schuldS;
+ n=Math.min(n,s,bunker);
+ if(n<=0){sNope();return}
+ bunker-=n;
+ if(k==='bank')schuldB-=n;else{schuldS-=n;if(schuldS<=0){ansehen+=3;pleiteS=0}}
+ sBuy();save();ui();hud()}
+function kreditTag(){
+ var i;
+ if(schuldB>0){
+  var zb=Math.ceil(schuldB*zinsB());
+  if(bunker>=zb){bunker-=zb;ST.zinsen+=zb;pleiteB=0;
+   tagesBericht.push({t:'Bankzinsen',v:'-'+zb+' €',gut:false})}
+  else{
+   schuldB+=zb;pleiteB++;
+   tagesBericht.push({t:'Zinsen gestundet',v:'+'+zb+' € Schuld',gut:false});
+   if(pleiteB>=3){
+    /* Nach drei Tagen verwertet die Bank die Sicherheit. */
+    var w=null;
+    for(i=0;i<LOKALE.length;i++)
+     if(meine[LOKALE[i].k]&&(!w||LOKALE[i].preis<w.preis))w=LOKALE[i];
+    pleiteB=0;
+    if(w){var erl=Math.round(w.preis*0.6);
+     delete meine[w.k];schuldB=Math.max(0,schuldB-erl);
+     tagesBericht.push({t:'Bank verwertet '+w.n,v:'-'+erl+' € Schuld',gut:false})}
+    else{akten++;
+     tagesBericht.push({t:'Bank erstattet Anzeige',v:'eine Akte',gut:false})}}}}
+ else pleiteB=0;
+ if(schuldS>0){
+  var zs=Math.ceil(schuldS*ZINSS);
+  if(bunker>=zs){bunker-=zs;ST.zinsen+=zs;pleiteS=0;
+   tagesBericht.push({t:'Zinsen auf der Straße',v:'-'+zs+' €',gut:false})}
+  else{
+   schuldS+=zs;pleiteS++;
+   tagesBericht.push({t:'Die Straße stundet',v:'+'+zs+' € Schuld',gut:false});
+   if(pleiteS>=2){
+    /* Die Straße pfändet nicht, die Straße kommt vorbei. */
+    var weg=Math.ceil(lagerSumme()*0.4);
+    for(i=0;i<lager.length&&weg>0;i++){
+     var n2=Math.min(lager[i],weg);lager[i]-=n2;weg-=n2}
+    ansehen=Math.max(0,ansehen-8);pleiteS=0;
+    tagesBericht.push({t:'Besuch bekommen',v:'Ware und Ansehen weg',gut:false})}}}
+ else pleiteS=0}
+
 /* ---------- Ausrüstung ---------- */
 var UP=[
  {k:'brille',n:'Sonnenbrille',d:'Sieht man. Fahndung kühlt 30 % schneller ab',lv:0,max:1,p:[120],rang:1},
@@ -336,6 +417,11 @@ var GERICHTE=[
 var ZEUGEN=['ein Streifenbeamter','eine Nachbarin aus der Altstadt','ein Kollege vom Hafen',
  'ein verdeckter Ermittler','der Wirt von gegenüber'];
 var prozess=null,berufungOffen=false,revisionOffen=false,revision=null;
+/* Haft wird nicht mehr sofort angetreten: das Urteil lädt zum Strafantritt,
+   und kurze Strafen kann das Gericht zur Bewährung aussetzen. */
+var antrittTag=0,bewaehrung=null,verteidiger=false;
+function inHaft(){return haft>0&&(antrittTag<=0||day>=antrittTag)}
+function anwDa(){return !!(lv('anwalt')||verteidiger)}
 var RUEGEN=[
  {k:'sach',n:'Sachrüge',kosten:2500,
   d:'Die allgemeine Rüge: das Gericht hat das Recht falsch angewandt. Immer zulässig, '+
@@ -357,7 +443,7 @@ function prozessPhase(){
  return t?t[prozess.schritt]:null}
 var flugZiel=null,flugRest=0,gesprText='',gesprOk=null;
 var ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0,kontakte:0,geplatzt:0,
-        steuer:0,loehne:0,mieten:0,abgabe:0};
+        steuer:0,loehne:0,mieten:0,abgabe:0,zinsen:0};
 var NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
 var NAMEN=['Kalle','Mesut','Sonja','Der Lange','Bine','Ratko','Frau Özdemir','Pit',
  'Jenny','Der Doktor','Ali','Schwester Marion','Uwe','Lucia','Bruno','Tanja',
@@ -424,6 +510,8 @@ function save(){try{localStorage.setItem(SKEY,JSON.stringify({
  akten:akten,ger:gerichtTag,hb:haftbefehl,haft:haft,vs:vorstrafen,
   stf:steuerFaellig,stt:steuerTag,offen:offen,meine:meine,crew:crew,ausland:ausland,
  proz:prozess,ber:berufungOffen,revOffen:revisionOffen,rev:revision,
+ sb:schuldB,ss:schuldS,pb:pleiteB,ps:pleiteS,
+ anT:antrittTag,bew:bewaehrung,vert:verteidiger,
  kontakte:kontakte,lager:lager,lief:lieferant,nid:nextId,
  st:ST,
  u:UP.map(function(u){return u.lv})}))}catch(e){}}
@@ -472,6 +560,12 @@ function load(){
      beweis:o.proz.beweis||null,zeugen:o.proz.zeugen||null,wort:o.proz.wort||null,
      instanz:num(o.proz.instanz,0),zeuge:String(o.proz.zeuge||ZEUGEN[0])};
     if(prozess.tag>=GERICHTE[prozess.g].tage.length)prozess=null}
+   schuldB=num(o.sb,0);schuldS=num(o.ss,0);
+   pleiteB=num(o.pb,0);pleiteS=num(o.ps,0);
+   antrittTag=num(o.anT,0);verteidiger=!!o.vert;
+   if(o.bew&&typeof o.bew==='object')
+    bewaehrung={tage:num(o.bew.tage,1),bis:num(o.bew.bis,day),
+     auflage:num(o.bew.auflage,0),offen:num(o.bew.offen,0)};
    berufungOffen=!!o.ber;revisionOffen=!!o.revOffen;
    if(o.rev&&typeof o.rev==='object')
     revision={ruegen:String(o.rev.ruegen||'sach'),tag:num(o.rev.tag,day),
@@ -488,6 +582,7 @@ function load(){
  catch(e){
   bunker=STARTGELD;high=0;day=1;xp=0;ansehen=0;kontakte=[];lager=[0,0,0];lieferant=0;
   akten=0;gerichtTag=0;haftbefehl=false;haft=0;vorstrafen=0;meine={};crew={};ausland={};
+  schuldB=0;schuldS=0;antrittTag=0;bewaehrung=null;verteidiger=false;
   offen=[true,false,false,false];apply()}}
 function baueLief(){
  /* Freigeschaltete Auslandskontakte hängen hinten an der Lieferantenliste. */
@@ -505,6 +600,7 @@ function wipe(){
  lager=[0,0,0];lieferant=0;nextId=1;phase='tag';dayF=1;
  zellText='';zellStrich=0;flugZiel=null;flugRest=0;prozess=null;berufungOffen=false;
  revisionOffen=false;revision=null;
+ schuldB=0;schuldS=0;pleiteB=0;pleiteS=0;antrittTag=0;bewaehrung=null;verteidiger=false;
  for(var k in ST)ST[k]=0;
  NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
  for(var i=0;i<UP.length;i++)UP[i].lv=0;
@@ -653,6 +749,8 @@ function nextDay(){
   var ab=Math.round(roh*0.12);
   if(ab>0&&bunker>=ab){bunker-=ab;ST.abgabe=(ST.abgabe||0)+ab;
    tagesBericht.push({t:'Abgabe nach oben',v:'-'+ab+' €',gut:false})}}
+ kreditTag();
+ bewaehrungTag();
  if(day>=steuerTag){
   /* Besteuert wird nur, was angemeldet ist: die Lokale. Das Nachtgeschaeft
      steht in keiner Buchhaltung, dafuer geht dort die Abgabe nach oben ab. */
@@ -695,6 +793,7 @@ function spawnCop(){
 function nightStart(){
  audioOK=true;ac();apply();
  phase='nacht';hold=null;
+ if(!prozess&&!revision&&!letztesUrteil)verteidiger=false;
  var s=bc(HAFEN.i,HAFEN.j),q;
  p={x:s.x,y:YS[HAFEN.j+1],dx:0,dy:0,face:1};
  packs=0;packW=ware;cash=0;stars=0;prevStars=0;fx=[];cops=[];leads=[];
@@ -792,7 +891,7 @@ function bust(){
  stars=Math.min(stars,1.2);ruhe=99;hold=null;
  freeze=0.22;kick(14);redV=1;siren(0);sBust();
  for(var i=0;i<cops.length;i++)cops[i].heim=true;
- if(knast){haft+=knast;save();nightEnd('knast');return}
+ if(knast){haft+=knast;antrittTag=0;save();nightEnd('knast');return}
  jailT=1.2;
  var s=bc(HAFEN.i,HAFEN.j);jailPos={x:s.x,y:YS[HAFEN.j+1]};
  save()}
@@ -1011,7 +1110,7 @@ function step(){
  if(shiftT<=0){shiftT=0;nightEnd('feierabend')}}
 
 /* ---------- Gericht ---------- */
-function gerichtHeute(){return haft<=0&&gerichtTag>0&&day>=gerichtTag}
+function gerichtHeute(){return !inHaft()&&gerichtTag>0&&day>=gerichtTag}
 function forderung(pr){
  var a=pr.akten+(pr.hb?2:0),G=GERICHTE[pr.g],strafe=0,tage=0;
  if(a<=1)strafe=180*a;
@@ -1022,10 +1121,10 @@ function forderung(pr){
  tage+=Math.floor(vorstrafen/2)+(G.k==='lg'?1:0);
  return{strafe:Math.round(strafe/10)*10,tage:tage}}
 function urteilSprechen(pr){
- var G=GERICHTE[pr.g],f=forderung(pr),anw=lv('anwalt'),
+ var G=GERICHTE[pr.g],f=forderung(pr),anw=anwDa(),
      strafe=f.strafe,tage=f.tage,txt=[],frei2=false,i;
  ST.prozesse++;
- if(vorstrafen>0)txt.push(vorstrafen+' Vorstrafe'+(vorstrafen>1?'n':'')+' wirken sich aus.');
+ if(vorstrafen>0)txt.push(vorstrafen+' Vorstrafe'+(vorstrafen>1?'n wirken':' wirkt')+' sich aus.');
  if(pr.plea==='gestehen'){strafe*=0.65;tage-=1;txt.push('Das Geständnis wirkt mildernd.')}
  else if(pr.plea==='bestreiten'){
   if(anw&&Math.random()<(G.k==='lg'?0.32:0.45)){
@@ -1054,11 +1153,34 @@ function urteilSprechen(pr){
   if(anw){strafe*=0.5;tage-=1;txt.push('Dein Anwalt hat das Schlimmste abgewendet.')}}
  strafe=frei2?0:Math.max(0,Math.round(strafe/10)*10);
  tage=frei2?0:Math.max(0,tage);
+ var widerruf=0;
+ if(!frei2&&bewaehrung){
+  /* Neue Tat in der Bewährungszeit: die ausgesetzte Strafe wird widerrufen,
+     Paragraf 56f StGB. Sie kommt oben drauf. */
+  widerruf=bewaehrung.tage;tage+=widerruf;
+  txt.push('Die Bewährung aus dem letzten Urteil wird widerrufen, Paragraf 56f '+
+   'StGB: '+widerruf+' Tage kommen dazu.');
+  bewaehrung=null}
  if(strafe>bunker){
   var off=strafe-bunker;strafe=bunker;
   tage+=Math.ceil(off/400);
-  txt.push('Der Bunker reichte nicht, ersatzweise Haft.')}
- bunker-=strafe;haft+=tage;
+  txt.push('Der Bunker reichte nicht, ersatzweise Haft. Wer sich das Geld '+
+   'geliehen hätte, wäre um die Tage herumgekommen.')}
+ bunker-=strafe;
+ /* Kurze Strafen bei günstiger Prognose setzt das Gericht zur Bewährung aus.
+    Sonst kommt die Ladung zum Strafantritt: du sitzt nicht sofort. */
+ var bew=null;
+ if(tage>0&&!frei2){
+  if(tage<=3&&vorstrafen<=2&&pr.plea!=='bestreiten'&&!widerruf){
+   var auflage=Math.round(tage*450/10)*10;
+   bew={tage:tage,bis:day+14,auflage:auflage,offen:auflage};
+   txt.push('Die Vollstreckung wird zur Bewährung ausgesetzt, Paragraf 56 StGB. '+
+    'Bewährungszeit 14 Tage, dazu eine Geldauflage von '+auflage+' €. Wer sie '+
+    'bezahlt und sauber bleibt, sitzt keinen Tag.')}
+  else{
+   haft+=tage;antrittTag=day+3;
+   txt.push('Die Ladung zum Strafantritt kommt: du musst dich an Tag '+antrittTag+
+    ' stellen. Bis dahin läuft dein Geschäft weiter.')}}
  akten=Math.max(0,akten-pr.akten);gerichtTag=0;haftbefehl=false;
  if(pr.beweis==='kron'){
   /* Wer auspackt, verliert die Leute die er verraten hat. */
@@ -1071,8 +1193,47 @@ function urteilSprechen(pr){
  if(!frei2){vorstrafen++;ansehen=Math.max(0,ansehen-5)}
  berufungOffen=!frei2&&!pr.instanz&&GERICHTE[pr.g].k!=='lg';
  revisionOffen=!frei2&&GERICHTE[pr.g].k==='lg';
- return{strafe:strafe,tage:tage,txt:txt.join(' '),frei:frei2,
+ bewaehrung=bew;
+ return{strafe:strafe,tage:tage,txt:txt.join(' '),frei:frei2,bew:!!bew,
   gericht:G.n+' · '+G.kammer,gefordert:f,fehler:!!pr.fehler,g:pr.g}}
+function bewaehrungTag(){
+ if(!bewaehrung||day<=bewaehrung.bis)return;
+ if(bewaehrung.offen>0){
+  /* Auflage nicht erfüllt, also wird die Aussetzung widerrufen. */
+  haft+=bewaehrung.tage;antrittTag=day+2;
+  tagesBericht.push({t:'Bewährung widerrufen',v:bewaehrung.tage+' Tage Haft',gut:false});
+  bewaehrung=null;return}
+ /* Durchgehalten: die Strafe ist erlassen, Paragraf 56g StGB. */
+ tagesBericht.push({t:'Straferlass',v:bewaehrung.tage+' Tage erledigt',gut:true});
+ ansehen+=5;vorstrafen=Math.max(0,vorstrafen-1);bewaehrung=null}
+function auflageZahlen(){
+ if(!bewaehrung||bewaehrung.offen<=0)return;
+ audioOK=true;ac();
+ var n=Math.min(bewaehrung.offen,bunker);
+ if(n<=0){sNope();return}
+ bunker-=n;bewaehrung.offen-=n;sBank();save();ui();hud()}
+function frueherAntreten(){
+ if(haft<=0||inHaft())return;
+ audioOK=true;ac();antrittTag=day;phase='zelle';zellText='';zellStrich=0;save();ui()}
+function nichtStellen(){
+ /* Wer sich nicht stellt, bekommt einen Vollstreckungshaftbefehl. Danach
+    jagt dich die Streife auch ohne Fahndungsstern. */
+ if(!inHaft())return;
+ audioOK=true;ac();sNope();
+ haftbefehl=true;haft++;antrittTag=day+2;
+ flashT='Vollstreckungshaftbefehl';flash=2.4;
+ save();ui();hud()}
+function anwaltPreis(){return [900,1400,2200][prozess?prozess.g:0]}
+function verteidigerBuchen(){
+ /* Wahlverteidiger für dieses Verfahren. Teurer als der Anwalt auf Abruf im
+    Shop, dafür kann man ihn holen, wenn es im Saal eng wird. */
+ if(!prozess||anwDa())return;
+ var pr=anwaltPreis();
+ if(bunker<pr){sNope();return}
+ audioOK=true;ac();
+ bunker-=pr;verteidiger=true;sGross();
+ flashT='Verteidiger sitzt neben dir';flash=2;
+ save();ui();hud()}
 var letztesUrteil=null;
 function zumGericht(){
  audioOK=true;ac();
@@ -1096,7 +1257,7 @@ function prozessWeiter(){
  prozess.tag++;prozess.schritt=0;
  if(prozess.tag>=tage.length){
   prozess=null;
-  phase=haft>0?'zelle':'tag';
+  phase=inHaft()?'zelle':'tag';
   if(phase==='zelle'){zellText='';zellStrich=0}
   nextDay();tagBeginn();save();ui();return}
  gerichtTag=day+1;
@@ -1132,11 +1293,12 @@ function berufung(){
   plea:null,beweis:null,zeugen:null,wort:null,instanz:1,
   zeuge:ZEUGEN[Math.floor(Math.random()*ZEUGEN.length)]};
  haft=Math.max(0,haft-letztesUrteil.tage);
+ if(haft<=0)antrittTag=0;
  bunker+=letztesUrteil.strafe;
  letztesUrteil=null;gerichtTag=day+4;
  sGross();save();ui();hud()}
 function revisionEinlegen(k){
- if(!revisionOffen||!letztesUrteil||!lv('anwalt'))return;
+ if(!revisionOffen||!letztesUrteil||!anwDa())return;
  var i,R=null;
  for(i=0;i<RUEGEN.length;i++)if(RUEGEN[i].k===k)R=RUEGEN[i];
  if(!R||bunker<R.kosten){sNope();return}
@@ -1145,6 +1307,7 @@ function revisionEinlegen(k){
  /* Bis Karlsruhe entschieden hat, wird nichts vollstreckt. */
  bunker+=letztesUrteil.strafe;
  haft=Math.max(0,haft-letztesUrteil.tage);
+ if(haft<=0)antrittTag=0;
  revision={ruegen:k,tag:day+6,fehler:letztesUrteil.fehler,
   strafe:letztesUrteil.strafe,tage:letztesUrteil.tage};
  revisionOffen=false;berufungOffen=false;letztesUrteil=null;
@@ -1167,7 +1330,8 @@ function revisionEntscheiden(){
   if(r.ruegen!=='sach'&&!r.fehler)
    txt.push('Der gerügte Verfahrensfehler lag nicht vor.');
   bunker-=r.strafe;haft+=r.tage;
-  txt.push('Das Urteil ist rechtskräftig. Strafe und Haft werden vollstreckt.')}
+  if(r.tage>0)antrittTag=day+2;
+  txt.push('Das Urteil ist rechtskräftig. Die Ladung zum Strafantritt kommt.')}
  else{
   var w=Math.random();
   if(w<0.55){
@@ -1178,6 +1342,7 @@ function revisionEntscheiden(){
    txt.push('Neu festgesetzt: '+neuStrafe+' €'+
     (neuTage?' und '+neuTage+' Tage Haft.':' ohne Haft.'));
    bunker-=neuStrafe;haft+=neuTage;
+   if(neuTage>0)antrittTag=day+2;
    revision.neuStrafe=neuStrafe;revision.neuTage=neuTage}
   else if(w<0.90){
    art='zurueck';
@@ -1200,7 +1365,7 @@ function revisionEntscheiden(){
 function revisionSchliessen(){
  audioOK=true;ac();
  revision=null;
- phase=haft>0?'zelle':'tag';
+ phase=inHaft()?'zelle':'tag';
  if(phase==='zelle'){zellText='';zellStrich=0}
  nextDay();tagBeginn();save();ui();hud()}
 function gerichtSchwaenzen(){
@@ -1215,7 +1380,7 @@ var ZELLE=[
  {k:'anwalt',t:'Dein Anwalt war da und hat einen Tag rausgeholt.',w:2}];
 function tagAbsitzen(){
  audioOK=true;ac();
- if(haft<=0){phase='tag';nextDay();tagBeginn();save();ui();return}
+ if(haft<=0){phase='tag';antrittTag=0;nextDay();tagBeginn();save();ui();return}
  var pool=[],i,q;
  for(i=0;i<ZELLE.length;i++){
   if(ZELLE[i].k==='anwalt'&&!lv('anwalt'))continue;
@@ -1230,7 +1395,7 @@ function tagAbsitzen(){
  else sTick();
  zellText=e.t;
  nextDay();tagBeginn();
- if(haft<=0)phase='tag';
+ if(haft<=0){phase='tag';antrittTag=0}
  save();ui()}
 
 /* ---------- Ausland: Flug und Gespräch ---------- */
@@ -1594,7 +1759,12 @@ function stadtSzene(){
 function tagKarte(){
  /* Schmales Band statt Karte im Weg: tagsüber will man die Stadt sehen. */
  var z1,z2;
- if(haft>0){z1='Tag '+day+' · du sitzt';z2='Noch '+haft+(haft===1?' Tag':' Tage')}
+ if(inHaft()){z1='Tag '+day+' · du sitzt';z2='Noch '+haft+(haft===1?' Tag':' Tage')}
+ else if(haft>0){z1='Tag '+day+' · auf freiem Fuß';
+  z2=haft+(haft===1?' Tag':' Tage')+' Haft, Strafantritt an Tag '+antrittTag}
+ else if(bewaehrung){z1='Tag '+day+' · Bewährung';
+  z2=bewaehrung.offen>0?'Auflage '+bewaehrung.offen+' € offen · bis Tag '+bewaehrung.bis
+   :'Sauber bleiben bis Tag '+bewaehrung.bis}
  else if(gerichtHeute()){z1='Tag '+day+' · Verhandlung';
   z2=prozess&&prozess.tag>0?'Prozesstag '+(prozess.tag+1)+' von '+
    GERICHTE[prozess.g].tage.length:'Das Gericht wartet'}
@@ -1908,11 +2078,16 @@ function chips(nacht){
  if(nacht&&packs>0)h+=chip('dabei',packs+'× '+WARE[packW].n,'now');
  if(ein>0)h+=chip('Lokale','+'+ein+' €/Tag','ok');
  if(lo>0)h+=chip('Kosten','−'+lo+' €/Tag','');
+ if(schuldSumme()>0)h+=chip('Schulden',schuldSumme()+' €','warn');
  if(steuerFaellig>0)h+=chip('Steuer',steuerFaellig+' € offen','warn');
  else if(ein>0)h+=chip('Steuerbescheid','an Tag '+steuerTag,'');
  if(akten>0)h+=chip('Akten',String(akten),'warn');
  if(haftbefehl)h+=chip('Haftbefehl','offen','warn');
- if(haft>0)h+=chip('Haft',haft+(haft===1?' Tag':' Tage'),'warn');
+ if(bewaehrung)h+=chip('Bewährung',bewaehrung.offen>0
+  ?bewaehrung.offen+' € Auflage':'bis Tag '+bewaehrung.bis,
+  bewaehrung.offen>0?'warn':'ok');
+ if(haft>0&&!inHaft())h+=chip('Strafantritt','Tag '+antrittTag,'warn');
+ else if(haft>0)h+=chip('Haft',haft+(haft===1?' Tag':' Tage'),'warn');
  else if(prozess)h+=chip('Prozess',GERICHTE[prozess.g].kammer,'warn');
  else if(revision)h+=chip('Revision','BGH','warn');
  else if(gerichtTag>0)h+=chip('Gerichtstermin','Tag '+gerichtTag,'warn');
@@ -1934,7 +2109,7 @@ function setTab(t){
 function ui(){
  var nacht=phase==='nacht',szeneAn=phase==='gericht'||phase==='zelle'||
      phase==='flug'||phase==='gespraech'||phase==='revision',
-     ger=gerichtHeute(),sitzt=haft>0;
+     ger=gerichtHeute(),sitzt=inHaft(),wartet=haft>0&&!sitzt;
  document.body.className=nacht?'':'tag';
  document.getElementById('pad').className='pad'+(nacht||phase==='tag'?'':' off');
  var bm=document.getElementById('bmain'),ba=document.getElementById('balt');
@@ -1958,8 +2133,10 @@ function ui(){
   bm.disabled=gesprOk===null}
  else if(ger){bm.textContent='Zum Gericht';bm.disabled=false;
   ba.style.display='';ba.textContent='Nicht hingehen'}
- else if(sitzt){bm.textContent='In die Zelle';bm.disabled=false}
- else{bm.textContent='Nacht '+day+' beginnen';bm.disabled=false}
+ else if(sitzt){bm.textContent='In die Zelle';bm.disabled=false;
+  ba.style.display='';ba.textContent='Nicht stellen'}
+ else{bm.textContent='Nacht '+day+' beginnen';bm.disabled=false;
+  if(wartet){ba.style.display='';ba.textContent='Strafe früher antreten'}}
  var zu=nacht||sitzt||szeneAn,panels=!nacht&&!szeneAn&&!ger;
  document.getElementById('shopstate').textContent=
   nacht?'nachts geschlossen':(sitzt?'gerade nicht':'offen');
@@ -1971,7 +2148,7 @@ function ui(){
  document.getElementById('secshop').style.display=panels&&tab==='shop'?'':'none';
  document.getElementById('seckit').style.display=panels&&tab==='sachen'?'':'none';
  document.getElementById('secszene').style.display=
-  (szeneAn||ger||sitzt||letztesUrteil||revision)&&!nacht?'':'none';
+  (szeneAn||ger||sitzt||wartet||bewaehrung||letztesUrteil||revision)&&!nacht?'':'none';
  document.getElementById('hint').textContent=nacht
   ?'Halten zum Laufen · Enter sagt einem Anruf zu · im Versteck sinkt die Fahndung, '+
    'das Bargeld geht mit 20 % Abzug weg, Leertaste macht Feierabend'
@@ -1987,11 +2164,25 @@ function ui(){
  szene();telefon();warePicker();imperium();kit();shop()}
 function szene(){
  var el=document.getElementById('szenetext'),kopf=document.getElementById('szenekopf'),
-     lab=document.getElementById('szenelab'),h='',i;
+     lab=document.getElementById('szenelab'),h='',vor='',i;
  if(phase==='gericht'&&prozess){
-  var G=GERICHTE[prozess.g],ph=prozessPhase(),anw=lv('anwalt');
+  var G=GERICHTE[prozess.g],ph=prozessPhase(),anw=anwDa();
   kopf.textContent=G.n;
   lab.textContent=G.kammer+' · Tag '+(prozess.tag+1)+'/'+G.tage.length;
+  /* Verteidiger kann man mitten im Verfahren holen, auch noch vor dem
+     letzten Wort. Vorher musste man ihn Tage früher im Shop gekauft haben. */
+  if(!anw&&ph&&ph!=='urteil'){
+   var ap=anwaltPreis();
+   vor='<div class="row"><div><p class="name">Du sitzt ohne Verteidiger da</p>'+
+    '<p class="desc">Ein Wahlverteidiger für dieses Verfahren kostet <b>'+ap+
+    ' €</b>. Er halbiert die Geldstrafe, nimmt einen Hafttag und macht '+
+    'Bestreiten, Widerspruch und Revision überhaupt erst aussichtsreich.</p>'+
+    (bunker<ap?'<p class="err">Dir fehlen '+(ap-bunker)+' €. Die Bank oder die '+
+     'Straße leihen dir welches.</p>':'')+
+    '</div><button data-anw="1"'+(bunker<ap?' disabled':'')+'>beauftragen</button></div>'}
+  else if(anw)
+   vor='<p class="ok">'+(verteidiger?'Dein Wahlverteidiger':'Dein Anwalt auf Abruf')+
+    ' sitzt neben dir.</p>';
   if(ph==='anklage'){
    h='<p class="big">Die Staatsanwaltschaft verliest.</p>'+
      '<p><b>'+prozess.akten+'</b> '+(prozess.akten===1?'Fall':'Fälle')+
@@ -2097,10 +2288,37 @@ function szene(){
     (revisionFaellig()?'<p class="muted">Der Knopf oben öffnet den Umschlag.</p>'
      :'<p class="muted">Entscheidung an <b>Tag '+revision.tag+'</b>. Solange wird nichts '+
       'vollstreckt, und du kannst weiterarbeiten.</p>')}
- else if(haft>0){
-  kopf.textContent='Justizvollzug';lab.textContent='offen';
+ else if(inHaft()){
+  kopf.textContent='Justizvollzug';lab.textContent='Strafantritt';
   h='<p class="big">Du musst noch '+haft+' '+(haft===1?'Tag':'Tage')+' absitzen.</p>'+
-    '<p class="muted">Der Knopf oben bringt dich in die Zelle.</p>'}
+    '<p class="muted">Der Knopf oben bringt dich in die Zelle. Wer sich nicht '+
+    'stellt, bekommt einen Vollstreckungshaftbefehl: einen Tag mehr, und die '+
+    'Streife jagt dich dann auch ohne Fahndungsstern.</p>'}
+ else if(haft>0){
+  kopf.textContent='Ladung zum Strafantritt';
+  lab.textContent='Tag '+antrittTag;
+  h='<p class="big">'+haft+' '+(haft===1?'Tag':'Tage')+' Haft, anzutreten an '+
+    '<b>Tag '+antrittTag+'</b>.</p>'+
+    '<p class="muted">Bis dahin bist du frei. Nutze die Zeit: Ware verkaufen, '+
+    'Löhne vorstrecken, Schulden tilgen. Der Knopf unten bringt es hinter dich.</p>'}
+ else if(bewaehrung){
+  kopf.textContent='Bewährung';
+  lab.textContent='bis Tag '+bewaehrung.bis;
+  h='<p class="big">'+bewaehrung.tage+' '+(bewaehrung.tage===1?'Tag':'Tage')+
+    ' zur Bewährung ausgesetzt.</p>'+
+    '<p class="muted">Paragraf 56 StGB. Läuft die Bewährungszeit bis <b>Tag '+
+    bewaehrung.bis+'</b> ab und ist die Auflage bezahlt, ist die Strafe erlassen '+
+    'und eine Vorstrafe fällt weg. Wirst du vorher wieder verurteilt, kommen die '+
+    bewaehrung.tage+' Tage oben drauf.</p>'+
+    (bewaehrung.offen>0
+     ?'<div class="row"><div><p class="name">Geldauflage offen</p>'+
+      '<p class="desc">'+bewaehrung.offen+' € von '+bewaehrung.auflage+' €. '+
+      'Unbezahlt heißt am Ende Widerruf.</p>'+
+      (bunker<bewaehrung.offen?'<p class="err">Der Bunker deckt nur '+bunker+' €, '+
+       'Teilzahlung geht.</p>':'')+
+      '</div><button data-auf="1"'+(bunker<=0?' disabled':'')+'>'+
+      Math.min(bewaehrung.offen,bunker)+' € zahlen</button></div>'
+     :'<p class="ok">Die Auflage ist bezahlt. Jetzt nur noch sauber bleiben.</p>')}
  else if(gerichtHeute()){
   var lauf=prozess&&prozess.tag>0,GG=prozess?GERICHTE[prozess.g]:GERICHTE[zustaendig(akten)];
   kopf.textContent=GG.n;
@@ -2126,7 +2344,7 @@ function szene(){
       'Gerichtskosten. Die Große Strafkammer am Landgericht verhandelt neu, vier Tage. '+
       'Strafe und Haft aus diesem Urteil werden erst einmal ausgesetzt. Mit Anwalt 55 % '+
       'auf ein milderes Urteil, sonst wird es teurer.</span></button></div>'
-     :(revisionOffen?(lv('anwalt')
+     :(revisionOffen?(anwDa()
        ?'<p class="muted">Gegen ein Urteil der Großen Strafkammer geht die <b>Revision '+
         'zum Bundesgerichtshof</b>. Der Senat hört keine Zeugen mehr und prüft nur, ob '+
         'das Urteil rechtlich trägt. Entschieden wird nach sechs Tagen, ohne '+
@@ -2140,7 +2358,11 @@ function szene(){
        :'<p class="err">Revision zum Bundesgerichtshof geht nur über einen Anwalt. '+
         'Die Begründung muss von einem Verteidiger unterschrieben sein.</p>')
       :'<p class="muted">Rechtsmittel sind hier nicht mehr möglich.</p>'))}
- el.innerHTML=h;
+ el.innerHTML=vor+h;
+ var ab=el.querySelectorAll('button[data-anw]');
+ for(i=0;i<ab.length;i++)ab[i].addEventListener('click',verteidigerBuchen);
+ var gb=el.querySelectorAll('button[data-auf]');
+ for(i=0;i<gb.length;i++)gb[i].addEventListener('click',auflageZahlen);
  var pb=el.querySelectorAll('button[data-p]');
  for(i=0;i<pb.length;i++)pb[i].addEventListener('click',function(e){
   einlassung(e.currentTarget.getAttribute('data-p'))});
@@ -2162,10 +2384,10 @@ function szene(){
  for(i=0;i<rv.length;i++)rv[i].addEventListener('click',function(e3){
   revisionEinlegen(e3.currentTarget.getAttribute('data-rev'))})}
 function telefon(){
- var nacht=phase==='nacht',zu=nacht||haft>0,h='',i,q;
+ var nacht=phase==='nacht',zu=nacht||inHaft(),h='',i,q;
  var lf=LIEF[lieferant],pr=einkaufspreis();
  document.getElementById('tellab').textContent=
-  nacht?offeneAuftraege()+' offene Aufträge':(haft>0?'kein Empfang':'bis '+MAXAUF+' Aufträge pro Nacht');
+  nacht?offeneAuftraege()+' offene Aufträge':(inHaft()?'kein Empfang':'bis '+MAXAUF+' Aufträge pro Nacht');
  h+='<h3 class="telh">Nachschub</h3><div class="lieflist">';
  for(i=0;i<LIEF.length;i++){
   var L=LIEF[i],fr=rang()>=L.rang;
@@ -2223,7 +2445,7 @@ function telefon(){
   fliegen(e.currentTarget.getAttribute('data-f'))});
 }
 function kaufen(n){
- if(phase!=='tag'||haft>0)return;
+ if(phase!=='tag'||inHaft())return;
  audioOK=true;ac();
  var lf=LIEF[lieferant],pr=einkaufspreis(),platz=lf.max-lagerSumme();
  n=Math.min(n,platz);
@@ -2248,7 +2470,7 @@ function warePicker(){
   if(rang()<WARE[n].rang){sNope();return}
   ware=n;audioOK=true;ac();sBuy();save();warePicker();telefon();kit();hud()})}
 function imperium(){
- var el=document.getElementById('imperium'),h='',i,zu=phase!=='tag'||haft>0;
+ var el=document.getElementById('imperium'),h='',i,zu=phase!=='tag'||inHaft();
  document.getElementById('implab').textContent=
   ertragSumme()>0?'+'+ertragSumme()+' € am Tag':'noch nichts davon';
  var nq=naechstesViertel();
@@ -2285,6 +2507,37 @@ function imperium(){
    (n>0?'<button data-e="'+R.k+'"'+(zu?' disabled':'')+'>−</button>':'')+
    '<button data-h="'+R.k+'"'+(zu||!frr||n>=R.max?' disabled':'')+'>+</button>'+
    '</div></div>'}
+ h+='<h3 class="telh">Geld leihen</h3>';
+ var bo=bonitaet(),lb=limitB(),ls=limitS(),zb=Math.round(zinsB()*1000)/10;
+ h+='<p class="desc">Deine <b>Bonität: '+bo+' von 100</b>. Sie zählt nur, was '+
+  'angemeldet ist: Lokale, gezahlte Steuern, ein Buchhalter. Offene Steuern, '+
+  'Akten und Vorstrafen ziehen ab. Das Nachtgeschäft sieht die Bank nicht.</p>';
+ h+='<div class="row"><div><p class="name">Stadtsparkasse</p>'+
+  (lb>0
+   ?'<p class="desc">'+zb+' % Zinsen am Tag · Rahmen '+lb+' € · offen <b>'+schuldB+
+    ' €</b></p>'+(schuldB>0?'<p class="desc">Zinsen morgen: '+
+     Math.ceil(schuldB*zinsB())+' €. Drei Tage nicht bedient, und sie verwerten '+
+     'dein billigstes Lokal.</p>':'')
+   :'<p class="err">Ohne Bonität von mindestens 20 leiht dir keine Bank etwas. '+
+    'Kauf ein Lokal und zahl deine Steuern.</p>')+
+  '</div><div class="kaufbtn">'+
+  (schuldB>0?'<button data-tb="1"'+(zu?' disabled':'')+'>tilgen</button>':'')+
+  '<button data-lb="1"'+(zu||lb-schuldB<=0?' disabled':'')+'>leihen</button>'+
+  '</div></div>';
+ h+='<div class="row"><div><p class="name">'+geldgeber()+'</p>'+
+  (ls>0
+   ?'<p class="desc">12 % Zinsen am Tag · Rahmen '+ls+' € · offen <b>'+schuldS+
+    ' €</b></p>'+(schuldS>0?'<p class="desc">Zinsen morgen: '+
+     Math.ceil(schuldS*ZINSS)+' €. Zwei Tage nicht bedient, und es kommt jemand '+
+     'vorbei und nimmt sich Ware.</p>'
+    :'<p class="desc">Fragt nicht nach Papieren, nur nach Leuten. Wer voll '+
+     'zurückzahlt, bekommt Ansehen.</p>')
+   :'<p class="err">Erst zwei Kontakte in offenen Vierteln, dann redet die '+
+    'Straße mit dir.</p>')+
+  '</div><div class="kaufbtn">'+
+  (schuldS>0?'<button data-ts="1"'+(zu?' disabled':'')+'>tilgen</button>':'')+
+  '<button data-ls="1"'+(zu||ls-schuldS<=0?' disabled':'')+'>leihen</button>'+
+  '</div></div>';
  h+='<h3 class="telh">Finanzamt</h3>';
  h+='<div class="row"><div><p class="name">'+
   (steuerFaellig>0?'Steuerbescheid offen':'Nichts offen')+'</p>'+
@@ -2318,7 +2571,19 @@ function imperium(){
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
   entlassen(e.currentTarget.getAttribute('data-e'))});
  bs=el.querySelectorAll('button[data-st]');
- for(i=0;i<bs.length;i++)bs[i].addEventListener('click',steuernZahlen)}
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',steuernZahlen);
+ bs=el.querySelectorAll('button[data-lb]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){
+  leihen('bank',limitB()-schuldB)});
+ bs=el.querySelectorAll('button[data-ls]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){
+  leihen('strasse',limitS()-schuldS)});
+ bs=el.querySelectorAll('button[data-tb]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){
+  tilgen('bank',Math.min(schuldB,bunker))});
+ bs=el.querySelectorAll('button[data-ts]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){
+  tilgen('strasse',Math.min(schuldS,bunker))})}
 function kit(){
  var rows=[
   ['Tempo',Math.round(SPD/2.5*100)+' %',lv('schuhe')>0||lv('auto')>0],
@@ -2335,21 +2600,24 @@ function kit(){
   ['Verfahren',prozess?GERICHTE[prozess.g].kammer+' · Tag '+(prozess.tag+1)+'/'+
    GERICHTE[prozess.g].tage.length:(revision?'Revision beim BGH':'keines'),false],
   ['Steuern offen',steuerFaellig+' €',false],
+  ['Bonität',bonitaet()+' / 100',bonitaet()>=20],
+  ['Schulden',schuldSumme()>0?schuldB+' € Bank · '+schuldS+' € Straße':'keine',false],
   ['Nächte gearbeitet',String(ST.naechte),false],
   ['Lieferungen gesamt',String(ST.drops),false],
   ['Zugriffe gesamt',String(ST.busts),false],
   ['Steuern gezahlt',ST.steuer+' €',false],
+  ['Zinsen gezahlt',(ST.zinsen||0)+' €',false],
   ['Abgaben nach oben',(ST.abgabe||0)+' €',false],
   ['Betriebskosten',betriebSumme()+' €/Tag',false],
   ['Beste Nacht',ST.best+' €',false]];
  var h='',i;
  for(i=0;i<rows.length;i++)
   h+='<div class="kv"><span>'+rows[i][0]+'</span><span'+
-   (rows[i][2]?' class="up"':(/Akten|Vorstrafen|Steuern offen/.test(rows[i][0])&&
+   (rows[i][2]?' class="up"':(/Akten|Vorstrafen|Steuern offen|Schulden/.test(rows[i][0])&&
     parseInt(rows[i][1],10)>0?' class="warn"':''))+'>'+rows[i][1]+'</span></div>';
  document.getElementById('kit').innerHTML=h}
 function shop(){
- var el=document.getElementById('shop'),h='',zu=phase!=='tag'||haft>0,r=rang(),i;
+ var el=document.getElementById('shop'),h='',zu=phase!=='tag'||inHaft(),r=rang(),i;
  for(i=0;i<UP.length;i++){
   var u=UP[i],done=u.lv>=u.max,gesperrt=r<u.rang,
       pr=done?0:u.p[u.lv],arm=!done&&!gesperrt&&bunker<pr;
@@ -2366,7 +2634,7 @@ function shop(){
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
   buy(e.currentTarget.getAttribute('data-k'))})}
 function buy(k){
- if(phase!=='tag'||haft>0)return;
+ if(phase!=='tag'||inHaft())return;
  audioOK=true;ac();
  for(var i=0;i<UP.length;i++){
   var u=UP[i];if(u.k!==k)continue;
@@ -2382,7 +2650,7 @@ function mainAction(){
  if(phase==='zelle'){tagAbsitzen();return}
  if(phase==='flug'){if(flugRest<=0)angekommen();return}
  if(phase==='gespraech'){if(gesprOk!==null)heimflug();return}
- if(haft>0){phase='zelle';zellText='';zellStrich=0;ui();return}
+ if(inHaft()){phase='zelle';zellText='';zellStrich=0;ui();return}
  if(gerichtHeute()){zumGericht();return}
  letztesUrteil=null;nightStart()}
 
@@ -2421,7 +2689,10 @@ bind('bu');bind('bd');bind('bl');bind('br');
   setTab(e.currentTarget.getAttribute('data-t'))})})();
 document.getElementById('bmain').addEventListener('click',mainAction);
 document.getElementById('balt').addEventListener('click',function(){
- if(phase==='tag'&&gerichtHeute())gerichtSchwaenzen()});
+ if(phase!=='tag')return;
+ if(gerichtHeute()){gerichtSchwaenzen();return}
+ if(inHaft()){nichtStellen();return}
+ if(haft>0)frueherAntreten()});
 document.getElementById('bmute').addEventListener('click',function(){
  audioOK=true;ac();setMute(!mute)});
 document.getElementById('breset').addEventListener('click',function(){

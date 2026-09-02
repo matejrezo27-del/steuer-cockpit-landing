@@ -127,6 +127,8 @@ die ganze Mannschaft weg.
 | Löhne | Summe der Tagessätze | täglich |
 | Betriebskosten | 1,5 % des Kaufpreises aller Lokale | täglich |
 | Abgabe nach oben | 12 % des Nachtertrags, entfällt als Legende | täglich |
+| Bankzinsen | 1,2 bis 3,0 % der Restschuld, je nach Bonität | täglich |
+| Zinsen auf der Straße | 12 % der Restschuld | täglich |
 | Steuerbescheid | 30 % der Lokaleinnahmen der Woche, mit Buchhalter 20 % | alle 7 Tage |
 
 Nicht gezahlte Steuern bringen **zwei Akten** und einen um 20 % höheren Bescheid.
@@ -419,11 +421,96 @@ Vier mögliche Beschlüsse:
 
 Bis der Beschluss da ist, wird **nichts vollstreckt** und du spielst normal weiter.
 
+### Verteidiger im laufenden Verfahren
+
+Der **Anwalt auf Abruf** im Shop ist ein Mandat auf Vorrat: 800 €, aber Tage vorher zu
+kaufen. Wer erst im Saal merkt, dass es eng wird, kann jetzt einen **Wahlverteidiger
+für dieses Verfahren** beauftragen — in jeder Phase bis zum letzten Wort.
+
+| Gericht | Preis |
+|---|---|
+| Amtsgericht, Strafrichter | 900 € |
+| Amtsgericht, Schöffengericht | 1400 € |
+| Landgericht, Große Strafkammer | 2200 € |
+
+Teurer als der Vorrat, dafür genau dann, wenn man ihn braucht. Er wirkt sofort: halbe
+Geldstrafe, ein Hafttag weniger, und Bestreiten, Widerspruch und die Revision zum BGH
+werden überhaupt erst aussichtsreich. Er bleibt bis zum Ende des Verfahrens, die
+Revision eingeschlossen, und ist danach weg.
+
+### Bewährung und Strafantritt
+
+**Haft wird nicht mehr sofort angetreten.** Das war vorher so: Urteil, und der nächste
+Knopf hieß „In die Zelle". Jetzt gibt es zwei Wege.
+
+**Bewährung** (§ 56 StGB) bei bis zu 3 Tagen Haft, höchstens 2 Vorstrafen und wenn du
+nicht bestritten hast. Die Vollstreckung wird ausgesetzt, Bewährungszeit 14 Tage, dazu
+eine **Geldauflage von 450 € je Tag** (§ 56b). Zahlst du sie und bleibst sauber, ist
+die Strafe erlassen und **eine Vorstrafe fällt weg** (§ 56g). Bleibt die Auflage am Ende
+offen, wird widerrufen. Wirst du in der Bewährungszeit erneut verurteilt, kommen die
+ausgesetzten Tage oben drauf (§ 56f).
+
+**Ladung zum Strafantritt** sonst: du musst dich in **3 Tagen** stellen, bist bis dahin
+aber frei und spielst normal weiter — Nächte, Einkauf, Lokale, Shop, alles offen. Genau
+dafür ist die Frist da: Ware zu Geld machen, Löhne vorstrecken, Schulden tilgen, bevor
+die Tür zugeht. Der Nebenknopf tritt die Strafe früher an.
+
+Am Antrittstag hast du noch eine Wahl: **stellen** oder **nicht stellen**. Wer nicht
+erscheint, bekommt einen **Vollstreckungshaftbefehl**, einen Tag mehr und einen Termin
+zwei Tage später — und die Streife jagt ihn ab sofort auch ohne Fahndungsstern, mit
+sofortiger Haft beim Zugriff. Das nutzt die Fahndung, die es ohnehin schon gibt.
+
+Beim **Zugriff auf frischer Tat** gibt es keine Ladung. Da wird sofort abgesessen.
+
 ### Die Zelle
 
 Haft ist eine eigene Szene mit Strichliste an der Wand. Jeder Tag würfelt ein Ereignis:
 Hofgang bringt einen Kontakt, Ärger im Trakt einen Tag mehr, ein Anwaltsbesuch einen
 weniger.
+
+## Geld leihen
+
+Zwei Quellen, zwei Preise. Der Zins läuft täglich auf die Restschuld und wird sofort
+vom Bunker abgebucht; die Schuld selbst bleibt stehen, bis du tilgst.
+
+### Die Bank will Zahlen sehen
+
+Die **Bonität** ist ein Wert von 0 bis 100 und zählt nur, was angemeldet ist. Das
+Nachtgeschäft taucht in keiner Buchhaltung auf und hilft hier deshalb auch nicht — das
+ist der Punkt: die Bank ist der Lohn dafür, legal aufgebaut zu haben.
+
+| zählt dazu | zählt ab |
+|---|---|
+| Kaufpreis deiner Lokale ÷ 1200 | offener Steuerbescheid: −18 |
+| gezahlte Steuern ÷ 1500 | je Akte: −6 |
+| Buchhalter: +12 | je Vorstrafe: −14, Haftbefehl: −20 |
+
+Ab Bonität 20 leiht die Bank, der Rahmen ist `Bonität² × 9 €`, der Zins fällt von 3,0 %
+auf 1,2 % am Tag. Gemessen: drei Lokale, 9000 € gezahlte Steuern und ein Buchhalter
+ergeben Bonität 31, also 8600 € zu 2,4 %. Ein offener Steuerbescheid und zwei Akten
+drücken dieselbe Lage auf Bonität 1 — und damit auf null Kredit.
+
+Drei Tage die Zinsen nicht bedienen, und die Bank **verwertet die Sicherheit**: dein
+billigstes Lokal ist weg, dafür sinkt die Schuld um 60 % seines Kaufpreises.
+
+### Die Straße will Leute sehen
+
+Ab **zwei Kontakten** in offenen Vierteln, Rahmen `Ansehen × 60 + Kontakte × 400`, und
+zwar zu **12 % am Tag**. Der Geldgeber ist namentlich der Kontakt, dem du am meisten
+vertraust. Zwei Tage nicht bedient, und es kommt jemand vorbei: **40 % der Ware aus dem
+Lager und 8 Ansehen** sind weg. Wer voll zurückzahlt, bekommt 3 Ansehen.
+
+Das ist kein Ersatz für die Bank, sondern der Notgroschen: die Geldstrafe bezahlen,
+bevor sie in Ersatzhaft umschlägt, oder die erste Ladung Ware kaufen, wenn noch kein
+Lokal steht. Deshalb ist der Rahmen klein — 12 % am Tag auf eine große Summe wäre eine
+Falle ohne Ausweg.
+
+### Wofür man sich Geld leiht
+
+Ein Späti kostet 2500 € und bringt 240 € am Tag, nach Steuer und Betriebskosten rund
+5,2 %. Bei 3 % Bankzins lohnt es sich, ihn auf Kredit zu kaufen. Der Marina Club bringt
+auf seinen Kaufpreis nur 1,8 % netto — der lohnt erst, wenn die Bonität den Zins unter
+2 % gedrückt hat. Genau diese Rechnung ist die Entscheidung.
 
 ## Ausrüstung
 
@@ -435,7 +522,7 @@ Roberto fängt mit nichts an. Vier Dinge sieht man ihm an.
 | Laufschuhe I–III | 1 | 180 / 420 / 900 € | je +12 % Tempo | nein |
 | Bauchtasche | 2 | 280 € | +2 Ware | ja |
 | Kapuzenjacke | 3 | 520 € | 25 % später erkannt | ja |
-| Anwalt auf Abruf | 3 | 800 € | halbe Strafe, ein Hafttag weniger | nein |
+| Anwalt auf Abruf | 3 | 800 € | halbe Strafe, ein Hafttag weniger; im Saal geht auch ein Wahlverteidiger | nein |
 | Funkscanner | 4 | 650 € | Wache rückt später aus, Ruhezeit 3,5 s | nein |
 | Zweithandy | 6 | 1 100 € | +25 % je Lieferung, ein Auftrag mehr | nein |
 | Gebrauchtwagen | 9 | 3 800 € | +60 % Tempo, +3 Ware, 40 % besser sichtbar | ja |
@@ -464,6 +551,10 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `prozessWeiter()` | Schritt und Verhandlungstag, Übergang in den nächsten Spieltag |
 | `forderung()` / `urteilSprechen()` | Antrag der Anklage und Strafzumessung |
 | `berufung()` | Rechtsmittel ans Landgericht |
+| `verteidigerBuchen()` / `anwDa()` | Wahlverteidiger mitten im Verfahren |
+| `bewaehrung` / `bewaehrungTag()` | Aussetzung, Geldauflage, Widerruf, Straferlass |
+| `antrittTag` / `inHaft()` | Ladung zum Strafantritt statt sofortiger Zelle |
+| `bonitaet()` / `limitB()` / `kreditTag()` | Bank und Straße, Zins und Verwertung |
 | `RUEGEN` / `revisionEinlegen()` | Sach- und Verfahrensrüge, Kosten, Aussetzung |
 | `revisionEntscheiden()` | der Beschluss des Senats nach Aktenlage |
 | `revisionSzene()` | Post aus Karlsruhe statt Gerichtssaal |
