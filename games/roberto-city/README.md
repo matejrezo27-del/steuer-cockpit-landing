@@ -1,21 +1,108 @@
 # Roberto City
 
-Ein Liefer- und Fluchtspiel im Browser. Nachts liefern, tags aufsteigen, und
-irgendwann vor den Richter. Reines HTML5-Canvas, keine Abhängigkeiten, kein Build.
-`index.html` doppelklicken, fertig.
+Eine kleine Unterwelt-Simulation im Browser. Nachts ausliefern, tags ein Imperium
+bauen: Viertel freischalten, Lokale kaufen, Personal einstellen, Steuern zahlen,
+Kontakte im Ausland aufbauen und irgendwann vor den Richter.
 
-Steuerung nachts: Pfeiltasten oder WASD, am Handy die Tasten unter dem Feld oder
-Wischen. Leertaste startet die Nacht, `M` schaltet den Ton.
+Reines HTML5-Canvas, keine Abhängigkeiten, kein Build. `index.html` doppelklicken.
 
 ## Tag und Nacht
 
-Das Spiel läuft in Runden aus zwei Phasen.
+**Nacht** ist das Spiel: 90 Sekunden ausliefern, bunkern, der Streife entkommen.
+**Tag** ist alles andere: Ware kaufen, Aufträge annehmen, Viertel freischalten, Lokale
+kaufen, Personal einstellen, Steuern zahlen, und an manchen Tagen vor den Richter.
 
-**Nacht** ist das Spiel: 75 Sekunden ausliefern, bunkern, der Streife entkommen.
-Nur nachts bewegt sich Roberto.
+## Steuerung
 
-**Tag** ist alles andere: Ware für die kommende Nacht wählen, im Shop kaufen, die
-Bilanz der letzten Nacht lesen, und an manchen Tagen vor den Richter.
+**Roberto läuft nur, solange du eine Taste hältst.** Loslassen heißt stehenbleiben.
+Pfeiltasten oder WASD am Rechner, am Handy die Tasten unter dem Feld halten oder den
+Finger auf dem Feld ziehen. Leertaste startet die Nacht, `M` schaltet den Ton.
+
+Hältst du quer zur Fahrtrichtung, läuft er bis zur nächsten Kreuzung weiter und biegt
+dort ab. Steht er mitten auf einer Straße und du hältst quer, geht er erst zur
+Kreuzung. Ohne diese gepufferte Kurve müsste man jede Abzweigung auf den Pixel treffen.
+
+## Die Stadt
+
+Ein Raster aus **8 × 8 Blöcken**, 780 × 780 Pixel, rund fünfmal so groß wie das alte
+Spielfeld. Das Sichtfenster bleibt 360 × 440, die **Kamera folgt Roberto** und stößt an
+den Stadtmauern an. Unten links liegt eine Minikarte mit Spieler, Streifen, offenen
+Aufträgen, Hafen und Bunker.
+
+Die Stadt hat vier Viertel. Nur die Altstadt ist von Anfang an offen, der Rest ist
+hinter einem Bauzaun gesperrt und muss freigeschaltet werden:
+
+| Viertel | Ansehen | Preis |
+|---|---|---|
+| Altstadt | — | von Anfang an |
+| Hafenviertel | 25 | 1 500 € |
+| Neustadt | 70 | 6 000 € |
+| Villenhang | 150 | 20 000 € |
+
+Freigeschaltet wird der Reihe nach. Jedes Viertel bringt eine eigene Wache, ein eigenes
+Versteck, neue Blöcke für Kontakte und zwei Lokale.
+
+**Ansehen** ist die zweite Währung neben Geld. Es kommt aus erfüllten Aufträgen (+1),
+neuen Kontakten (+1), Rangaufstiegen (+3), gekauften Lokalen (+3), gezahlten Steuern
+(+1) und guten Auslandsgesprächen. Eine Verurteilung kostet 5.
+
+## Imperium
+
+### Lokale
+
+Acht Läden über die Stadt verteilt, jeder in einem bestimmten Viertel. Ein gekauftes
+Lokal zahlt **jeden Tag** in den Bunker, ob du nachts arbeitest oder nicht.
+
+| Lokal | Viertel | Preis | am Tag |
+|---|---|---|---|
+| Späti am Eck | Altstadt | 2 500 € | 180 € |
+| Imbiss Pinar | Altstadt | 4 200 € | 290 € |
+| Hafenbar Anker | Hafenviertel | 9 000 € | 620 € |
+| Club Neon | Hafenviertel | 16 000 € | 1 100 € |
+| Ristorante Vito | Neustadt | 24 000 € | 1 600 € |
+| Spielhalle Royal | Neustadt | 38 000 € | 2 400 € |
+| Hotel Belvedere | Villenhang | 70 000 € | 4 200 € |
+| Marina Club | Villenhang | 120 000 € | 7 000 € |
+
+### Personal
+
+| Rolle | ab Ansehen | Lohn am Tag | Wirkung |
+|---|---|---|---|
+| Läufer (bis 4) | 5 | 120 € | liefert nachts zwei Packs selbstständig, 10 % Risiko einer Akte |
+| Fahrer | 15 | 200 € | +2 Ware pro Ladung |
+| Aufpasser | 30 | 250 € | Streifen erkennen dich 15 % später |
+| Buchhalter | 45 | 300 € | Steuersatz 10 Punkte niedriger |
+
+Löhne werden **jeden Tag** abgezogen. Reicht der Bunker nicht, ist am nächsten Morgen
+die ganze Mannschaft weg.
+
+### Steuern
+
+Alle sieben Tage kommt ein Bescheid: **30 % der Lokaleinnahmen** der letzten Woche, mit
+Buchhalter 20 %. Wer zahlt, bekommt +1 Ansehen. Wer nicht zahlt, bekommt **zwei Akten**,
+und der Bescheid wächst um 20 %. Aus Steuerschulden wird also ein Gerichtstermin.
+
+## Ausland
+
+Drei Verbindungen, die den Einkauf drücken, wo im Inland nichts mehr geht. Jede
+verlangt Ansehen, einen bezahlten Flug und ein Gespräch vor Ort. Der Flug kostet einen
+ganzen Tag, egal wie es ausgeht.
+
+| Ziel | ab Ansehen | Flug | Einkauf | Höchstmenge |
+|---|---|---|---|---|
+| Amsterdam | 20 | 2 500 € | 24 % | 60 Pack |
+| Tanger | 60 | 5 000 € | 18 % | 90 Pack |
+| Neapel | 120 | 9 000 € | 12 % | 140 Pack |
+
+Am Tisch hast du drei Wege:
+
+| Einlassung | Wirkung |
+|---|---|
+| **Hart verhandeln** | 45 % der volle Preisvorteil und +4 Ansehen. Sonst stehen sie auf, der Flug ist verbrannt. |
+| **Entgegenkommen** | Klappt immer, aber sie diktieren: 25 % schlechterer Einkauf. |
+| **Geschenk mitbringen** | Kostet 30 % des Flugpreises extra, klappt sicher, +8 Ansehen. |
+
+Zum Vergleich: der Container am Hafen nimmt 55 % vom Straßenpreis. Neapel nimmt 12 %.
 
 ## Rang und Ware
 
@@ -30,177 +117,58 @@ Der Bedarf je Stufe wächst um rund das 1,35-fache, nie um das Doppelte: der
 | 3 Stammkraft | 200 | 7 Statthalter | 1800 | 11 Don | 7600 |
 | 4 Dealer | 400 | 8 Boss | 2700 | 12 Legende | 10400 |
 
-Drei Warenstufen, jede teurer und heißer als die davor. Ausgewählt wird tagsüber.
-
 | Ware | ab Rang | Basis | Hitze je Lieferung | XP |
 |---|---|---|---|---|
-| Cannabis | 1 | 40 € | 0,30 | 6 |
-| Speed | 4 | 95 € | 0,55 | 14 |
-| Kokain | 8 | 210 € | 0,95 | 30 |
-
-Kokain zahlt gut das Fünffache, treibt die Fahndung aber dreimal so schnell hoch.
-Mit einer Ladung Koks ist der vierte Streifenwagen nach wenigen Lieferungen da.
+| Cannabis | 1 | 40 € | 0,28 | 6 |
+| Speed | 4 | 95 € | 0,48 | 14 |
+| Kokain | 8 | 210 € | 0,75 | 30 |
 
 ## Telefon, Kontakte, Aufträge
 
-Es liegen keine Zufallspins mehr herum. Wer nachts auf dich wartet, hat dich vorher
-angerufen.
+Es liegen keine Zufallspins herum. Wer nachts auf dich wartet, hat vorher angerufen.
 
-**Kontakte** sind benannte Abnehmer in je einem Bezirk. Du fängst mit zweien an und
-kennst sonst niemanden. Nachts taucht alle 26 Sekunden ein blaues Fragezeichen auf:
-hinfahren heißt einen Kontakt mehr, und der bleibt.
+**Kontakte** sind benannte Abnehmer in je einem Block. Du fängst mit zweien an. Nachts
+taucht alle 26 Sekunden ein blaues Fragezeichen auf: hinfahren heißt ein Kontakt mehr.
 
-**Aufträge** kommen tagsüber aufs Telefon. Wer dir vertraut, meldet sich öfter und
-bestellt mehr Packs. Du kannst nur eine begrenzte Zahl zusagen:
-
-> Aufträge pro Nacht = 2 + Rang / 3, plus einen mit dem Zweithandy
-
-**Vertrauen** entscheidet über alles. Ein voll erfüllter Auftrag bringt +0,55 und zahlt
-+14 % je Stufe. Eine Zusage, die du nicht bedienst, kostet **0,6** — mehr, als eine
-Erfüllung bringt. Zusagen sind also keine Wunschliste, sondern eine Verpflichtung.
+**Aufträge** kommen tagsüber. Zusagen sind begrenzt auf 2 + Rang/3, mit Zweithandy
+einen mehr. Ein voll erfüllter Auftrag bringt +0,55 Vertrauen, eine geplatzte Zusage
+kostet **0,6** — mehr, als eine Erfüllung bringt.
 
 ## Nachschub
 
-Ware fällt nicht mehr vom Himmel. Du kaufst sie tagsüber auf eigene Rechnung, sie
-liegt am **Hafen**, und nachts musst du sie dort abholen. Ist der Hafen leer, ist die
-Nacht gelaufen.
-
-| Lieferant | ab Rang | Einkaufspreis | Höchstmenge |
-|---|---|---|---|
-| Container am Hafen | 1 | 55 % vom Straßenpreis | 8 Pack |
-| Tarek vom Kiosk | 3 | 44 % | 14 Pack |
-| Nadja | 6 | 36 % | 22 Pack |
-| Die alte Werft | 9 | 28 % | 40 Pack |
-
-Cannabis kostet am Hafen 20 € und bringt auf der Straße ab 40 €. Bei der Werft kostet
-Kokain 60 € und bringt ab 210 €. Der Aufstieg liegt also nicht nur im Verkaufspreis,
-sondern genauso im Einkauf.
-
-Startkapital sind 200 €. Was du am Morgen noch am Mann hast, wandert zurück in den
-Vorrat. Verloren geht Ware nur beim Zugriff.
-
-Die Warenstufe lässt sich nur wechseln, wenn der Hafen leer ist. Sonst würde billig
-gekauftes Cannabis beim Umschalten zu teurem Kokain.
+Ware kaufst du tagsüber auf eigene Rechnung. Sie liegt am **Hafen** und muss nachts
+dort abgeholt werden. Ist der Hafen leer, ist die Nacht gelaufen. Startkapital sind
+200 €. Was du am Morgen noch am Mann hast, wandert zurück in den Vorrat; verloren geht
+Ware nur beim Zugriff.
 
 ## Fahndung
 
-Das alte System war kaputt, und zwar messbar:
+Die Fahndung fällt nicht dauernd ein bisschen, sondern gar nicht, solange dich ein
+Wagen sieht. Erst wenn dich **6 Sekunden** (mit Funkscanner 3,5) niemand gesehen hat,
+kühlt sie mit 0,5 pro Sekunde ab. Das **Versteck** setzt die Ruhezeit sofort auf null,
+kühlt mit 1,5 pro Sekunde und macht dich unsichtbar — die Uhr läuft trotzdem.
 
-| Alt | Folge |
-|---|---|
-| Abbau 0,09 pro Sekunde, also 55 s für fünf Sterne | in einer 75-Sekunden-Nacht praktisch nie |
-| Abbau stoppte komplett, solange dich ein Wagen sah | bei vier Sternen deckt der Sichtradius 286 px fast die Karte ab, also Todesspirale |
-| Zugriff setzte die Fahndung auf null | Erwischtwerden war die beste Art, Hitze loszuwerden |
-| Fünf ganze Sterne aus einem Fließkommawert | man sah die Fahndung erst, wenn sie schon gesprungen war |
-
-Neu ist ein Abkühlsystem statt eines Dauerabbaus:
-
-1. Jede Lieferung heizt auf. Neben der Wache 30 % mehr.
-2. Solange dich ein Wagen sieht, passiert **nichts**. Die Ruhezeit steht bei null.
-3. Hast du sie abgeschüttelt, läuft eine Ruhezeit von 6 Sekunden. Mit Funkscanner 3,5.
-4. Danach fällt die Fahndung um 0,5 pro Sekunde, mit Sonnenbrille 0,65. Ein Stern
-   alle zwei Sekunden.
-5. Das **Versteck** setzt die Ruhezeit sofort auf null, kühlt mit 1,5 pro Sekunde und
-   macht dich für die Streife unsichtbar. Die Uhr läuft trotzdem weiter.
-6. Ein Zugriff setzt die Fahndung nicht mehr auf null, sondern auf gut einen Stern.
-
-Der laufende Stern füllt sich jetzt teilweise, ab vier Sternen pulst eine Warnung.
-
-Gemessen über 26 Sekunden Dauerbetrieb ergibt das drei klar verschiedene Profile:
-
-| Ware | Hitze je Lieferung | Verlauf | Ausgang |
-|---|---|---|---|
-| Cannabis | 0,28 | pendelt zwischen 0 und 2 | Nacht überlebt |
-| Speed | 0,48 | pendelt zwischen 0 und 2, Spitze 2 | Nacht überlebt |
-| Kokain | 0,75 | 2 auf 5 in zwei Sekunden | Zugriff, Nacht endet im Knast |
-
-Das Pendeln ist das Abkühlen zwischen zwei Lieferungen. Genau das fehlte vorher.
-
-## Städte
-
-| Stadt | ab Rang | Raster |
-|---|---|---|
-| Altstadt | 1 | 3 × 4 |
-| Hafenviertel | 5 | 4 × 5 |
-| Neustadt | 10 | 5 × 5 |
-
-Die Karte wächst mit, das Canvas ebenfalls. Jede Stadt hat Hafen, Bunker, Wache und
-Versteck an anderer Stelle. Kontakte gelten **pro Stadt**: wer aufsteigt, fängt in der
-neuen Stadt wieder bei zwei Bekannten an. Die alten bleiben gespeichert.
-
-## Polizei
-
-Streifen kommen aus der **Wache** und nirgendwo sonst. Steigt die Fahndung auf einen
-Stern, rollt alle 2,2 Sekunden ein Wagen raus, bis das Soll erreicht ist. Fällt die
-Fahndung, drehen die Wagen um, fahren zurück und verschwinden im Tor. Wer in der Nähe
-der Wache arbeitet, hat sie sofort im Nacken. Wer weit weg liefert, gewinnt Sekunden.
-
-Der **Funkscanner** verlangsamt das Ausrücken auf 3,4 Sekunden. Das ist der Unterschied
-zwischen einer Lieferung mehr und einem Zugriff.
-
-Die **Mauer** schließt die Stadt ringsum ab. Raus geht nicht, und von außen kommt auch
-nichts rein.
+Streifen kommen aus der **Wache des nächstgelegenen offenen Viertels** und fahren
+dorthin zurück. In gesperrte Viertel fahren sie nicht.
 
 ## Gericht und Haft
 
-Ein Zugriff kostet Bargeld und Ware. Was dann passiert, hängt davon ab, wie tief du
-schon drinsteckst:
-
 | Lage beim Zugriff | Folge |
 |---|---|
-| Normal | kurze Festnahme auf der Straße, eine Akte mehr |
-| Dritter Zugriff derselben Nacht | **1 Tag Haft**, die Nacht ist sofort vorbei |
-| Fahndung stand bei fünf Sternen | **1 Tag Haft**, die Nacht ist sofort vorbei |
-| Offener Haftbefehl | **2 Tage Haft**, die Nacht ist sofort vorbei |
+| Normal | kurze Festnahme, eine Akte mehr |
+| Dritter Zugriff derselben Nacht | 1 Tag Haft, Nacht sofort vorbei |
+| Fahndung bei fünf Sternen | 1 Tag Haft, Nacht sofort vorbei |
+| Offener Haftbefehl | 2 Tage Haft, Nacht sofort vorbei |
 
-Aus den Akten wird ein Verfahren. Drei Tage nach der ersten Akte steht der Termin.
+Der Prozess ist eine eigene Szene in drei Schritten: Anklageverlesung, Einlassung,
+Urteil. Gestehen senkt die Strafe auf 65 % und nimmt einen Hafttag, macht die
+Verurteilung aber sicher. Bestreiten bringt mit Anwalt 45 % Chance auf Freispruch ohne
+Vorstrafe, sonst 35 % mehr Strafe und einen Tag drauf. **Vorstrafen** bleiben: jede
+erhöht die Geldstrafe um 22 %, je zwei bringen einen zusätzlichen Hafttag.
 
-### Der Gerichtssaal
-
-Der Prozess ist eine eigene Szene, kein Knopf. Saal 2, Richter hinter der Bank, die
-Anklage links, Roberto rechts. Drei Schritte:
-
-**1. Anklageverlesung.** Wie viele Fälle, ob ein Haftbefehl dazukommt, und wie viele
-Vorstrafen aktenkundig sind.
-
-**2. Einlassung.** Hier entscheidest du:
-
-| Einlassung | Wirkung |
-|---|---|
-| **Gestehen** | Strafe auf 65 %, ein Hafttag weniger. Verurteilung ist sicher. |
-| **Schweigen** | Das Gericht urteilt nach Aktenlage. |
-| **Bestreiten** | Mit Anwalt 45 % Chance auf **Freispruch** ohne Vorstrafe. Sonst 35 % mehr Strafe und ein Tag drauf. |
-
-**3. Urteil.** Der Hammer fällt, das Urteil steht.
-
-Grundstrafe nach Aktenlage: 180 € bei einem Fall, 260 € je Fall bei zwei bis drei,
-300 € und zwei Tage bei vier bis fünf, ab sechs 350 € je Fall und vier Tage.
-
-**Vorstrafen** bleiben. Jede erhöht die Geldstrafe um 22 %, je zwei bringen einen
-zusätzlichen Hafttag. Zwei Fälle kosten ohne Vorstrafe 520 €, mit drei Vorstrafen
-860 € und einen Tag Haft. Ein Freispruch zählt nicht als Vorstrafe.
-
-Der **Anwalt** halbiert die Geldstrafe und nimmt einen Hafttag. Reicht der Bunker
-nicht, wandelt das Gericht je angefangene 400 € in einen weiteren Hafttag um.
-
-**Nicht hingehen** bringt einen Haftbefehl, eine Akte mehr und einen Termin zwei Tage
-später. Mit Haftbefehl jagen die Streifen ab null Sternen, und beim nächsten Prozess
-zählen zwei Akten extra.
-
-### Die Zelle
-
-Haft ist ebenfalls eine eigene Szene: Pritsche, vergittertes Fenster, Gittertür und
-eine Strichliste an der Wand, die mit jedem abgesessenen Tag wächst. Der einzige Knopf
-heißt "Tag absitzen", der Shop hat zu, der Bunker bleibt unangetastet.
-
-Jeder Tag würfelt ein Ereignis:
-
-| Ereignis | Wirkung |
-|---|---|
-| Ein Tag wie der andere | nichts |
-| Hofgang | ein neuer Kontakt draußen |
-| Ärger im Trakt | ein Tag mehr |
-| Besuch vom Anwalt | ein Tag weniger, nur mit Anwalt |
+Haft ist ebenfalls eine eigene Szene mit Strichliste an der Wand. Jeder Tag würfelt ein
+Ereignis: Hofgang bringt einen Kontakt, Ärger im Trakt einen Tag mehr, ein
+Anwaltsbesuch einen weniger.
 
 ## Ausrüstung
 
@@ -213,12 +181,9 @@ Roberto fängt mit nichts an. Vier Dinge sieht man ihm an.
 | Bauchtasche | 2 | 280 € | +2 Ware | ja |
 | Kapuzenjacke | 3 | 520 € | 25 % später erkannt | ja |
 | Anwalt auf Abruf | 3 | 800 € | halbe Strafe, ein Hafttag weniger | nein |
-| Funkscanner | 4 | 650 € | Wache rückt später aus, Ruhezeit nur 3,5 s | nein |
-| Zweithandy | 6 | 1100 € | +25 % je Lieferung, ein Auftrag mehr | nein |
-| Gebrauchtwagen | 9 | 3800 € | +60 % Tempo, +3 Ware, 40 % besser sichtbar | ja |
-
-Das Auto ist kein reiner Gewinn. Es ist schnell und fasst viel, aber die Streife sieht
-es aus dem Anderthalbfachen der Entfernung.
+| Funkscanner | 4 | 650 € | Wache rückt später aus, Ruhezeit 3,5 s | nein |
+| Zweithandy | 6 | 1 100 € | +25 % je Lieferung, ein Auftrag mehr | nein |
+| Gebrauchtwagen | 9 | 3 800 € | +60 % Tempo, +3 Ware, 40 % besser sichtbar | ja |
 
 ## Aufbau
 
@@ -226,24 +191,29 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 
 | Bereich | Was da passiert |
 |---|---|
-| `STADT` / `buildCity()` | Raster, Canvasgröße, Lage von Lager, Bunker und Wache |
-| `WARE` / `RANG` / `UP` | Warenstufen, Rangschwellen, Ausrüstung mit Rangsperre |
+| `VIERTEL` / `offen` / `qvon()` | Viertel, Freischaltung, Zugehörigkeit eines Blocks |
+| `passierbar()` / `zaun()` | Sperre an der Viertelgrenze, sichtbar und wirksam |
+| `kamera()` / `minikarte()` | mitlaufendes Sichtfenster und Übersichtskarte |
+| `hold` / `halt()` / `los()` | Halten statt Automatik, samt gepufferter Kurve |
+| `LOKALE` / `ROLLEN` / `nextDay()` | Einnahmen, Löhne, Steuerbescheid am Tageswechsel |
+| `AUSLAND` / `fliegen()` / `verhandeln()` | Flug, Gespräch, freigeschaltete Lieferanten |
 | `kontakte` / `neuerKontakt()` | benannte Abnehmer, Vertrauen, neue Bekanntschaften |
-| `tagBeginn()` / `telefon()` | Tagesangebote und die Telefonoberfläche |
-| `LIEF` / `kaufen()` | Lieferanten, Einkaufspreise, Vorrat am Hafen |
-| `spawnCop()` / `moveCop()` | Ausrücken aus der Wache, Verfolgung, Rückfahrt |
-| `roberto()` / `auto()` | Figur samt sichtbarer Ausrüstung |
-| `mauer()` | geschlossene Umrandung |
-| `gerichtSzene()` / `zelleSzene()` | Gerichtssaal und Zelle als eigene Bilder |
+| `spawnCop()` / `moveCop()` | Ausrücken aus der nächsten Wache, Verfolgung, Rückfahrt |
 | `urteil()` / `einlassung()` | Strafzumessung, Einlassung, Vorstrafen |
+| `gerichtSzene()` / `zelleSzene()` / `flugSzene()` / `gespraechSzene()` | die vier Einzelbilder |
 | `loop()` | feste Schrittweite, entkoppelt von der Bildwiederholrate |
 | `save()` / `load()` | Fortschritt im `localStorage`, versioniert und migriert |
 
 **Der Radius 48 ist kein runder Wert, sondern Geometrie.** Eine Blockmitte liegt
-`CELL/2` = 45 px von der nächstgelegenen Fahrspur entfernt, denn Roberto fährt auf den
-Kanten, nicht durch die Häuser. Jede Prüfung "ist Roberto an diesem Block" muss also
-über 45 liegen. Versteck und Kontaktmarker standen eine Zeit lang auf 44 und waren
-damit unerreichbar: die Marker erschienen, ließen sich aber nicht einsammeln.
+`CELL/2` = 45 px von der nächsten Fahrspur entfernt, weil Roberto auf den Kanten fährt.
+Jede Prüfung "ist Roberto an diesem Block" muss über 45 liegen. Versteck und
+Kontaktmarker standen einmal auf 44 und waren damit unerreichbar: die Marker
+erschienen, ließen sich aber nicht einsammeln.
+
+**Wer einen Timer in `step()` laufen lässt, muss die Oberfläche selbst nachziehen.**
+`ui()` läuft nur bei Zustandswechseln, nicht pro Frame. Der Landeknopf beim Flug hing
+an `flugRest` und blieb deshalb dauerhaft gesperrt: ein Softlock mitten im Flugzeug.
+Deshalb ruft der Countdown beim Nulldurchgang selbst `ui()` auf.
 
 Der `cool`-Zähler in `moveCop()` ist kein Schmuck: ohne ihn gilt ein Wagen mehrere
 Frames lang als "an der Kreuzung", setzt sich jedes Mal zurück und zappelt auf der
@@ -253,22 +223,18 @@ Stelle.
 blockt ihn der Browser und der Ton bleibt für die Sitzung stumm.
 
 `loop()` sammelt die vergangene Zeit in `acc` und ruft `step()` in festen Schritten von
-1/60 s auf. Vorher lief ein `step()` pro Frame mit fest verdrahteten `1/60`, das koppelt
-die Spielgeschwindigkeit an die Bildwiederholrate. Gemessen: bei 240 Hz verbrauchte eine
-Schicht in 30 s Wanduhr nur 17 s. Nach dem Umbau verbrauchen 30, 60, 144 und 240 Hz
-exakt gleich viel.
+1/60 s auf. Gemessen: bei 240 Hz verbrauchte eine Schicht vorher in 30 s Wanduhr nur
+17 s. Nach dem Umbau verbrauchen 30, 60, 144 und 240 Hz exakt gleich viel.
 
-Haft und Standbild ziehen keine Schichtzeit ab. Eine Nacht dauert deshalb 75 Sekunden
+Haft und Standbild ziehen keine Schichtzeit ab. Eine Nacht dauert 90 Sekunden
 Spielzeit, aber mehr Wanduhr, je öfter Roberto hochgeht.
 
-Hafttage werden in `tagVerstreichen()` abgezogen, nicht in `nextDay()`. Sonst zieht das
-Urteil selbst schon einen Tag ab und das Spiel meldet direkt nach "2 Tage Haft" nur noch
-"Noch 1 Tag".
+Hafttage werden in `tagAbsitzen()` abgezogen, nicht in `nextDay()`. Sonst zieht das
+Urteil selbst schon einen Tag ab und meldet direkt nach "2 Tage Haft" nur noch einen.
 
-Der Speicherstand trägt ein `v`-Feld. `load()` liest `robertoCity.v4`, fällt sonst auf
-v3 und dann v2 zurück, rechnet alte Stände in XP und das neue Ausrüstungsschema um und
-schreibt einmal als v4 zurück. Kaputtes JSON landet im `catch` und setzt auf Startwerte,
-statt das Spiel zu blockieren. Alte Schlüssel bleiben als Sicherung liegen.
+Der Speicherstand trägt ein `v`-Feld. `load()` liest `robertoCity.v6`, fällt sonst auf
+v5 zurück und rechnet die Kontakte der drei alten Kleinstädte in die Altstadt des
+neuen Rasters um. Kaputtes JSON landet im `catch` und setzt auf Startwerte.
 
 `prefers-reduced-motion: reduce` schaltet das Kameraruckeln ab.
 
@@ -284,25 +250,24 @@ ersetzt.
 | CPU pro Frame bei `devicePixelRatio` 3 | — | 0,463 ms | 16,67 ms |
 | Schichtzeit nach 40 s bei 240 Hz | 17 s statt 40 | 40 s | — |
 
-Das Spiel war nie langsam, es braucht 2,3 % des Budgets. Der Defekt war die Kopplung an
-die Bildwiederholrate. Die statische Stadt vorzurendern wurde bewusst gelassen: bei der
-Auslastung ist das Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als
-Fehler.
+Das Spiel war nie langsam. Der Defekt war die Kopplung an die Bildwiederholrate. Die
+statische Stadt vorzurendern wurde bewusst gelassen: bei der Auslastung ist das
+Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als Fehler. Mit der
+5× größeren Karte werden nur noch die Blöcke im Sichtfenster gezeichnet.
 
 ## Offen
 
 - **Die Ökonomie ist nicht durchgerechnet.** Der `balance-review`-Skill liegt im Repo,
-  seine Spike-Regel ist auf die Rangkurve angewandt, aber der volle Durchlauf steht aus.
-  Ob 3800 € für das Auto zum Ertrag bei Rang 9 passen, ist geschätzt, nicht geprüft.
+  seine Spike-Regel ist auf die Rangkurve angewandt, aber der volle Durchlauf steht
+  aus. Ob 120 000 € für den Marina Club zum Ertrag passen, ob Steuern und Löhne den
+  Lokalgewinn richtig bremsen, ob 150 Ansehen für den Villenhang erreichbar sind, ohne
+  zu grinden: alles geschätzt, nichts gemessen.
 - **Kokain ist hart an der Grenze.** Im Messlauf war die Fahndung nach zwei Sekunden am
-  Anschlag. Der Testbot nutzt allerdings weder Versteck noch Rückzug. Ob das für einen
-  Menschen spielbar ist oder nur frustriert, ist ungetestet.
-- **Kontakte in verlassenen Städten sind totes Kapital.** Wer aufsteigt, kann nicht
-  zurück. Die Zahl unter "Kontakte hier" zeigt deshalb beides.
+  Anschlag. Der Testbot nutzt allerdings weder Versteck noch Rückzug.
+- **Kein Zwischenspeichern innerhalb einer Nacht.** Tab zu heißt laufende Schicht weg.
+- **Läufer sind blind.** Sie liefern pauschal zwei Packs, unabhängig von deinen
+  Aufträgen und Kontakten. Richtig wäre, dass sie zugesagte Aufträge abarbeiten.
 - **Overload bei gleichzeitigen Ereignissen** bleibt bei 1/2 aus dem Feel-Pass.
-  Einzahlen während einer Verfolgung stapelt Vignette, Ruckeln, Münzen und Fließtext.
-- Kein Zwischenspeichern innerhalb einer Nacht. Wer den Tab schließt, verliert die
-  laufende Schicht, nicht aber den Rang.
 
 ## Ideenliste
 
@@ -310,8 +275,9 @@ Grafik: Schatten unter Figuren, Straßenlaternen, Zebrastreifen, laufende Beine,
 Lichtkegel bei Verfolgung.
 
 Gameplay: Sprint mit Ausdauer, Gassen als Abkürzung, Zivilverkehr, Straßensperren ab
-4 Sternen, Wochentage mit unterschiedlichen Sätzen, Miete als feste Ausgabe, Konkurrenz
-um dieselben Kunden, Bestechung statt Prozess.
+4 Sternen, Wochentage mit unterschiedlichen Sätzen, Konkurrenz um dieselben Kunden,
+Bestechung statt Prozess, Läufer die echte Aufträge abarbeiten, Schutzgeld auf fremde
+Lokale, Geldwäsche über die eigenen.
 
 Feeling: kurze Zeitlupe vor dem Zugriff, Prioritätsregel für gleichzeitige Effekte.
 
