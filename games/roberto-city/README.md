@@ -16,7 +16,15 @@ kaufen, Personal einstellen, Steuern zahlen, und an manchen Tagen vor den Richte
 
 **Roberto läuft nur, solange du eine Taste hältst.** Loslassen heißt stehenbleiben.
 Pfeiltasten oder WASD am Rechner, am Handy die Tasten unter dem Feld halten oder den
-Finger auf dem Feld ziehen. Leertaste startet die Nacht, `M` schaltet den Ton.
+Finger auf dem Feld ziehen.
+
+| Taste | nachts | tagsüber |
+|---|---|---|
+| Pfeiltasten | laufen, solange gehalten | schieben die Karte |
+| Enter | einem Anruf zusagen | — |
+| Leertaste | im Versteck Feierabend machen | Nacht beginnen |
+| `M` | Ton | Ton |
+| Tipp auf die Karte | Anruf annehmen | Lokal kaufen |
 
 Hältst du quer zur Fahrtrichtung, läuft er bis zur nächsten Kreuzung weiter und biegt
 dort ab. Steht er mitten auf einer Straße und du hältst quer, geht er erst zur
@@ -26,8 +34,12 @@ Kreuzung. Ohne diese gepufferte Kurve müsste man jede Abzweigung auf den Pixel 
 
 Ein Raster aus **8 × 8 Blöcken**, 780 × 780 Pixel, rund fünfmal so groß wie das alte
 Spielfeld. Das Sichtfenster bleibt 360 × 440, die **Kamera folgt Roberto** und stößt an
-den Stadtmauern an. Unten links liegt eine Minikarte mit Spieler, Streifen, offenen
-Aufträgen, Hafen und Bunker.
+den Stadtmauern an. Tagsüber schiebst du die Karte selbst mit den Pfeiltasten, um Lokale
+zu suchen und anzuklicken.
+
+Das **Versteck jedes Viertels ist Robertos Zuhause**. Wer hineingeht, kühlt die Fahndung
+und kann mit der Leertaste **Feierabend machen** — die Nacht endet dann sofort, mit
+allem was bis dahin im Bunker liegt. Wer bis zum Morgen draußen bleibt, riskiert mehr.
 
 Die Stadt hat vier Viertel. Nur die Altstadt ist von Anfang an offen, der Rest ist
 hinter einem Bauzaun gesperrt und muss freigeschaltet werden:
@@ -35,9 +47,9 @@ hinter einem Bauzaun gesperrt und muss freigeschaltet werden:
 | Viertel | Ansehen | Preis |
 |---|---|---|
 | Altstadt | — | von Anfang an |
-| Hafenviertel | 25 | 1 500 € |
-| Neustadt | 70 | 6 000 € |
-| Villenhang | 150 | 20 000 € |
+| Hafenviertel | 25 | 2 500 € |
+| Neustadt | 70 | 14 000 € |
+| Villenhang | 150 | 60 000 € |
 
 Freigeschaltet wird der Reihe nach. Jedes Viertel bringt eine eigene Wache, ein eigenes
 Versteck, neue Blöcke für Kontakte und zwei Lokale.
@@ -53,22 +65,25 @@ neuen Kontakten (+1), Rangaufstiegen (+3), gekauften Lokalen (+3), gezahlten Ste
 Acht Läden über die Stadt verteilt, jeder in einem bestimmten Viertel. Ein gekauftes
 Lokal zahlt **jeden Tag** in den Bunker, ob du nachts arbeitest oder nicht.
 
+Kaufen geht auf zwei Wegen: über die Liste im Imperium-Tab, oder **direkt auf der
+Karte** — tagsüber die Karte mit den Pfeiltasten hinschieben und den Laden antippen.
+
 | Lokal | Viertel | Preis | am Tag |
 |---|---|---|---|
-| Späti am Eck | Altstadt | 2 500 € | 180 € |
-| Imbiss Pinar | Altstadt | 4 200 € | 290 € |
-| Hafenbar Anker | Hafenviertel | 9 000 € | 620 € |
-| Club Neon | Hafenviertel | 16 000 € | 1 100 € |
-| Ristorante Vito | Neustadt | 24 000 € | 1 600 € |
-| Spielhalle Royal | Neustadt | 38 000 € | 2 400 € |
-| Hotel Belvedere | Villenhang | 70 000 € | 4 200 € |
-| Marina Club | Villenhang | 120 000 € | 7 000 € |
+| Späti am Eck | Altstadt | 2 500 € | 240 € |
+| Imbiss Pinar | Altstadt | 4 200 € | 350 € |
+| Hafenbar Anker | Hafenviertel | 9 000 € | 660 € |
+| Club Neon | Hafenviertel | 16 000 € | 1 060 € |
+| Ristorante Vito | Neustadt | 24 000 € | 1 440 € |
+| Spielhalle Royal | Neustadt | 38 000 € | 2 090 € |
+| Hotel Belvedere | Villenhang | 70 000 € | 3 550 € |
+| Marina Club | Villenhang | 120 000 € | 5 640 € |
 
 ### Personal
 
 | Rolle | ab Ansehen | Lohn am Tag | Wirkung |
 |---|---|---|---|
-| Läufer (bis 4) | 5 | 120 € | liefert nachts zwei Packs selbstständig, 10 % Risiko einer Akte |
+| Läufer (bis 4) | 5 | 60 € | arbeitet nachts vier Packs zum Grundpreis ab, 10 % Risiko einer Akte |
 | Fahrer | 15 | 200 € | +2 Ware pro Ladung |
 | Aufpasser | 30 | 250 € | Streifen erkennen dich 15 % später |
 | Buchhalter | 45 | 300 € | Steuersatz 10 Punkte niedriger |
@@ -76,11 +91,59 @@ Lokal zahlt **jeden Tag** in den Bunker, ob du nachts arbeitest oder nicht.
 Löhne werden **jeden Tag** abgezogen. Reicht der Bunker nicht, ist am nächsten Morgen
 die ganze Mannschaft weg.
 
-### Steuern
+### Laufende Kosten
 
-Alle sieben Tage kommt ein Bescheid: **30 % der Lokaleinnahmen** der letzten Woche, mit
-Buchhalter 20 %. Wer zahlt, bekommt +1 Ansehen. Wer nicht zahlt, bekommt **zwei Akten**,
-und der Bescheid wächst um 20 %. Aus Steuerschulden wird also ein Gerichtstermin.
+| Posten | Höhe | wann |
+|---|---|---|
+| Löhne | Summe der Tagessätze | täglich |
+| Betriebskosten | 1,5 % des Kaufpreises aller Lokale | täglich |
+| Abgabe nach oben | 12 % des Nachtertrags, entfällt als Legende | täglich |
+| Steuerbescheid | 30 % der Lokaleinnahmen der Woche plus 20 % geschätzt auf das Nachtgeschäft, mit Buchhalter 20 % | alle 7 Tage |
+
+Nicht gezahlte Steuern bringen **zwei Akten** und einen um 20 % höheren Bescheid.
+
+## Was die Ökonomie vorher kaputt gemacht hat
+
+Der `balance-review`-Skill verlangt ein gerechnetes Modell statt Bauchgefühl. Gerechnet
+wurde über fünf Spielstände von Rang 1 bis Rang 10.
+
+**Läufer waren ein Verlustgeschäft.** Bei 120 € Lohn und zwei Packs zu 75 % des
+Grundpreises:
+
+| Ware | Umsatz | Wareneinsatz | Lohn | Ergebnis |
+|---|---|---|---|---|
+| Cannabis | 60 € | 44 € | 120 € | **−104 €/Tag** |
+| Speed | 143 € | 105 € | 120 € | **−82 €/Tag** |
+| Kokain | 315 € | 231 € | 120 € | **−36 €/Tag** |
+
+Jetzt 60 € Lohn und vier Packs zum vollen Grundpreis: +12 €/Tag bei Cannabis, +318 bei
+Kokain, mit gutem Grossisten +478. Der Läufer lohnt sich also erst mit besserer Ware,
+und das ist beabsichtigt.
+
+**Alle Lokale amortisierten gleich** in 20 bis 24 Tagen, egal ob Späti oder Marina Club.
+Neu gestaffelt mit Betriebskosten: 19 Tage beim Späti bis 56 beim Marina Club. Kleine
+Läden sind der schnelle Einstieg, große eine echte Langfristanlage.
+
+**Die Multiplikatorkette explodierte.** Vertrauen, Sterne und Kombo multiplizierten sich
+alle auf den Grundpreis, der selbst je Stufe verfünffacht. Ergebnis: Rang 10 verdiente
+das **26-fache** von Rang 1. Die Faktoren sind von 0,14 auf 0,08 und von 0,22 auf 0,12
+gesenkt, die Kombo zahlt jetzt pauschal. Spreizung noch 14-fach.
+
+**Das Geld hatte keinen Abfluss.** Faucet gegen Sink:
+
+| Tag | vorher | nachher |
+|---|---|---|
+| 1 | 365 | 3,1 |
+| 7 | 7,1 | 2,3 |
+| 14 | 5,3 | 2,3 |
+| 30 | 5,4 | 2,1 |
+| 60 | 9,7 | 2,0 |
+
+Gesund wären 0,9 bis 1,1. Von 5 bis 9 auf rund 2 ist eine Halbierung, aber **das Spiel
+ist weiterhin inflationär**. Ab etwa Tag 30 liegt mehr im Bunker als das teuerste Ziel
+kostet. Um auf 1,0 zu kommen, müsste entweder der Nachtertrag im Endspiel halbiert
+werden oder ein großer wiederkehrender Abfluss dazukommen: Geldwäsche mit Gebühr,
+Schutzgeld an eine Konkurrenz, oder Lokale, die überfallen werden können. Das steht aus.
 
 ## Ausland
 
@@ -130,9 +193,13 @@ Es liegen keine Zufallspins herum. Wer nachts auf dich wartet, hat vorher angeru
 **Kontakte** sind benannte Abnehmer in je einem Block. Du fängst mit zweien an. Nachts
 taucht alle 26 Sekunden ein blaues Fragezeichen auf: hinfahren heißt ein Kontakt mehr.
 
-**Aufträge** kommen tagsüber. Zusagen sind begrenzt auf 2 + Rang/3, mit Zweithandy
-einen mehr. Ein voll erfüllter Auftrag bringt +0,55 Vertrauen, eine geplatzte Zusage
-kostet **0,6** — mehr, als eine Erfüllung bringt.
+**Aufträge kommen nachts per Anruf.** Alle 10 bis 18 Sekunden meldet sich jemand, wer
+dir mehr vertraut öfter und mit mehr Packs. Ein Anruf steht sieben Sekunden: **Enter**
+oder ein Tipp auf das Band sagt zu, ignorieren kostet nichts. Gleichzeitig offen sein
+können 2 + Rang/3 Aufträge, mit Zweithandy einer mehr.
+
+Ein voll erfüllter Auftrag bringt +0,55 Vertrauen, eine **geplatzte Zusage kostet 0,6**
+— mehr, als eine Erfüllung bringt. Zusagen ist also eine Verpflichtung, kein Sammeln.
 
 ## Nachschub
 
@@ -243,7 +310,10 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 |---|---|
 | `VIERTEL` / `offen` / `qvon()` | Viertel, Freischaltung, Zugehörigkeit eines Blocks |
 | `passierbar()` / `zaun()` | Sperre an der Viertelgrenze, sichtbar und wirksam |
-| `kamera()` / `minikarte()` | mitlaufendes Sichtfenster und Übersichtskarte |
+| `kamera()` / `kameraTag()` | Sichtfenster, nachts folgend, tagsüber selbst geschoben |
+| `neuerAnruf()` / `anrufAnnehmen()` | nächtliche Aufträge per Anruf |
+| `feierabend()` | Nacht im Versteck beenden |
+| `setTab()` | vier Reiter statt einer langen Seite |
 | `hold` / `halt()` / `los()` | Halten statt Automatik, samt gepufferter Kurve |
 | `LOKALE` / `ROLLEN` / `nextDay()` | Einnahmen, Löhne, Steuerbescheid am Tageswechsel |
 | `AUSLAND` / `fliegen()` / `verhandeln()` | Flug, Gespräch, freigeschaltete Lieferanten |
@@ -319,8 +389,10 @@ Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als Fehler. Mi
 - **Kokain ist hart an der Grenze.** Im Messlauf war die Fahndung nach zwei Sekunden am
   Anschlag. Der Testbot nutzt allerdings weder Versteck noch Rückzug.
 - **Kein Zwischenspeichern innerhalb einer Nacht.** Tab zu heißt laufende Schicht weg.
-- **Läufer sind blind.** Sie liefern pauschal zwei Packs, unabhängig von deinen
-  Aufträgen und Kontakten. Richtig wäre, dass sie zugesagte Aufträge abarbeiten.
+- **Läufer arbeiten pauschal.** Sie räumen vier Packs zum Grundpreis ab, statt gezielt
+  zugesagte Aufträge zu bedienen. Rechnerisch stimmt es jetzt, inhaltlich noch nicht.
+- **Die Ökonomie bleibt inflationär**, siehe den eigenen Abschnitt. Von 5–9 auf 2,0
+  gesenkt, gesund wären 1,0.
 - **Overload bei gleichzeitigen Ereignissen** bleibt bei 1/2 aus dem Feel-Pass.
 
 ## Ideenliste
