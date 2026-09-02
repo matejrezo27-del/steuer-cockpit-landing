@@ -160,15 +160,65 @@ dorthin zurück. In gesperrte Viertel fahren sie nicht.
 | Fahndung bei fünf Sternen | 1 Tag Haft, Nacht sofort vorbei |
 | Offener Haftbefehl | 2 Tage Haft, Nacht sofort vorbei |
 
-Der Prozess ist eine eigene Szene in drei Schritten: Anklageverlesung, Einlassung,
-Urteil. Gestehen senkt die Strafe auf 65 % und nimmt einen Hafttag, macht die
-Verurteilung aber sicher. Bestreiten bringt mit Anwalt 45 % Chance auf Freispruch ohne
-Vorstrafe, sonst 35 % mehr Strafe und einen Tag drauf. **Vorstrafen** bleiben: jede
-erhöht die Geldstrafe um 22 %, je zwei bringen einen zusätzlichen Hafttag.
+Aus den Akten wird ein Verfahren. Drei Tage nach der ersten Akte steht der Termin.
 
-Haft ist ebenfalls eine eigene Szene mit Strichliste an der Wand. Jeder Tag würfelt ein
-Ereignis: Hofgang bringt einen Kontakt, Ärger im Trakt einen Tag mehr, ein
-Anwaltsbesuch einen weniger.
+### Welches Gericht
+
+Die Zuständigkeit richtet sich nach der Schwere, wie im echten Leben:
+
+| Gericht | Besetzung | zuständig ab | Verhandlungstage | Härte |
+|---|---|---|---|---|
+| Amtsgericht, **Strafrichter** | ein Richter | kleine Sachen | 2 | 1,0 |
+| Amtsgericht, **Schöffengericht** | ein Richter, zwei Schöffen | 3 Akten oder 2 Vorstrafen | 3 | 1,15 |
+| Landgericht, **Große Strafkammer** | drei Richter, zwei Schöffen | 6 Akten, 4 Vorstrafen oder Kokain | 4 | 1,4 |
+
+Die Schöffen sitzen ohne Robe neben der Kammer, den Hammer hat der Vorsitzende.
+
+### Der Prozess
+
+Ein Verfahren zieht sich über mehrere **Verhandlungstage**, und jeder kostet einen
+Spieltag. Nachts kannst du weiterarbeiten, aber neue Akten wandern in dieselbe Anklage.
+
+| Tag | Was passiert | Beim Strafrichter | Schöffengericht | Große Strafkammer |
+|---|---|---|---|---|
+| 1 | Anklageverlesung und Einlassung | ✓ | ✓ | ✓ |
+| 2 | Beweisaufnahme, ein Zeuge sagt aus | — | ✓ | ✓ |
+| 3 | Zweiter Zeuge | — | — | ✓ |
+| letzter | Plädoyers und letztes Wort, dann Urteil | ✓ | ✓ | ✓ |
+
+**Einlassung:** Gestehen senkt die Strafe auf 65 % und nimmt einen Hafttag, macht die
+Verurteilung aber sicher. Schweigen lässt das Gericht nach Aktenlage urteilen.
+Bestreiten bringt mit Anwalt 45 % Freispruch am Amtsgericht, 32 % am Landgericht; ohne
+Anwalt 35 % mehr Strafe und einen Tag drauf.
+
+**Beweisaufnahme:** Widersprechen wirkt nur mit Anwalt (Strafe auf 85 %), ohne ihn geht
+es nach hinten los. Oder du packst aus:
+
+> **Auspacken nach Paragraf 31** senkt die Strafe auf 35 % und nimmt zwei Hafttage.
+> Dafür kostet es 25 Ansehen, alle Kontakte verlieren einen ganzen Vertrauenspunkt, und
+> dein bester Auslandskontakt nimmt keine Anrufe mehr an.
+
+**Zweiter Zeuge** (nur Landgericht): Anzweifeln ist mit Anwalt eine 50-50-Sache, sonst
+schadet es. Bestätigen bringt sichere 8 % Nachlass.
+
+**Plädoyers:** Die Staatsanwaltschaft nennt ihre Forderung, du hast das letzte Wort.
+Reue bringt 10 % Nachlass, Unschuld beteuern nach einem Geständnis 15 % Aufschlag.
+
+**Vorstrafen** bleiben: jede erhöht die Forderung um 22 %, je zwei bringen einen
+zusätzlichen Hafttag. Eine Verurteilung kostet zusätzlich 5 Ansehen.
+
+### Berufung
+
+Gegen ein Urteil des Amtsgerichts kannst du Berufung einlegen: 600 € Gerichtskosten,
+Strafe und Haft werden ausgesetzt, und die Große Strafkammer verhandelt vier Tage neu.
+Mit Anwalt fällt das neue Urteil zu 55 % um ein Drittel milder aus, sonst 25 % härter.
+Gegen ein Urteil des Landgerichts gibt es diesen Weg nicht mehr.
+
+### Die Zelle
+
+Haft ist eine eigene Szene mit Strichliste an der Wand. Jeder Tag würfelt ein Ereignis:
+Hofgang bringt einen Kontakt, Ärger im Trakt einen Tag mehr, ein Anwaltsbesuch einen
+weniger.
 
 ## Ausrüstung
 
@@ -199,8 +249,12 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `AUSLAND` / `fliegen()` / `verhandeln()` | Flug, Gespräch, freigeschaltete Lieferanten |
 | `kontakte` / `neuerKontakt()` | benannte Abnehmer, Vertrauen, neue Bekanntschaften |
 | `spawnCop()` / `moveCop()` | Ausrücken aus der nächsten Wache, Verfolgung, Rückfahrt |
-| `urteil()` / `einlassung()` | Strafzumessung, Einlassung, Vorstrafen |
-| `gerichtSzene()` / `zelleSzene()` / `flugSzene()` / `gespraechSzene()` | die vier Einzelbilder |
+| `GERICHTE` / `zustaendig()` | drei Instanzen, Besetzung, Verhandlungstage |
+| `prozessWeiter()` | Schritt und Verhandlungstag, Übergang in den nächsten Spieltag |
+| `forderung()` / `urteilSprechen()` | Antrag der Anklage und Strafzumessung |
+| `berufung()` | Rechtsmittel ans Landgericht |
+| `gerichtSzene()` / `richter()` / `schoeffe()` / `zeuge()` | Saal je nach Besetzung |
+| `zelleSzene()` / `flugSzene()` / `gespraechSzene()` | die weiteren Einzelbilder |
 | `loop()` | feste Schrittweite, entkoppelt von der Bildwiederholrate |
 | `save()` / `load()` | Fortschritt im `localStorage`, versioniert und migriert |
 

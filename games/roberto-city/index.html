@@ -283,7 +283,28 @@ var bunker=STARTGELD,high=0,mute=false,day=1,xp=0,ansehen=0,
     akten=0,gerichtTag=0,haftbefehl=false,haft=0,vorstrafen=0,
     steuerFaellig=0,steuerTag=7,phase='tag',dayF=1;
 var kontakte=[],angebote=[],auftraege=[],angebotTag=0,nextId=1;
-var gerSchritt=0,gerPlea=null,hammerT=0,zellText='',zellStrich=0;
+var hammerT=0,zellText='',zellStrich=0;
+/* Zuständigkeit wie im echten Leben: der Strafrichter macht die kleinen Sachen,
+   das Schöffengericht die mittleren, die Große Strafkammer am Landgericht den Rest. */
+var GERICHTE=[
+ {k:'ag1',n:'Amtsgericht',kammer:'Strafrichter',richter:1,schoeffen:0,haerte:1.0,
+  tage:[['anklage','einlassung'],['plaedoyer','urteil']]},
+ {k:'ag2',n:'Amtsgericht',kammer:'Schöffengericht',richter:1,schoeffen:2,haerte:1.15,
+  tage:[['anklage','einlassung'],['beweis'],['plaedoyer','urteil']]},
+ {k:'lg',n:'Landgericht',kammer:'Große Strafkammer',richter:3,schoeffen:2,haerte:1.4,
+  tage:[['anklage','einlassung'],['beweis'],['zeugen'],['plaedoyer','urteil']]}];
+var ZEUGEN=['ein Streifenbeamter','eine Nachbarin aus der Altstadt','ein Kollege vom Hafen',
+ 'ein verdeckter Ermittler','der Wirt von gegenüber'];
+var prozess=null,berufungOffen=false;
+function zustaendig(a){
+ if(a>=6||vorstrafen>=4||ware===2)return 2;
+ if(a>=3||vorstrafen>=2)return 1;
+ return 0}
+function prozessTagListe(){return prozess?GERICHTE[prozess.g].tage:[]}
+function prozessPhase(){
+ if(!prozess)return null;
+ var t=prozessTagListe()[prozess.tag];
+ return t?t[prozess.schritt]:null}
 var flugZiel=null,flugRest=0,gesprText='',gesprOk=null;
 var ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0,kontakte:0,geplatzt:0,
         steuer:0,loehne:0,mieten:0};
@@ -352,6 +373,7 @@ function save(){try{localStorage.setItem(SKEY,JSON.stringify({
  v:SVER,b:bunker,h:high,m:mute,day:day,xp:xp,ans:ansehen,ware:ware,
  akten:akten,ger:gerichtTag,hb:haftbefehl,haft:haft,vs:vorstrafen,
  stf:steuerFaellig,stt:steuerTag,offen:offen,meine:meine,crew:crew,ausland:ausland,
+ proz:prozess,ber:berufungOffen,
  kontakte:kontakte,vorrat:vorrat,lief:lieferant,nid:nextId,
  ang:angebote,angTag:angebotTag,st:ST,
  u:UP.map(function(u){return u.lv})}))}catch(e){}}
@@ -391,6 +413,13 @@ function load(){
    if(o.crew&&typeof o.crew==='object')crew=o.crew;
    if(o.ausland&&typeof o.ausland==='object')ausland=o.ausland;
    steuerFaellig=num(o.stf,0);steuerTag=Math.max(1,num(o.stt,7));
+   if(o.proz&&typeof o.proz==='object'&&GERICHTE[o.proz.g]){
+    prozess={g:num(o.proz.g,0),tag:num(o.proz.tag,0),schritt:num(o.proz.schritt,0),
+     akten:num(o.proz.akten,1),hb:!!o.proz.hb,plea:o.proz.plea||null,
+     beweis:o.proz.beweis||null,zeugen:o.proz.zeugen||null,wort:o.proz.wort||null,
+     instanz:num(o.proz.instanz,0),zeuge:String(o.proz.zeuge||ZEUGEN[0])};
+    if(prozess.tag>=GERICHTE[prozess.g].tage.length)prozess=null}
+   berufungOffen=!!o.ber;
    if(o.kontakte&&o.kontakte.length)for(q=0;q<o.kontakte.length;q++){
     var c6=o.kontakte[q];if(!c6||typeof c6!=='object')continue;
     kontakte.push({id:num(c6.id,nextId++),n:String(c6.n||'Unbekannt'),
@@ -421,7 +450,7 @@ function wipe(){
  steuerFaellig=0;steuerTag=7;offen=[true,false,false,false];
  meine={};crew={};ausland={};kontakte=[];angebote=[];auftraege=[];angebotTag=0;
  vorrat=0;lieferant=0;nextId=1;phase='tag';dayF=1;
- gerSchritt=0;gerPlea=null;zellText='';zellStrich=0;flugZiel=null;flugRest=0;
+ zellText='';zellStrich=0;flugZiel=null;flugRest=0;prozess=null;berufungOffen=false;
  for(var k in ST)ST[k]=0;
  NI={cash:0,drops:0,busts:0,combo:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
  for(var i=0;i<UP.length;i++)UP[i].lv=0;
@@ -826,58 +855,129 @@ function step(){
 
 /* ---------- Gericht ---------- */
 function gerichtHeute(){return haft<=0&&gerichtTag>0&&day>=gerichtTag}
-function urteil(){
- var a=akten,anw=lv('anwalt'),strafe=0,tage=0,txt='',frei2=false;
+function forderung(pr){
+ var a=pr.akten+(pr.hb?2:0),G=GERICHTE[pr.g],strafe=0,tage=0;
+ if(a<=1)strafe=180*a;
+ else if(a<=3)strafe=260*a;
+ else if(a<=5){strafe=300*a;tage=2}
+ else{strafe=350*a;tage=4}
+ strafe=Math.round(strafe*G.haerte*(1+vorstrafen*0.22));
+ tage+=Math.floor(vorstrafen/2)+(G.k==='lg'?1:0);
+ return{strafe:Math.round(strafe/10)*10,tage:tage}}
+function urteilSprechen(pr){
+ var G=GERICHTE[pr.g],f=forderung(pr),anw=lv('anwalt'),
+     strafe=f.strafe,tage=f.tage,txt=[],frei2=false,i;
  ST.prozesse++;
- if(haftbefehl){a+=2;haftbefehl=false}
- if(a<=1){strafe=180*a;txt='Verwarnung mit Geldstrafe.'}
- else if(a<=3){strafe=260*a;txt='Geldstrafe.'}
- else if(a<=5){strafe=300*a;tage=2;txt='Geldstrafe und kurze Haft.'}
- else{strafe=350*a;tage=4;txt='Der Richter hat genug gesehen.'}
- if(vorstrafen>0){
-  strafe=Math.round(strafe*(1+vorstrafen*0.22));
-  tage+=Math.floor(vorstrafen/2);
-  txt+=' '+vorstrafen+' Vorstrafe'+(vorstrafen>1?'n':'')+' wirken sich aus.'}
- if(gerPlea==='gestehen'){
-  strafe=Math.round(strafe*0.65);tage=Math.max(0,tage-1);
-  txt+=' Das Geständnis wird mildernd berücksichtigt.'}
- else if(gerPlea==='bestreiten'){
-  if(anw&&Math.random()<0.45){
-   frei2=true;strafe=0;tage=0;
-   txt='Freispruch. Die Beweise reichen dem Gericht nicht.'}
-  else{strafe=Math.round(strafe*1.35);tage+=1;
-   txt+=anw?' Das Bestreiten ging nach hinten los.'
-    :' Ohne Anwalt wirkt das Bestreiten wie Uneinsichtigkeit.'}}
- if(anw&&!frei2){strafe=Math.round(strafe*0.5);tage=Math.max(0,tage-1);
-  txt+=' Dein Anwalt hat das Schlimmste abgewendet.'}
- strafe=Math.round(strafe/10)*10;
+ if(vorstrafen>0)txt.push(vorstrafen+' Vorstrafe'+(vorstrafen>1?'n':'')+' wirken sich aus.');
+ if(pr.plea==='gestehen'){strafe*=0.65;tage-=1;txt.push('Das Geständnis wirkt mildernd.')}
+ else if(pr.plea==='bestreiten'){
+  if(anw&&Math.random()<(G.k==='lg'?0.32:0.45)){
+   frei2=true;txt=['Freispruch. Die Beweisaufnahme trägt die Anklage nicht.']}
+  else{strafe*=1.35;tage+=1;
+   txt.push(anw?'Das Bestreiten ging nach hinten los.'
+    :'Ohne Anwalt wirkt Bestreiten wie Uneinsichtigkeit.')}}
+ if(!frei2){
+  if(pr.beweis==='widersprechen'){
+   if(anw){strafe*=0.85;txt.push('Der Widerspruch gegen die Zeugen saß.')}
+   else{strafe*=1.10;txt.push('Dein Widerspruch wirkte unglaubwürdig.')}}
+  else if(pr.beweis==='kron'){
+   strafe*=0.35;tage-=2;
+   txt.push('Die Aussage nach Paragraf 31 wiegt schwer zu deinen Gunsten.')}
+  if(pr.zeugen==='anzweifeln'){
+   if(anw&&Math.random()<0.5){strafe*=0.80;txt.push('Die Zeugenaussage wurde erschüttert.')}
+   else{strafe*=1.10;txt.push('Die Zeugenaussage blieb stehen.')}}
+  else if(pr.zeugen==='bestaetigen'){strafe*=0.92;txt.push('Deine Bestätigung ersparte dem Gericht Arbeit.')}
+  if(pr.wort==='reue'){strafe*=0.90;txt.push('Dein letztes Wort hat den Richter erreicht.')}
+  else if(pr.wort==='unschuld'&&pr.plea==='gestehen'){
+   strafe*=1.15;txt.push('Die Unschuldsbeteuerung passte nicht zum Geständnis.')}
+  if(pr.instanz){
+   if(anw&&Math.random()<0.55){strafe*=0.65;tage-=1;
+    txt.push('Die Berufung hat sich gelohnt.')}
+   else{strafe*=1.25;txt.push('Die Berufung hat nichts gebracht, im Gegenteil.')}}
+  if(anw){strafe*=0.5;tage-=1;txt.push('Dein Anwalt hat das Schlimmste abgewendet.')}}
+ strafe=frei2?0:Math.max(0,Math.round(strafe/10)*10);
+ tage=frei2?0:Math.max(0,tage);
  if(strafe>bunker){
   var off=strafe-bunker;strafe=bunker;
   tage+=Math.ceil(off/400);
-  txt+=' Der Bunker reichte nicht, ersatzweise Haft.'}
- bunker-=strafe;haft+=tage;akten=0;gerichtTag=0;
+  txt.push('Der Bunker reichte nicht, ersatzweise Haft.')}
+ bunker-=strafe;haft+=tage;
+ akten=Math.max(0,akten-pr.akten);gerichtTag=0;haftbefehl=false;
+ if(pr.beweis==='kron'){
+  /* Wer auspackt, verliert die Leute die er verraten hat. */
+  ansehen=Math.max(0,ansehen-25);
+  for(i=0;i<kontakte.length;i++)kontakte[i].v=Math.max(0,kontakte[i].v-1);
+  var weg=null;
+  for(i=AUSLAND.length-1;i>=0;i--)if(ausland[AUSLAND[i].k]){weg=AUSLAND[i];break}
+  if(weg){delete ausland[weg.k];baueLief();
+   txt.push(weg.n+' nimmt keine Anrufe mehr an.')}}
  if(!frei2){vorstrafen++;ansehen=Math.max(0,ansehen-5)}
- return{strafe:strafe,tage:tage,txt:txt,frei:frei2}}
+ berufungOffen=!frei2&&!pr.instanz&&GERICHTE[pr.g].k!=='lg';
+ return{strafe:strafe,tage:tage,txt:txt.join(' '),frei:frei2,
+  gericht:G.n+' · '+G.kammer,gefordert:f}}
 var letztesUrteil=null;
 function zumGericht(){
  audioOK=true;ac();
- phase='gericht';gerSchritt=0;gerPlea=null;hammerT=0;letztesUrteil=null;
- tone(300,220,0.5,'sawtooth',0.07);ui()}
-function gerichtWeiter(){
+ if(!prozess){
+  var a=akten+(haftbefehl?2:0);
+  prozess={g:zustaendig(a),tag:0,schritt:0,akten:akten,hb:haftbefehl,
+   plea:null,beweis:null,zeugen:null,wort:null,instanz:0,
+   zeuge:ZEUGEN[Math.floor(Math.random()*ZEUGEN.length)]}}
+ phase='gericht';hammerT=0;letztesUrteil=null;
+ tone(300,220,0.5,'sawtooth',0.07);save();ui()}
+function prozessWeiter(){
+ /* Ein Schritt weiter. Ist der Verhandlungstag durch, geht es erst morgen weiter. */
  audioOK=true;ac();
- if(gerSchritt===0){gerSchritt=1;ui();return}
- if(gerSchritt===2){
+ if(!prozess)return;
+ var tage=prozessTagListe();
+ prozess.schritt++;
+ if(prozess.schritt<tage[prozess.tag].length){save();ui();return}
+ prozess.tag++;prozess.schritt=0;
+ if(prozess.tag>=tage.length){
+  prozess=null;
   phase=haft>0?'zelle':'tag';
   if(phase==='zelle'){zellText='';zellStrich=0}
-  nextDay();tagBeginn();save();ui()}}
+  nextDay();tagBeginn();save();ui();return}
+ gerichtTag=day+1;
+ phase='tag';nextDay();tagBeginn();save();ui()}
 function einlassung(k){
  audioOK=true;ac();
- gerPlea=k;letztesUrteil=urteil();
- gerSchritt=2;hammerT=0.9;sHammer();kick(9);
+ if(!prozess)return;
+ prozess.plea=k;sTick();prozessWeiter()}
+function beweisWahl(k){
+ audioOK=true;ac();
+ if(!prozess)return;
+ prozess.beweis=k;
+ if(k==='kron'){sHammer();kick(6)}else sTick();
+ prozessWeiter()}
+function zeugenWahl(k){
+ audioOK=true;ac();
+ if(!prozess)return;
+ prozess.zeugen=k;sTick();prozessWeiter()}
+function letztesWort(k){
+ audioOK=true;ac();
+ if(!prozess)return;
+ prozess.wort=k;
+ letztesUrteil=urteilSprechen(prozess);
+ hammerT=0.9;sHammer();kick(9);
+ prozess.schritt++;
  save();ui()}
+function berufung(){
+ if(!berufungOffen||!letztesUrteil)return;
+ audioOK=true;ac();
+ if(bunker<600){sNope();return}
+ bunker-=600;berufungOffen=false;
+ prozess={g:2,tag:0,schritt:0,akten:Math.max(1,letztesUrteil.tage+2),hb:false,
+  plea:null,beweis:null,zeugen:null,wort:null,instanz:1,
+  zeuge:ZEUGEN[Math.floor(Math.random()*ZEUGEN.length)]};
+ haft=Math.max(0,haft-letztesUrteil.tage);
+ bunker+=letztesUrteil.strafe;
+ letztesUrteil=null;gerichtTag=day+4;
+ sGross();save();ui();hud()}
 function gerichtSchwaenzen(){
  audioOK=true;ac();sNope();
  haftbefehl=true;akten++;gerichtTag=day+2;letztesUrteil=null;
+ if(prozess)prozess.hb=true;
  nextDay();tagBeginn();save();ui()}
 var ZELLE=[
  {k:'ruhig',t:'Ein Tag wie der andere. Essen, Hof, Licht aus.',w:3},
@@ -1267,7 +1367,11 @@ function stadtSzene(){
 function tagKarte(){
  var L=[],li;
  if(haft>0)L.push(['Du sitzt. Noch '+haft+(haft===1?' Tag':' Tage'),15,'#F0A8A8']);
- else if(gerichtHeute())L.push(['Heute ist Verhandlung',15,'#F0C070']);
+ else if(gerichtHeute())L.push([prozess&&prozess.tag>0
+  ?'Prozess geht weiter: Tag '+(prozess.tag+1)+' von '+GERICHTE[prozess.g].tage.length
+  :'Heute ist Verhandlung',15,'#F0C070']);
+ else if(prozess)L.push(['Prozess läuft · Tag '+(prozess.tag+1)+' von '+
+  GERICHTE[prozess.g].tage.length+' an Tag '+gerichtTag,13,'#F0C070']);
  else if(NI.done){
   if(NI.grund==='knast')L.push(['Die Nacht endete in der Zelle',15,'#F0A8A8']);
   else L.push([NI.cash>0?'Letzte Nacht: +'+NI.cash+' €':'Letzte Nacht: nichts verdient',
@@ -1307,7 +1411,7 @@ function anklaeger(cx,cy){
  x.beginPath();x.arc(cx,cy-14,9.5,0,6.3);x.fill();x.stroke();
  x.fillStyle='#3A2E24';x.beginPath();x.arc(cx,cy-16,9.5,Math.PI,0);x.fill();
  x.fillStyle='#12151B';x.fillRect(cx-5,cy-16,3,2);x.fillRect(cx+2,cy-16,3,2)}
-function richter(cx,cy,sw){
+function richter(cx,cy,sw,ohneHammer){
  x.fillStyle='#17171E';x.strokeStyle='#08080C';x.lineWidth=2;
  x.beginPath();x.moveTo(cx-24,cy+30);x.lineTo(cx-15,cy-5);
  x.lineTo(cx+15,cy-5);x.lineTo(cx+24,cy+30);x.closePath();x.fill();x.stroke();
@@ -1318,6 +1422,7 @@ function richter(cx,cy,sw){
  x.beginPath();x.arc(cx,cy-17,11,0,6.3);x.fill();x.stroke();
  x.fillStyle='#9A9AA2';x.beginPath();x.arc(cx,cy-20,11,Math.PI,0);x.fill();
  x.fillStyle='#08080C';x.fillRect(cx-6,cy-19,3.5,2);x.fillRect(cx+2.5,cy-19,3.5,2);
+ if(ohneHammer)return;
  x.save();x.translate(cx+30,cy+2);x.rotate(-0.55+(sw||0));
  x.strokeStyle='#7A5A34';x.lineWidth=3;x.lineCap='round';
  x.beginPath();x.moveTo(0,0);x.lineTo(0,15);x.stroke();
@@ -1329,38 +1434,71 @@ function band(txt,sub){
  x.textAlign='center';x.fillStyle='#F0EDE6';x.font='500 14px '+FONT;
  x.fillText(txt,VW/2,VH-27);
  if(sub){x.font='400 12px '+FONT;x.fillStyle='#B6BCC6';x.fillText(sub,VW/2,VH-10)}}
+function schoeffe(cx,cy){
+ x.fillStyle='#3A3F4A';x.strokeStyle='#12151B';x.lineWidth=2;
+ x.beginPath();x.moveTo(cx-13,cy+22);x.lineTo(cx-9,cy-3);
+ x.lineTo(cx+9,cy-3);x.lineTo(cx+13,cy+22);x.closePath();x.fill();x.stroke();
+ x.fillStyle='#E8CBB0';
+ x.beginPath();x.arc(cx,cy-12,8,0,6.3);x.fill();x.stroke();
+ x.fillStyle='#4A3B2E';x.beginPath();x.arc(cx,cy-14,8,Math.PI,0);x.fill()}
+function zeuge(cx,cy){
+ x.fillStyle='#6B5E4A';x.strokeStyle='#1A1410';x.lineWidth=2;
+ x.beginPath();x.moveTo(cx-13,cy+22);x.lineTo(cx-9,cy-3);
+ x.lineTo(cx+9,cy-3);x.lineTo(cx+13,cy+22);x.closePath();x.fill();x.stroke();
+ x.fillStyle='#E8CBB0';
+ x.beginPath();x.arc(cx,cy-12,8,0,6.3);x.fill();x.stroke();
+ x.fillStyle='#2B2320';x.beginPath();x.arc(cx,cy-14,8,Math.PI,0);x.fill();
+ x.fillStyle='#1A1410';x.fillRect(cx-4,cy-14,2.5,2);x.fillRect(cx+1.5,cy-14,2.5,2)}
 function gerichtSzene(){
- var i;
- x.fillStyle='#4A3728';x.fillRect(0,0,VW,VH);
- x.fillStyle='#3E2E22';
+ var i,G=prozess?GERICHTE[prozess.g]:GERICHTE[0],ph=prozessPhase(),
+     lg=G.k==='lg',zeugeDa=ph==='beweis'||ph==='zeugen';
+ x.fillStyle=lg?'#3E2C20':'#4A3728';x.fillRect(0,0,VW,VH);
+ x.fillStyle=lg?'#33241A':'#3E2E22';
  for(i=0;i<8;i++)x.fillRect(i*(VW/8)+3,0,VW/8-6,VH*0.60);
  x.fillStyle='#291F18';x.fillRect(0,VH*0.60,VW,VH*0.40);
- var wx=VW/2,wy=VH*0.11;
+ var wx=VW/2,wy=VH*0.10;
  x.strokeStyle='#C9A96A';x.lineWidth=2;
- x.beginPath();x.moveTo(wx,wy-14);x.lineTo(wx,wy+8);x.stroke();
- x.beginPath();x.moveTo(wx-19,wy-7);x.lineTo(wx+19,wy-7);x.stroke();
- x.beginPath();x.arc(wx-19,wy-1,7,0,Math.PI);x.stroke();
- x.beginPath();x.arc(wx+19,wy-1,7,0,Math.PI);x.stroke();
+ x.beginPath();x.moveTo(wx,wy-13);x.lineTo(wx,wy+7);x.stroke();
+ x.beginPath();x.moveTo(wx-18,wy-6);x.lineTo(wx+18,wy-6);x.stroke();
+ x.beginPath();x.arc(wx-18,wy,6.5,0,Math.PI);x.stroke();
+ x.beginPath();x.arc(wx+18,wy,6.5,0,Math.PI);x.stroke();
  x.textAlign='center';x.fillStyle='#C9A96A';x.font='500 11px '+FONT;
- x.fillText('AMTSGERICHT · SAAL 2',VW/2,wy+28);
- var by=VH*0.36,bw=VW*0.66,bx=(VW-bw)/2,bh=VH*0.15;
+ x.fillText((G.n+' · '+G.kammer).toUpperCase(),VW/2,wy+25);
+ if(prozess){x.font='400 10px '+FONT;x.fillStyle='#9C8A66';
+  x.fillText('Verhandlungstag '+(prozess.tag+1)+' von '+G.tage.length+
+   (prozess.instanz?' · Berufung':''),VW/2,wy+40)}
+ var by=VH*0.37,bw=VW*(lg?0.80:0.66),bx=(VW-bw)/2,bh=VH*0.14;
  var sw=hammerT>0?Math.sin((1-hammerT/0.9)*Math.PI)*1.35:0;
- richter(VW/2,by-4,sw);
+ if(G.schoeffen){schoeffe(bx+18,by-8);schoeffe(bx+bw-18,by-8)}
+ if(G.richter===1)richter(VW/2,by-4,sw);
+ else{richter(VW/2-46,by-2,0,true);richter(VW/2+46,by-2,0,true);richter(VW/2,by-6,sw)}
  x.fillStyle='#6B4B2E';x.strokeStyle='#2A1C10';x.lineWidth=2;
  x.beginPath();x.roundRect(bx,by,bw,bh,4);x.fill();x.stroke();
  x.fillStyle='rgba(0,0,0,0.20)';x.fillRect(bx+6,by+7,bw-12,3);
- var ty=VH*0.68,tw=VW*0.34,th=VH*0.09;
- anklaeger(VW*0.24,ty-12);
- figurAn(VW*0.76,ty-14,-1);
+ if(zeugeDa){
+  zeuge(VW*0.50,VH*0.60);
+  x.fillStyle='#5A4028';x.strokeStyle='#2A1C10';x.lineWidth=2;
+  x.beginPath();x.roundRect(VW*0.40,VH*0.605,VW*0.20,VH*0.055,3);x.fill();x.stroke();
+  x.textAlign='center';x.font='500 9px '+FONT;x.fillStyle='#D8C9A8';
+  x.fillText('ZEUGE',VW*0.50,VH*0.605+VH*0.04)}
+ var ty=VH*0.70,tw=VW*0.34,th=VH*0.085;
+ anklaeger(VW*0.22,ty-12);
+ figurAn(VW*0.78,ty-14,-1);
  x.fillStyle='#5A4028';x.strokeStyle='#2A1C10';x.lineWidth=2;
- x.beginPath();x.roundRect(VW*0.07,ty,tw,th,3);x.fill();x.stroke();
- x.beginPath();x.roundRect(VW-VW*0.07-tw,ty,tw,th,3);x.fill();x.stroke();
+ x.beginPath();x.roundRect(VW*0.05,ty,tw,th,3);x.fill();x.stroke();
+ x.beginPath();x.roundRect(VW-VW*0.05-tw,ty,tw,th,3);x.fill();x.stroke();
  x.textAlign='center';x.font='500 10px '+FONT;x.fillStyle='#D8C9A8';
- x.fillText('ANKLAGE',VW*0.24,ty+th-8);
- x.fillText('ROBERTO',VW*0.76,ty+th-8);
- if(gerSchritt===0)band('Die Anklage wird verlesen',
-  akten+' '+(akten===1?'Fall':'Fälle')+(haftbefehl?' und ein Haftbefehl':''));
- else if(gerSchritt===1)band('Was sagen Sie dazu?','Der Richter wartet auf deine Einlassung');
+ x.fillText('ANKLAGE',VW*0.22,ty+th-7);
+ x.fillText('ROBERTO',VW*0.78,ty+th-7);
+ if(ph==='anklage')band('Die Anklage wird verlesen',
+  (prozess.akten+(prozess.hb?2:0))+' Fälle'+(prozess.hb?' und ein Haftbefehl':''));
+ else if(ph==='einlassung')band('Was sagen Sie dazu?','Das Gericht wartet auf deine Einlassung');
+ else if(ph==='beweis')band('Beweisaufnahme',prozess.zeuge+' sagt aus');
+ else if(ph==='zeugen')band('Zweiter Verhandlungstag der Kammer','Ein weiterer Zeuge wird gehört');
+ else if(ph==='plaedoyer'){
+  var f=forderung(prozess);
+  band('Plädoyers','Die Staatsanwaltschaft fordert '+f.strafe+' €'+
+   (f.tage?' und '+f.tage+' Tage':''))}
  else if(letztesUrteil)band(letztesUrteil.frei?'Freispruch':'Im Namen des Volkes',
   letztesUrteil.frei?'Du gehst raus':(letztesUrteil.strafe+' € Strafe'+
    (letztesUrteil.tage?' und '+letztesUrteil.tage+' '+
@@ -1502,9 +1640,13 @@ function ui(){
  ba.style.display='none';
  if(nacht){bm.textContent='Schicht läuft';bm.disabled=true}
  else if(phase==='gericht'){
-  if(gerSchritt===0){bm.textContent='Anklage anhören';bm.disabled=false}
-  else if(gerSchritt===1){bm.textContent='Der Richter wartet auf dich';bm.disabled=true}
-  else{bm.textContent=haft>0?'Abführen lassen':'Saal verlassen';bm.disabled=false}}
+  var ph=prozessPhase();
+  if(ph==='einlassung'||ph==='beweis'||ph==='zeugen'||ph==='plaedoyer'){
+   bm.textContent='Das Gericht wartet auf dich';bm.disabled=true}
+  else if(ph==='urteil'){
+   bm.textContent=haft>0?'Abführen lassen':'Saal verlassen';bm.disabled=false}
+  else if(ph==='anklage'){bm.textContent='Anklage anhören';bm.disabled=false}
+  else{bm.textContent='Verhandlungstag beenden';bm.disabled=false}}
  else if(phase==='zelle'){bm.textContent='Tag absitzen';bm.disabled=false}
  else if(phase==='flug'){
   bm.textContent=flugRest>0?'Der Flieger ist in der Luft':'Landen';bm.disabled=flugRest>0}
@@ -1537,31 +1679,67 @@ function ui(){
 function szene(){
  var el=document.getElementById('szenetext'),kopf=document.getElementById('szenekopf'),
      lab=document.getElementById('szenelab'),h='',i;
- if(phase==='gericht'){
-  kopf.textContent='Amtsgericht';
-  if(gerSchritt===0){
-   lab.textContent='Anklageverlesung';
+ if(phase==='gericht'&&prozess){
+  var G=GERICHTE[prozess.g],ph=prozessPhase(),anw=lv('anwalt');
+  kopf.textContent=G.n;
+  lab.textContent=G.kammer+' · Tag '+(prozess.tag+1)+'/'+G.tage.length;
+  if(ph==='anklage'){
    h='<p class="big">Die Staatsanwaltschaft verliest.</p>'+
-     '<p><b>'+akten+'</b> '+(akten===1?'Fall':'Fälle')+' Handel mit Betäubungsmitteln'+
-     (haftbefehl?', dazu ein <b>Haftbefehl</b>, weil du den letzten Termin hast platzen lassen':'')+
-     '.</p>'+(vorstrafen>0
-      ?'<p class="muted">Aktenkundig: '+vorstrafen+' Vorstrafe'+(vorstrafen>1?'n':'')+
-       '. Das Gericht rechnet das auf.</p>'
-      :'<p class="muted">Nicht vorbestraft. Das hilft dir heute.</p>')}
-  else if(gerSchritt===1){
-   lab.textContent='Einlassung';
-   h='<p class="big">Wie lassen Sie sich ein?</p>'+
-     '<p class="muted">Der Richter sieht dich an.</p><div class="wahl">'+
+     '<p><b>'+prozess.akten+'</b> '+(prozess.akten===1?'Fall':'Fälle')+
+     ' Handel mit Betäubungsmitteln'+
+     (prozess.hb?', dazu ein <b>Haftbefehl</b> wegen unentschuldigten Fernbleibens':'')+'.</p>'+
+     '<p class="muted">Zuständig ist '+(G.k==='lg'?'die Große Strafkammer des Landgerichts'
+      :(G.k==='ag2'?'das Schöffengericht':'der Strafrichter am Amtsgericht'))+
+     ', weil '+(G.k==='lg'?'die Sache schwer wiegt'
+      :(G.k==='ag2'?'mehrere Fälle zusammenkommen':'es bei einer kleinen Sache bleibt'))+
+     '. '+G.tage.length+' Verhandlungstage.</p>'+
+     (vorstrafen>0?'<p class="muted">Aktenkundig: '+vorstrafen+' Vorstrafe'+
+      (vorstrafen>1?'n':'')+'.</p>':'<p class="muted">Nicht vorbestraft.</p>')}
+  else if(ph==='einlassung'){
+   h='<p class="big">Wie lassen Sie sich ein?</p><div class="wahl">'+
      '<button data-p="gestehen"><b>Gestehen</b><span>Strafe auf 65 %, ein Hafttag weniger. '+
       'Gilt als überführt.</span></button>'+
      '<button data-p="schweigen"><b>Schweigen</b><span>Das Gericht urteilt nach Aktenlage.'+
       '</span></button>'+
-     '<button data-p="bestreiten"><b>Bestreiten</b><span>'+(lv('anwalt')
-      ?'Mit deinem Anwalt 45 % Chance auf Freispruch. Geht es schief, wird es teurer.'
+     '<button data-p="bestreiten"><b>Bestreiten</b><span>'+(anw
+      ?'Mit Anwalt '+(G.k==='lg'?'32':'45')+' % Chance auf Freispruch. Geht es schief, teurer.'
       :'Ohne Anwalt riskant: 35 % mehr Strafe und ein Tag drauf.')+'</span></button></div>'}
+  else if(ph==='beweis'){
+   h='<p class="big">Beweisaufnahme.</p><p>'+prozess.zeuge+' sagt gegen dich aus.</p>'+
+     '<div class="wahl">'+
+     '<button data-b="widersprechen"><b>Widersprechen</b><span>'+(anw
+      ?'Mit Anwalt sitzt der Widerspruch: Strafe auf 85 %.'
+      :'Ohne Anwalt wirkst du unglaubwürdig: 10 % mehr.')+'</span></button>'+
+     '<button data-b="schweigen"><b>Schweigen</b><span>Ändert nichts.</span></button>'+
+     '<button data-b="kron"><b>Auspacken nach Paragraf 31</b><span>Strafe auf 35 %, zwei '+
+      'Hafttage weniger. Kostet 25 Ansehen, alle Kontakte verlieren Vertrauen, und dein '+
+      'bester Auslandskontakt legt auf.</span></button></div>'}
+  else if(ph==='zeugen'){
+   h='<p class="big">Zweiter Zeuge.</p><p>Die Kammer hört noch einmal.</p>'+
+     '<div class="wahl">'+
+     '<button data-z="anzweifeln"><b>Aussage anzweifeln</b><span>'+(anw
+      ?'Mit Anwalt 50 %: Strafe auf 80 %. Sonst 10 % mehr.'
+      :'Ohne Anwalt fast aussichtslos: meist 10 % mehr.')+'</span></button>'+
+     '<button data-z="bestaetigen"><b>Bestätigen</b><span>Strafe auf 92 %. Du machst es '+
+      'dem Gericht leicht.</span></button>'+
+     '<button data-z="schweigen"><b>Schweigen</b><span>Ändert nichts.</span></button></div>'}
+  else if(ph==='plaedoyer'){
+   var f=forderung(prozess);
+   h='<p class="big">Plädoyers.</p>'+
+     '<p>Die Staatsanwaltschaft fordert <b>'+f.strafe+' €</b>'+
+     (f.tage?' und <b>'+f.tage+'</b> Tage Haft':' ohne Haft')+'.</p>'+
+     '<p class="muted">Du hast das letzte Wort.</p><div class="wahl">'+
+     '<button data-w="reue"><b>Reue zeigen</b><span>Strafe auf 90 %.</span></button>'+
+     '<button data-w="schweigen"><b>Nichts sagen</b><span>Ändert nichts.</span></button>'+
+     '<button data-w="unschuld"><b>Unschuld beteuern</b><span>'+
+      (prozess.plea==='gestehen'?'Passt nicht zu deinem Geständnis: 15 % mehr.'
+       :'Ändert nichts, wirkt aber konsequent.')+'</span></button></div>'}
   else if(letztesUrteil){
    lab.textContent='Urteil';
    h='<p class="big">'+(letztesUrteil.frei?'Freispruch.':'Im Namen des Volkes.')+'</p>'+
+     '<p class="muted">'+letztesUrteil.gericht+' · gefordert waren '+
+     letztesUrteil.gefordert.strafe+' €'+
+     (letztesUrteil.gefordert.tage?' und '+letztesUrteil.gefordert.tage+' Tage':'')+'</p>'+
      '<p>'+letztesUrteil.txt+'</p><p>Geldstrafe: <b>'+letztesUrteil.strafe+' €</b>'+
      (letztesUrteil.tage?' · Haft: <b>'+letztesUrteil.tage+'</b> '+
       (letztesUrteil.tage===1?'Tag':'Tage'):' · keine Haft')+'</p>'+
@@ -1595,22 +1773,49 @@ function szene(){
   h='<p class="big">Du musst noch '+haft+' '+(haft===1?'Tag':'Tage')+' absitzen.</p>'+
     '<p class="muted">Der Knopf oben bringt dich in die Zelle.</p>'}
  else if(gerichtHeute()){
-  kopf.textContent='Amtsgericht';lab.textContent='Termin heute';
-  h='<p class="big">Heute ist Verhandlung.</p>'+
-    '<p><b>'+akten+'</b> offene '+(akten===1?'Akte':'Akten')+
-    (haftbefehl?' und ein <b>Haftbefehl</b>.':'.')+'</p>'+
+  var lauf=prozess&&prozess.tag>0,GG=prozess?GERICHTE[prozess.g]:GERICHTE[zustaendig(akten)];
+  kopf.textContent=GG.n;
+  lab.textContent=lauf?'Fortsetzung':'Termin heute';
+  h='<p class="big">'+(lauf?'Der Prozess wird fortgesetzt.':'Heute ist Verhandlung.')+'</p>'+
+    (lauf?'<p>'+GG.kammer+' · Verhandlungstag <b>'+(prozess.tag+1)+'</b> von '+
+      GG.tage.length+'.</p>'
+     :'<p><b>'+akten+'</b> offene '+(akten===1?'Akte':'Akten')+
+      (haftbefehl?' und ein <b>Haftbefehl</b>':'')+'. Zuständig: <b>'+GG.kammer+
+      '</b> am '+GG.n+', '+GG.tage.length+' Verhandlungstage.</p>')+
     '<p class="muted">Nicht erscheinen bringt einen Haftbefehl und verschiebt den Termin.</p>'}
  else if(letztesUrteil){
-  kopf.textContent='Amtsgericht';lab.textContent='Letztes Urteil';
+  kopf.textContent='Rechtsmittel';lab.textContent='Letztes Urteil';
   h='<p class="big">'+(letztesUrteil.frei?'Freispruch.':'Das Urteil steht.')+'</p>'+
-    '<p>'+letztesUrteil.txt+'</p><p class="muted">Vorstrafen: '+vorstrafen+'</p>'}
+    '<p class="muted">'+letztesUrteil.gericht+'</p>'+
+    '<p>'+letztesUrteil.txt+'</p>'+
+    '<p>Geldstrafe <b>'+letztesUrteil.strafe+' €</b>'+
+    (letztesUrteil.tage?', Haft <b>'+letztesUrteil.tage+'</b> '+
+     (letztesUrteil.tage===1?'Tag':'Tage'):', keine Haft')+
+    ' · Vorstrafen: '+vorstrafen+'</p>'+
+    (berufungOffen
+     ?'<div class="wahl"><button data-ber="1"><b>Berufung einlegen</b><span>600 € '+
+      'Gerichtskosten. Die Große Strafkammer am Landgericht verhandelt neu, vier Tage. '+
+      'Strafe und Haft aus diesem Urteil werden erst einmal ausgesetzt. Mit Anwalt 55 % '+
+      'auf ein milderes Urteil, sonst wird es teurer.</span></button></div>'
+     :'<p class="muted">Rechtsmittel sind hier nicht mehr möglich.</p>')}
  el.innerHTML=h;
  var pb=el.querySelectorAll('button[data-p]');
  for(i=0;i<pb.length;i++)pb[i].addEventListener('click',function(e){
   einlassung(e.currentTarget.getAttribute('data-p'))});
  var vb=el.querySelectorAll('button[data-v]');
  for(i=0;i<vb.length;i++)vb[i].addEventListener('click',function(e){
-  verhandeln(e.currentTarget.getAttribute('data-v'))})}
+  verhandeln(e.currentTarget.getAttribute('data-v'))});
+ var bb=el.querySelectorAll('button[data-b]');
+ for(i=0;i<bb.length;i++)bb[i].addEventListener('click',function(e){
+  beweisWahl(e.currentTarget.getAttribute('data-b'))});
+ var zb=el.querySelectorAll('button[data-z]');
+ for(i=0;i<zb.length;i++)zb[i].addEventListener('click',function(e){
+  zeugenWahl(e.currentTarget.getAttribute('data-z'))});
+ var wb=el.querySelectorAll('button[data-w]');
+ for(i=0;i<wb.length;i++)wb[i].addEventListener('click',function(e){
+  letztesWort(e.currentTarget.getAttribute('data-w'))});
+ var rb=el.querySelectorAll('button[data-ber]');
+ for(i=0;i<rb.length;i++)rb[i].addEventListener('click',berufung)}
 function telefon(){
  var nacht=phase==='nacht',zu=nacht||haft>0,h='',i,q;
  var lf=LIEF[lieferant],pr=einkaufspreis();
@@ -1789,6 +1994,8 @@ function kit(){
    ' · '+lohnSumme()+' €/Tag',lohnSumme()>0],
   ['Offene Akten',String(akten)+(haftbefehl?' + Haftbefehl':''),false],
   ['Vorstrafen',String(vorstrafen),false],
+  ['Verfahren',prozess?GERICHTE[prozess.g].kammer+' · Tag '+(prozess.tag+1)+'/'+
+   GERICHTE[prozess.g].tage.length:'keines',false],
   ['Steuern offen',steuerFaellig+' €',false],
   ['Nächte gearbeitet',String(ST.naechte),false],
   ['Lieferungen gesamt',String(ST.drops),false],
@@ -1829,7 +2036,7 @@ function buy(k){
   bunker-=pr;u.lv++;apply();sBuy();save();shop();kit();hud();return}}
 function mainAction(){
  if(phase==='nacht')return;
- if(phase==='gericht'){gerichtWeiter();return}
+ if(phase==='gericht'){prozessWeiter();return}
  if(phase==='zelle'){tagAbsitzen();return}
  if(phase==='flug'){if(flugRest<=0)angekommen();return}
  if(phase==='gespraech'){if(gesprOk!==null)heimflug();return}
