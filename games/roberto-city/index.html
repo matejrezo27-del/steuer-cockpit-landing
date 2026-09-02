@@ -24,6 +24,20 @@ h1{font-size:23px;font-weight:500;letter-spacing:-0.01em;margin:0 0 2px}
 .hud{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-bottom:7px}
 .lab{font-size:12px;color:var(--muted)}
 .val{font-size:20px;font-weight:500;line-height:1.2}
+.hud .phase{text-align:right}
+.hud .phase .val{font-variant-numeric:tabular-nums}
+.nachtbar{height:4px;background:var(--edge);border-radius:2px;margin:0 0 9px;overflow:hidden}
+.nachtbar i{display:block;height:100%;background:var(--amber);border-radius:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.chip{font-size:11px;line-height:1.5;padding:3px 9px;border-radius:999px;
+ border:1px solid var(--edge);background:var(--panel);color:var(--muted);white-space:nowrap}
+.chip b{font-weight:500;color:var(--ink)}
+.chip.warn{border-color:var(--red);color:var(--red)}
+.chip.warn b{color:var(--red)}
+.chip.ok{border-color:var(--green);color:var(--green)}
+.chip.ok b{color:var(--green)}
+.chip.now{border-color:var(--amber);color:var(--amber)}
+.chip.now b{color:var(--amber)}
 .rangbar{margin:0 0 9px}
 .rangtop{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;gap:8px}
 .rangtop b{font-weight:500}
@@ -110,8 +124,9 @@ footer{font-size:12px;color:var(--muted);margin:20px 0 8px;line-height:1.6}
 <div class="hud">
 <div><div class="lab">Bunker</div><div class="val" id="gbunk">0 €</div></div>
 <div style="text-align:center"><div class="lab">Cash dabei</div><div class="val" id="gcash">0 €</div></div>
-<div style="text-align:right"><div class="lab" id="glab">Tag</div><div class="val" id="gtime">1</div></div>
+<div class="phase"><div class="lab" id="glab">Tag</div><div class="val" id="gtime">1</div></div>
 </div>
+<div class="nachtbar" id="gnbar"><i style="width:0%"></i></div>
 
 <div class="rangbar">
 <div class="rangtop"><span><b id="grang">Rang 1 · Läufer</b></span>
@@ -119,6 +134,7 @@ footer{font-size:12px;color:var(--muted);margin:20px 0 8px;line-height:1.6}
 <span class="lab" id="gxp">0 / 80 XP</span></div>
 <div class="xp"><i id="gxpbar" style="width:0%"></i></div>
 </div>
+<div class="chips" id="chips"></div>
 
 <canvas id="gc" width="360" height="440"></canvas>
 
@@ -218,9 +234,9 @@ function nahWache(i,j){
 
 /* ---------- Ware, Ränge, Lieferanten ---------- */
 var WARE=[
- {k:'gras',n:'Cannabis',preis:40,hitze:0.28,xp:6,rang:1},
- {k:'speed',n:'Speed',preis:95,hitze:0.48,xp:14,rang:4},
- {k:'koks',n:'Kokain',preis:210,hitze:0.75,xp:30,rang:8}];
+ {k:'gras',n:'Cannabis',preis:40,hitze:0.40,xp:6,rang:1},
+ {k:'speed',n:'Speed',preis:95,hitze:0.68,xp:14,rang:4},
+ {k:'koks',n:'Kokain',preis:210,hitze:1.05,xp:30,rang:8}];
 var ware=0;
 var RANG=[
  {n:'Läufer',xp:0},{n:'Zusteller',xp:80},{n:'Stammkraft',xp:200},{n:'Dealer',xp:400},
@@ -243,7 +259,14 @@ var AUSLAND=[
   flug:5000,ansehen:60,faktor:0.18,max:90},
  {k:'nap',n:'Neapel',d:'Alte Familie. Wer hier besteht, kauft konkurrenzlos ein.',
   flug:9000,ansehen:120,faktor:0.12,max:140}];
-var lieferant=0,vorrat=0,ausland={};
+var lieferant=0,ausland={};
+/* Jede Ware hat ihr eigenes Fach im Lager. Nur so kann man jederzeit
+   umsteigen, ohne dass billiges Gras beim Wechsel zu Koks wird. */
+var lager=[0,0,0];
+function lagerSumme(){var s=0,i;for(i=0;i<lager.length;i++)s+=lager[i];return s}
+function lagerText(){var t=[],i;
+ for(i=0;i<WARE.length;i++)if(lager[i]>0)t.push(lager[i]+'× '+WARE[i].n);
+ return t.length?t.join(' · '):'leer'}
 
 /* ---------- Lokale und Personal ---------- */
 /* Ertraege aus dem Amortisationsmodell: 15 Tage bei den kleinen, 30 bei den grossen.
@@ -291,14 +314,14 @@ function apply(){
  CAP=3+lv('tasche')*2+(lv('auto')?3:0)+(nCrew('fahrer')?2:0);
  PAYM=lv('handy')?1.25:1;
  SICHT=(lv('kapuze')?0.75:1)*(lv('auto')?1.4:1)*(nCrew('aufpasser')?0.85:1);
- KUEHL=0.5*(lv('brille')?1.3:1);
- RUHEZEIT=lv('scanner')?3.5:6;
+ KUEHL=0.35*(lv('brille')?1.3:1);
+ RUHEZEIT=lv('scanner')?3:5;
  MAXAUF=2+Math.floor(rang()/3)+(lv('handy')?1:0)}
 
 /* ---------- Fortschritt ---------- */
 var bunker=STARTGELD,high=0,mute=false,day=1,xp=0,ansehen=0,
     akten=0,gerichtTag=0,haftbefehl=false,haft=0,vorstrafen=0,
-    steuerFaellig=0,steuerTag=7,nachtKasse=0,phase='tag',dayF=1;
+    steuerFaellig=0,steuerTag=7,phase='tag',dayF=1;
 var kontakte=[],auftraege=[],nextId=1,anruf=null,anrufT=0,zuhauseT=0;
 var hammerT=0,zellText='',zellStrich=0;
 /* Zuständigkeit wie im echten Leben: der Strafrichter macht die kleinen Sachen,
@@ -335,7 +358,7 @@ function prozessPhase(){
 var flugZiel=null,flugRest=0,gesprText='',gesprOk=null;
 var ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0,kontakte:0,geplatzt:0,
         steuer:0,loehne:0,mieten:0,abgabe:0};
-var NI={cash:0,drops:0,busts:0,combo:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
+var NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
 var NAMEN=['Kalle','Mesut','Sonja','Der Lange','Bine','Ratko','Frau Özdemir','Pit',
  'Jenny','Der Doktor','Ali','Schwester Marion','Uwe','Lucia','Bruno','Tanja',
  'Der Student','Miro','Hanne','Gino','Vera','Schrauber-Olli','Nuri','Elke','Toni',
@@ -370,7 +393,7 @@ function noise(dur,vol,lp){
  var g=a.createGain();g.gain.value=vol;
  s.connect(f);f.connect(g);g.connect(MG);s.start()}
 function sPick(){tone(300,540,0.09,'square',0.10)}
-function sDeliver(n){var b=480*Math.pow(1.06,Math.min(n,8))*(1+ware*0.12);
+function sDeliver(f){var b=480*(1+f*0.35)*(1+packW*0.12);
  tone(b,b*1.5,0.07,'square',0.12);tone(b*2,b*3,0.09,'triangle',0.06,0.055)}
 function sBank(){for(var i=0;i<4;i++)tone(660*Math.pow(1.26,i),0,0.10,'triangle',0.09,i*0.055)}
 function sBust(){noise(0.5,0.28,700);tone(150,45,0.5,'sawtooth',0.16)}
@@ -399,9 +422,9 @@ function setMute(m){
 function save(){try{localStorage.setItem(SKEY,JSON.stringify({
  v:SVER,b:bunker,h:high,m:mute,day:day,xp:xp,ans:ansehen,ware:ware,
  akten:akten,ger:gerichtTag,hb:haftbefehl,haft:haft,vs:vorstrafen,
-  stf:steuerFaellig,stt:steuerTag,nk:nachtKasse,offen:offen,meine:meine,crew:crew,ausland:ausland,
+  stf:steuerFaellig,stt:steuerTag,offen:offen,meine:meine,crew:crew,ausland:ausland,
  proz:prozess,ber:berufungOffen,revOffen:revisionOffen,rev:revision,
- kontakte:kontakte,vorrat:vorrat,lief:lieferant,nid:nextId,
+ kontakte:kontakte,lager:lager,lief:lieferant,nid:nextId,
  st:ST,
  u:UP.map(function(u){return u.lv})}))}catch(e){}}
 function num(v,d){return typeof v==='number'&&isFinite(v)&&v>=0?Math.floor(v):d}
@@ -417,7 +440,10 @@ function load(){
   xp=num(o.xp,0);ware=Math.min(WARE.length-1,num(o.ware,0));
   akten=num(o.akten,0);gerichtTag=num(o.ger,0);
   haftbefehl=!!o.hb;haft=num(o.haft,0);vorstrafen=num(o.vs,0);
-  vorrat=num(o.vorrat,0);nextId=Math.max(1,num(o.nid,1));
+  if(o.lager&&o.lager.length){
+   for(i=0;i<lager.length;i++)lager[i]=num(o.lager[i],0)}
+  else{lager=[0,0,0];lager[ware]=num(o.vorrat,0)}
+  nextId=Math.max(1,num(o.nid,1));
   if(o.st&&typeof o.st==='object')for(var kk in ST)ST[kk]=num(o.st[kk],ST[kk]);
   if(o.u&&o.u.length)for(i=0;i<UP.length&&i<o.u.length;i++)
    UP[i].lv=Math.max(0,Math.min(UP[i].max,num(o.u[i],0)));
@@ -439,7 +465,7 @@ function load(){
    if(o.meine&&typeof o.meine==='object')meine=o.meine;
    if(o.crew&&typeof o.crew==='object')crew=o.crew;
    if(o.ausland&&typeof o.ausland==='object')ausland=o.ausland;
-   steuerFaellig=num(o.stf,0);steuerTag=Math.max(1,num(o.stt,7));nachtKasse=num(o.nk,0);
+   steuerFaellig=num(o.stf,0);steuerTag=Math.max(1,num(o.stt,7));
    if(o.proz&&typeof o.proz==='object'&&GERICHTE[o.proz.g]){
     prozess={g:num(o.proz.g,0),tag:num(o.proz.tag,0),schritt:num(o.proz.schritt,0),
      akten:num(o.proz.akten,1),hb:!!o.proz.hb,plea:o.proz.plea||null,
@@ -460,7 +486,7 @@ function load(){
   }
   baueLief();apply()}
  catch(e){
-  bunker=STARTGELD;high=0;day=1;xp=0;ansehen=0;kontakte=[];vorrat=0;lieferant=0;
+  bunker=STARTGELD;high=0;day=1;xp=0;ansehen=0;kontakte=[];lager=[0,0,0];lieferant=0;
   akten=0;gerichtTag=0;haftbefehl=false;haft=0;vorstrafen=0;meine={};crew={};ausland={};
   offen=[true,false,false,false];apply()}}
 function baueLief(){
@@ -476,11 +502,11 @@ function wipe(){
  akten=0;gerichtTag=0;haftbefehl=false;haft=0;vorstrafen=0;
  steuerFaellig=0;steuerTag=7;offen=[true,false,false,false];
  meine={};crew={};ausland={};kontakte=[];auftraege=[];anruf=null;
- vorrat=0;lieferant=0;nextId=1;phase='tag';dayF=1;
+ lager=[0,0,0];lieferant=0;nextId=1;phase='tag';dayF=1;
  zellText='';zellStrich=0;flugZiel=null;flugRest=0;prozess=null;berufungOffen=false;
  revisionOffen=false;revision=null;
  for(var k in ST)ST[k]=0;
- NI={cash:0,drops:0,busts:0,combo:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
+ NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
  for(var i=0;i<UP.length;i++)UP[i].lv=0;
  baueLief();apply();startKontakte();p=idleP();tagBeginn();ui();hud()}
 
@@ -532,8 +558,8 @@ function palette(){
   COL[k]=dayF<=0?PAL.nacht[k]:(dayF>=1?PAL.tag[k]:mix(PAL.nacht[k],PAL.tag[k],dayF))}
 
 /* ---------- Kontakte und Aufträge ---------- */
-var p,packs,cash,stars,cops,shiftT,jailT,jailPos,flash,flashT,leads,hold=null,
- pulse=0,combo=0,comboT=0,prevStars=0,dispatchT=0,ruhe=0,leadT=0,hinweisT=0,COMBOW=10;
+var p,packs,packW=0,cash,stars,cops,shiftT,jailT,jailPos,flash,flashT,leads,hold=null,
+ pulse=0,prevStars=0,dispatchT=0,ruhe=0,leadT=0,hinweisT=0,versteckT=0;
 var cam={x:0,y:0};
 function idx(val,arr){for(var i=0;i<arr.length;i++)if(Math.abs(val-arr[i])<TOL)return i;return -1}
 function belegt(i,j){
@@ -589,7 +615,9 @@ function anrufAnnehmen(){
  if(!anruf)return;
  if(offeneAuftraege()>=MAXAUF){sNope();return}
  auftraege.push({kid:anruf.kid,n:anruf.n,i:anruf.i,j:anruf.j,v:anruf.v,
-  menge:anruf.menge,offen:anruf.menge,t:Math.min(shiftT,38+Math.random()*40)});
+  menge:anruf.menge,offen:anruf.menge,t:0,frist:0});
+ var na=auftraege[auftraege.length-1];
+ na.frist=Math.min(shiftT,34+anruf.menge*10+Math.random()*16);na.t=na.frist;
  ftxt(p.x,p.y-30,'Zugesagt',COL.star);
  sBuy();anruf=null}
 function offeneAuftraege(){var n=0;
@@ -625,11 +653,10 @@ function nextDay(){
   var ab=Math.round(roh*0.12);
   if(ab>0&&bunker>=ab){bunker-=ab;ST.abgabe=(ST.abgabe||0)+ab;
    tagesBericht.push({t:'Abgabe nach oben',v:'-'+ab+' €',gut:false})}}
- nachtKasse+=roh;
  if(day>=steuerTag){
-  /* Lokale werden voll besteuert, das Nachtgeschaeft schaetzt das Finanzamt. */
-  var neu=Math.round(ertragSumme()*7*steuersatz()+nachtKasse*0.20);
-  nachtKasse=0;
+  /* Besteuert wird nur, was angemeldet ist: die Lokale. Das Nachtgeschaeft
+     steht in keiner Buchhaltung, dafuer geht dort die Abgabe nach oben ab. */
+  var neu=Math.round(ertragSumme()*7*steuersatz());
   steuerFaellig+=neu;steuerTag=day+7;
   if(neu>0)tagesBericht.push({t:'Steuerbescheid',v:neu+' €',gut:false})}}
 function ansehenPlus(n){
@@ -670,11 +697,11 @@ function nightStart(){
  phase='nacht';hold=null;
  var s=bc(HAFEN.i,HAFEN.j),q;
  p={x:s.x,y:YS[HAFEN.j+1],dx:0,dy:0,face:1};
- packs=0;cash=0;stars=0;combo=0;comboT=0;prevStars=0;fx=[];cops=[];leads=[];
- dispatchT=0;ruhe=99;leadT=14;hinweisT=0;
+ packs=0;packW=ware;cash=0;stars=0;prevStars=0;fx=[];cops=[];leads=[];
+ dispatchT=0;ruhe=99;leadT=14;hinweisT=0;versteckT=0;
  auftraege=[];anruf=null;anrufT=5;zuhauseT=0;
  shiftT=NIGHT;jailT=0;jailPos=null;flash=0;freeze=0;shake=0;redV=0;
- NI={cash:0,drops:0,busts:0,combo:0,done:false,start:bunker,erfuellt:0,geplatzt:0,grund:'',crew:0};
+ NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:bunker,erfuellt:0,geplatzt:0,grund:'',crew:0};
  kamera(true);sNight();ui()}
 function nightEnd(grund){
  phase='tag';siren(0);hold=null;
@@ -690,13 +717,15 @@ function nightEnd(grund){
  var l=nCrew('laeufer');
  NI.crewPacks=0;NI.crewAkte=false;
  if(l>0&&grund!=='knast'){
-  var packsL=Math.min(vorrat,l*4);
+  var bw=0,bi;
+  for(bi=0;bi<lager.length;bi++)if(lager[bi]>lager[bw])bw=bi;
+  var packsL=Math.min(lager[bw],l*4);
   if(packsL>0){
-   vorrat-=packsL;
-   var ertrag=Math.round(packsL*WARE[ware].preis);
+   lager[bw]-=packsL;
+   var ertrag=Math.round(packsL*WARE[bw].preis);
    bunker+=ertrag;NI.crew=ertrag;NI.crewPacks=packsL;
    if(Math.random()<0.10*l){akten++;NI.crewAkte=true}}}
- if(packs>0)vorrat+=packs;
+ if(packs>0)lager[packW]+=packs;
  NI.cash=bunker-NI.start;NI.done=true;
  ST.naechte++;ST.drops+=NI.drops;ST.busts+=NI.busts;
  if(NI.cash>ST.best)ST.best=NI.cash;
@@ -751,15 +780,15 @@ function moveCop(o,sp,tx,ty){
  if(o.y<T){o.y=T;o.dy=1;o.cool=0}
  if(o.y>B){o.y=B;o.dy=-1;o.cool=0}}
 function bust(){
- var lost=cash;
+ var lost=cash,lostP=packs;
  NI.busts++;akten++;
  var knast=0;
  if(haftbefehl)knast=2;
  else if(NI.busts>=3)knast=1;
  else if(stars>=4.5)knast=1;
- flashT='Zugriff: '+lost+' € weg';flash=1.9;
+ flashT='Zugriff: '+lost+' € und '+lostP+' Pack weg';flash=2.4;
  ftxt(p.x,p.y-20,'-'+lost+' €','#E2585A');fring(p.x,p.y,44,'#E2585A');
- packs=0;cash=0;combo=0;comboT=0;
+ packs=0;cash=0;
  stars=Math.min(stars,1.2);ruhe=99;hold=null;
  freeze=0.22;kick(14);redV=1;siren(0);sBust();
  for(var i=0;i<cops.length;i++)cops[i].heim=true;
@@ -785,6 +814,12 @@ function kamera(sofort){
  zy=Math.max(0,Math.min(MAPH-VH,zy));
  cam.x+=(zx-cam.x)*0.22;cam.y+=(zy-cam.y)*0.22}
 
+/* Meldungen sind mal kurz, mal lang. Statt sie abzuschneiden, wird die Schrift
+   so weit verkleinert, bis die Zeile in die Breite passt. */
+function passtext(t,px2,py,breite,gr){
+ var g=gr;
+ while(g>8){x.font='500 '+g+'px '+FONT;if(x.measureText(t).width<=breite)break;g--}
+ x.fillText(t,px2,py)}
 function step(){
  pulse+=0.07;if(flash>0)flash-=DT;
  dayF=Math.max(0,Math.min(1,dayF+(phase==='nacht'?-DT/1.2:DT/1.2)));
@@ -825,16 +860,23 @@ function step(){
  kamera();
  if(phase!=='nacht'){siren(0);return}
  var i;
- var kl=bc(HAFEN.i,HAFEN.j),dxl=p.x-kl.x,dyl=p.y-kl.y,amHafen=dxl*dxl+dyl*dyl<48*48;
- if(amHafen&&packs<CAP&&vorrat>0){
-  var nimm=Math.min(CAP-packs,vorrat);
-  packs+=nimm;vorrat-=nimm;
+ var kl=bc(HAFEN.i,HAFEN.j),dxl=p.x-kl.x,dyl=p.y-kl.y,amLager=dxl*dxl+dyl*dyl<48*48;
+ /* Geladen wird immer die Ware, die im Telefon ausgewaehlt ist. Wer schon
+    etwas anderes traegt, muss das erst loswerden. */
+ if(amLager&&packs<CAP&&lager[ware]>0&&(packs===0||packW===ware)){
+  var nimm=Math.min(CAP-packs,lager[ware]);
+  packs+=nimm;lager[ware]-=nimm;packW=ware;
   sPick();fring(kl.x,kl.y,26,'#F0B84B');
   ftxt(kl.x,kl.y-20,nimm+'x '+WARE[ware].n,'#F0C070')}
- else if(amHafen&&vorrat<=0&&hinweisT<=0){
+ else if(amLager&&packs>0&&packW!==ware&&hinweisT<=0){
   hinweisT=4;sNope();
-  ftxt(kl.x,kl.y-20,'Hafen leer','#F09595');
-  flashT='Nichts da. Ware kaufst du tagsüber ein.';flash=2.4}
+  ftxt(kl.x,kl.y-20,'erst '+WARE[packW].n+' los','#F09595');
+  flashT='Du trägst noch '+WARE[packW].n+'. Erst ausliefern.';flash=2.4}
+ else if(amLager&&lager[ware]<=0&&hinweisT<=0){
+  hinweisT=4;sNope();
+  ftxt(kl.x,kl.y-20,'kein '+WARE[ware].n,'#F09595');
+  flashT=lagerSumme()>0?'Von '+WARE[ware].n+' liegt nichts da. Ware im Telefon umstellen.'
+   :'Lager leer. Ware kaufst du tagsüber ein.';flash=2.6}
  var kt=bc(BUNKER.i,BUNKER.j),dxt=p.x-kt.x,dyt=p.y-kt.y;
  if(cash>0&&dxt*dxt+dyt*dyt<48*48){
   bunker+=cash;if(bunker>high)high=bunker;
@@ -848,10 +890,24 @@ function step(){
   var vv=VIERTEL[i].versteck,kvv=bc(vv.i,vv.j),ddx=p.x-kvv.x,ddy=p.y-kvv.y;
   if(ddx*ddx+ddy*ddy<48*48){drin=true;
    ruhe=99;
-   if(stars>0){stars=Math.max(0,stars-1.5*DT);
-    if(Math.random()<0.10)fring(kvv.x,kvv.y,20,'#7FB0F0')}
+   if(stars>0){
+    stars=Math.max(0,stars-1.6*DT);
+    if(Math.random()<0.10)fring(kvv.x,kvv.y,20,'#7FB0F0');
+    if(hinweisT<=0){hinweisT=1.2;
+     ftxt(kvv.x,kvv.y-20,'untergetaucht','#9CC4F0')}}
+   /* Notausgang fuer Bargeld. Der Mann im Versteck bringt es weg, behaelt aber
+      ein Fuenftel. Der lange Weg zum Bunker bringt alles - wenn man ankommt. */
+   versteckT+=DT;
+   if(cash>0&&versteckT>1.2){
+    var netto=Math.round(cash*0.8),geb=cash-netto;
+    bunker+=netto;if(bunker>high)high=bunker;
+    ftxt(kvv.x,kvv.y-22,'+'+netto+' €',COL.cash);
+    ftxt(kvv.x,kvv.y-40,'-'+geb+' € Gebühr','#F0A0A0');
+    fring(kvv.x,kvv.y,30,'#B9B2FF');
+    flashT='Über das Versteck weggebracht · 20 % Gebühr';flash=2.0;
+    kick(2.5);sBank();cash=0;save()}
    break}}
- if(comboT>0){comboT-=DT;if(comboT<=0){comboT=0;combo=0}}
+ if(!drin)versteckT=0;
  for(i=0;i<auftraege.length;i++){
   var a=auftraege[i];
   if(a.offen<=0)continue;
@@ -859,21 +915,22 @@ function step(){
   if(a.t<=0)continue;
   var ka=bc(a.i,a.j),adx=p.x-ka.x,ady=p.y-ka.y;
   if(packs>0&&adx*adx+ady*ady<48*48){
-   var wr=WARE[ware];
-   packs--;a.offen--;combo++;comboT=COMBOW;NI.drops++;
-   if(combo>NI.combo)NI.combo=combo;
-   var pay=Math.round((wr.preis*(1+a.v*0.08)*(1+stars*0.12)
-     +Math.min(combo,5)*8)*PAYM/5)*5;
+   var wr=WARE[packW];
+   /* Statt einer Kombo zaehlt Puenktlichkeit: wer frueh liefert, kriegt mehr.
+      Das passt zu Auftraegen, die zufaellig reinkommen. */
+   var rest=Math.max(0,Math.min(1,a.t/a.frist)),bonus=1+rest*0.30;
+   packs--;a.offen--;NI.drops++;
+   var pay=Math.round(wr.preis*(1+a.v*0.08)*(1+stars*0.12)*bonus*PAYM/5)*5;
    cash+=pay;
    stars=Math.min(5,stars+wr.hitze*(nahWache(a.i,a.j)?1.3:1));
    ruhe=0;
    addXP(Math.round(wr.xp*(1+a.v*0.15)));
    ftxt(ka.x,ka.y-16,'+'+pay+' €',COL.cash);fring(ka.x,ka.y,30,'#FFD9D9');
-   if(combo>1)ftxt(ka.x,ka.y-36,'x'+combo,COL.star);
-   freeze=0.05;kick(2.5);sDeliver(combo);
+   if(rest>0.6){ftxt(ka.x,ka.y-36,'früh dran',COL.star);NI.puenktlich++}
+   freeze=0.05;kick(2.5);sDeliver(rest);
    if(a.offen<=0){
     var kk=kontaktById(a.kid);
-    if(kk)kk.v=Math.min(5,kk.v+0.55);
+    if(kk)kk.v=Math.min(5,kk.v+(rest>0.5?0.75:0.55));
     NI.erfuellt++;addXP(8);ansehen++;
     ftxt(ka.x,ka.y-52,a.n+' zufrieden',COL.cash)}
    break}}
@@ -910,7 +967,7 @@ function step(){
     flashT='Neuer Kontakt: '+neu.n;flash=1.8}}}
  if(Math.floor(stars)>prevStars){sStar();kick(1.5)}
  prevStars=Math.floor(stars);
- var soll=drin?0:((stars>=1||haftbefehl)?Math.min(4,1+Math.floor(stars)):0);
+ var soll=drin?0:((stars>=0.8||haftbefehl)?Math.min(4,1+Math.floor(stars)):0);
  if(dispatchT>0)dispatchT-=DT;
  if(cops.length<soll&&dispatchT<=0){spawnCop();dispatchT=lv('scanner')?3.4:2.2}
  var jagd=false,near=1e9;
@@ -924,11 +981,18 @@ function step(){
    moveCop(o,1.6,w.x,w.y);
    if(Math.abs(o.x-w.x)+Math.abs(o.y-w.y)<14)cops.splice(i,1);
    o.ch=false;continue}
-  var ch=!drin&&(stars>=1||haftbefehl)&&dd<rad;o.ch=ch;
+  var ch=!drin&&(stars>=0.8||haftbefehl)&&dd<rad;o.ch=ch;
   if(ch){jagd=true;if(dd<near)near=dd}
   moveCop(o,1.5+stars*0.22,ch?p.x:null,ch?p.y:null);
   if(dd<15&&!drin&&(packs>0||cash>0)){bust();return}}
- if(jagd)ruhe=0;else ruhe+=DT;
+ /* Wer nachts mit Ware oder Bargeld durch die Stadt laeuft, faellt auf. Das
+    ist die eigentliche Quelle der Fahndung; eine einzelne Lieferung war zu
+    wenig, um je einen Stern zu erreichen. Sauber wird man nur im Bunker
+    (Geld abgeben) oder im Versteck. */
+ var belastet=packs>0||cash>0;
+ if(belastet&&!drin)
+  stars=Math.min(5,stars+WARE[packW].hitze*0.055*DT*(lv('brille')?0.75:1));
+ if(jagd||(belastet&&!drin))ruhe=0;else ruhe+=DT;
  if(ruhe>=RUHEZEIT)stars=Math.max(0,stars-KUEHL*DT);
  var ci=jagd?Math.max(0.25,1-Math.min(near,220)/220):0;
  if(jagd&&near<55)redV=Math.max(redV,0.3+(55-near)/55*0.3);
@@ -1386,9 +1450,10 @@ function stadtSzene(){
     x.fillStyle='#12300B';x.font='500 11px '+FONT;x.fillText('€',0,3);x.restore()}}
   else if(isH){
    x.fillStyle='rgba(0,0,0,0.28)';x.fillRect(bx+9,by+10,BW-18,16);
-   x.fillStyle='#3A2405';x.font='500 11px '+FONT;x.fillText('HAFEN',bx+BW/2,by+BW-8);
-   x.fillStyle=vorrat>0?'#FFE7B0':'#8A6A2A';x.font='600 12px '+FONT;
-   x.fillText(vorrat+'',bx+BW/2,by+22)}
+   x.fillStyle='#3A2405';x.font='500 11px '+FONT;x.fillText('LAGER',bx+BW/2,by+BW-8);
+   var lg=lagerSumme();
+   x.fillStyle=lager[ware]>0?'#FFE7B0':(lg>0?'#C89A4A':'#8A6A2A');
+   x.font='600 12px '+FONT;x.fillText(lg+'',bx+BW/2,by+22)}
   else if(isW){
    x.fillStyle='rgba(255,255,255,0.85)';x.fillRect(bx+BW/2-13,by+8,26,7);
    x.fillStyle=COL.cop;x.fillRect(bx+BW/2-13,by+8,13,7);
@@ -1479,11 +1544,17 @@ function stadtSzene(){
    x.textAlign='right';x.font='600 10px '+FONT;x.fillStyle='#FFD9D9';
    x.fillText('FAHNDUNG AM ANSCHLAG',VW-8,38)}
   for(var st=0;st<5;st++)star(VW-16-st*20,16,8,stars-st);
-  if(combo>1){
-   x.textAlign='left';x.font='600 13px '+FONT;x.fillStyle=COL.star;
-   x.fillText('Kombo x'+combo,10,VH-16);
-   x.fillStyle='rgba(239,159,39,0.25)';x.fillRect(10,VH-11,64,3);
-   x.fillStyle=COL.star;x.fillRect(10,VH-11,64*Math.max(0,comboT/COMBOW),3)}
+  var dr=null,dq;
+  for(dq=0;dq<auftraege.length;dq++){
+   var da=auftraege[dq];
+   if(da.offen>0&&da.t>0&&(!dr||da.t<dr.t))dr=da}
+  if(dr){
+   var fr2=Math.max(0,Math.min(1,dr.t/dr.frist));
+   x.textAlign='left';x.font='600 12px '+FONT;
+   x.fillStyle=fr2<0.3?COL.pin:COL.star;
+   x.fillText(dr.n+' · '+dr.offen+' Pack · '+Math.ceil(dr.t)+' s',10,VH-16);
+   x.fillStyle='rgba(239,159,39,0.22)';x.fillRect(10,VH-11,92,3);
+   x.fillStyle=fr2<0.3?COL.pin:COL.star;x.fillRect(10,VH-11,92*fr2,3)}
   if(anruf){
    var ab=Math.min(1,anruf.t/7);
    x.fillStyle='rgba(12,14,20,0.88)';
@@ -1495,9 +1566,9 @@ function stadtSzene(){
    x.font='400 11px '+FONT;x.fillStyle='#B6BCC6';
    x.fillText('Enter oder antippen: zusagen. Ignorieren kostet nichts.',20,VH-38);
    x.fillStyle=COL.star;x.fillRect(10,VH-30,(VW-20)*ab,2)}
-  if(flash>0){x.textAlign='center';x.font='500 15px '+FONT;
+  if(flash>0){x.textAlign='center';
    x.fillStyle=flashT.charAt(0)==='+'||flashT.charAt(0)==='A'?COL.cash:COL.pin;
-   x.fillText(flashT,VW/2,42)}
+   passtext(flashT,VW/2,42,VW-24,15)}
   if(jailT>0&&freeze<=0){
    x.fillStyle='rgba(0,0,0,0.6)';x.fillRect(0,0,VW,VH);
    x.strokeStyle='#8D939C';x.lineWidth=7;
@@ -1519,12 +1590,13 @@ function tagKarte(){
   z1='Tag '+day+(NI.grund==='knast'?' · Nacht endete in der Zelle':
    (NI.grund==='zuhause'?' · Feierabend gemacht':''));
   z2=(NI.cash>0?'+'+NI.cash+' € letzte Nacht':'Letzte Nacht nichts verdient')+
-   (NI.drops>0?' · '+NI.drops+' Packs':'')+
+   (NI.drops>0?' · '+NI.drops+' Pack':'')+
+   (NI.puenktlich>0?' · '+NI.puenktlich+'× früh dran':'')+
    (NI.geplatzt>0?' · '+NI.geplatzt+' geplatzt':'')}
  else{z1='Tag '+day;z2='Roberto wartet auf den Sonnenuntergang'}
+ /* Steuern, Akten und Termine stehen jetzt oben in der Statuszeile, nicht
+    noch einmal hier drin. */
  if(revision)z2+=revisionFaellig()?' · Post vom BGH':' · Revision bis Tag '+revision.tag;
- if(steuerFaellig>0)z2+=' · Steuern '+steuerFaellig+' € offen';
- else if(akten>0)z2+=' · '+akten+' Akten offen';
  x.globalAlpha=Math.min(1,dayF*1.4);
  x.fillStyle='rgba(16,18,22,0.80)';
  x.beginPath();x.roundRect(8,8,VW-16,46,9);x.fill();
@@ -1532,9 +1604,7 @@ function tagKarte(){
  x.textAlign='left';x.fillStyle='#fff';x.font='600 14px '+FONT;
  x.fillText(z1,18,27);
  x.font='400 11px '+FONT;x.fillStyle='#B6BCC6';
- x.fillText(z2,18,44);
- x.textAlign='right';x.font='400 10px '+FONT;x.fillStyle='rgba(255,255,255,0.55)';
- x.fillText('Pfeiltasten: laufen · Lokal antippen: kaufen',VW-18,44);
+ passtext(z2,18,44,VW-36,11);
  x.globalAlpha=1}
 function figurAn(px,py,face){
  var alt=p;p={x:px,y:py,dx:0,dy:0,face:face||1};
@@ -1796,16 +1866,46 @@ function set(id,v){
 function hud(){
  var r=rang(),naechst=r<RANG.length?RANG[r].xp:RANG[RANG.length-1].xp,
      basis=RANG[r-1].xp,frac=r<RANG.length?(xp-basis)/(naechst-basis):1;
+ var nacht=phase==='nacht';
  set('gbunk',bunker+' €');
- set('gcash',(phase==='nacht'?cash:0)+' €');
- set('glab',phase==='nacht'?'Zeit':'Tag');
- set('gtime',phase==='nacht'?String(Math.max(0,Math.ceil(shiftT))):String(day));
+ set('gcash',(nacht?cash:0)+' €');
+ set('glab',nacht?'Nacht · Tag '+day:'Tag');
+ var sek=Math.max(0,Math.ceil(shiftT));
+ set('gtime',nacht?(Math.floor(sek/60)+':'+(sek%60<10?'0':'')+(sek%60)):String(day));
+ /* Die Nachtleiste zeigt, wie viel Schicht noch uebrig ist. Tags ist sie leer. */
+ var nb=EL.gnbar||(EL.gnbar=document.getElementById('gnbar'));
+ var nw=nacht?Math.round(Math.max(0,Math.min(1,shiftT/NIGHT))*100)+'%':'0%';
+ if(CACHE.nw!==nw){CACHE.nw=nw;nb.firstChild.style.width=nw}
+ nb.style.opacity=nacht?'1':'0.25';
+ chips(nacht);
  set('grang','Rang '+r+' · '+RANG[r-1].n);
  set('gansehen','Ansehen '+ansehen);
  set('gxp',r<RANG.length?(xp+' / '+naechst+' XP'):(xp+' XP · Maximum'));
  var bar=EL.gxpbar||(EL.gxpbar=document.getElementById('gxpbar'));
  var pc=Math.round(Math.max(0,Math.min(1,frac))*100)+'%';
  if(CACHE.xpw!==pc){CACHE.xpw=pc;bar.style.width=pc}}
+
+/* Statuszeile: was gerade zaehlt, in einer Reihe. Frueher stand das verstreut
+   in drei Panels und die Steuer tauchte gar nicht auf, bis sie faellig war. */
+function chip(t,v,cls){
+ return '<span class="chip'+(cls?' '+cls:'')+'">'+t+' <b>'+v+'</b></span>'}
+function chips(nacht){
+ var h='',l=lagerSumme(),ein=ertragSumme(),lo=lohnSumme()+betriebSumme();
+ h+=chip(nacht?'Schicht':'Tagsüber',nacht?'liefern':'aufbauen',nacht?'now':'');
+ h+=chip('Lager',l?lagerText():'leer',l?'ok':'warn');
+ if(nacht&&packs>0)h+=chip('dabei',packs+'× '+WARE[packW].n,'now');
+ if(ein>0)h+=chip('Lokale','+'+ein+' €/Tag','ok');
+ if(lo>0)h+=chip('Kosten','−'+lo+' €/Tag','');
+ if(steuerFaellig>0)h+=chip('Steuer',steuerFaellig+' € offen','warn');
+ else if(ein>0)h+=chip('Steuerbescheid','an Tag '+steuerTag,'');
+ if(akten>0)h+=chip('Akten',String(akten),'warn');
+ if(haftbefehl)h+=chip('Haftbefehl','offen','warn');
+ if(haft>0)h+=chip('Haft',haft+' Tage','warn');
+ else if(prozess)h+=chip('Prozess',GERICHTE[prozess.g].kammer,'warn');
+ else if(revision)h+=chip('Revision','BGH','warn');
+ else if(gerichtTag>0)h+=chip('Gerichtstermin','Tag '+gerichtTag,'warn');
+ var el=EL.chips||(EL.chips=document.getElementById('chips'));
+ if(CACHE.chips!==h){CACHE.chips=h;el.innerHTML=h}}
 
 /* ---------- Oberfläche ---------- */
 function hierKontakte(){var n=0;
@@ -1861,7 +1961,8 @@ function ui(){
  document.getElementById('secszene').style.display=
   (szeneAn||ger||sitzt||letztesUrteil||revision)&&!nacht?'':'none';
  document.getElementById('hint').textContent=nacht
-  ?'Halten zum Laufen. Enter sagt einem Anruf zu, im Versteck macht Leertaste Feierabend.'
+  ?'Halten zum Laufen · Enter sagt einem Anruf zu · im Versteck sinkt die Fahndung, '+
+   'das Bargeld geht mit 20 % Abzug weg, Leertaste macht Feierabend'
   :(phase==='gericht'?'Der Saal ist voll. Was du sagst, steht nachher im Urteil.'
    :(phase==='revision'?'Karlsruhe entscheidet nach Aktenlage, nicht im Saal.'
     :(phase==='zelle'?'Jeder Tag zählt. Manchmal passiert etwas.'
@@ -2062,11 +2163,15 @@ function telefon(){
    '</span></button>'}
  h+='</div><p class="desc">'+lf.d+'</p>';
  h+='<div class="row"><div><p class="name">'+WARE[ware].n+' kaufen</p>'+
-  '<p class="desc">'+pr+' € je Pack · am Hafen liegen <b>'+vorrat+'</b> von '+lf.max+'</p>'+
-  (vorrat===0&&!zu?'<p class="err">Ohne Ware kannst du nachts nichts ausliefern</p>':'')+
+  '<p class="desc">'+pr+' € je Pack · dein Lager: <b>'+lagerSumme()+'</b> von '+lf.max+
+  ' Pack ('+lagerText()+')</p>'+
+  (lagerSumme()===0&&!zu?'<p class="err">Ohne Ware kannst du nachts nichts ausliefern</p>':'')+
   '</div><div class="kaufbtn">'+
   '<button data-buy="1"'+(zu?' disabled':'')+'>+1</button>'+
   '<button data-buy="5"'+(zu?' disabled':'')+'>+5</button></div></div>';
+ h+='<p class="desc">Egal bei wem du kaufst: geliefert wird in dein <b>Lager</b>, '+
+  'den gelben Block auf der Karte. Das Geld liegt im <b>Bunker</b>. Nachts holst '+
+  'du im Lager Ware und bringst den Umsatz in den Bunker.</p>';
  h+='<h3 class="telh">Ausland</h3>';
  for(i=0;i<AUSLAND.length;i++){
   var A=AUSLAND[i],hat=!!ausland[A.k],kann=ansehen>=A.ansehen&&bunker>=A.flug;
@@ -2096,7 +2201,7 @@ function telefon(){
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
   var n=+e.currentTarget.getAttribute('data-l');
   if(rang()<LIEF[n].rang)return;
-  if(vorrat>LIEF[n].max){sNope();return}
+  if(lagerSumme()>LIEF[n].max){sNope();return}
   lieferant=n;audioOK=true;ac();sBuy();save();telefon()});
  bs=el.querySelectorAll('button[data-buy]');
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
@@ -2108,28 +2213,28 @@ function telefon(){
 function kaufen(n){
  if(phase!=='tag'||haft>0)return;
  audioOK=true;ac();
- var lf=LIEF[lieferant],pr=einkaufspreis(),platz=lf.max-vorrat;
+ var lf=LIEF[lieferant],pr=einkaufspreis(),platz=lf.max-lagerSumme();
  n=Math.min(n,platz);
  if(n<=0){sNope();return}
  if(pr*n>bunker)n=Math.floor(bunker/pr);
  if(n<=0){sNope();return}
- bunker-=pr*n;vorrat+=n;
+ bunker-=pr*n;lager[ware]+=n;
  sBuy();save();telefon();kit();hud()}
 function warePicker(){
- var el=document.getElementById('ware'),h='',r=rang(),gesperrt=vorrat>0,i;
+ var el=document.getElementById('ware'),h='',r=rang(),i;
  for(i=0;i<WARE.length;i++){
   var w=WARE[i],fr=r>=w.rang;
-  h+='<button data-w="'+i+'"'+(fr&&!gesperrt?'':' disabled')+
+  h+='<button data-w="'+i+'"'+(fr?'':' disabled')+
    (i===ware&&fr?' class="on"':'')+'><b>'+w.n+'</b><span>'+
-   (fr?w.preis+' € Basis · Hitze '+w.hitze.toFixed(2):'ab Rang '+w.rang)+'</span></button>'}
+   (fr?w.preis+' € · '+lager[i]+' im Lager':'ab Rang '+w.rang)+'</span></button>'}
  el.innerHTML=h;
  document.getElementById('warelab').textContent=
-  gesperrt?'erst die '+vorrat+' Pack loswerden':'Teurer heißt heißer';
+  lagerSumme()?lagerText():'Lager leer';
  var bs=el.querySelectorAll('button');
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
   var n=+e.currentTarget.getAttribute('data-w');
-  if(vorrat>0){sNope();return}
-  if(rang()>=WARE[n].rang){ware=n;audioOK=true;ac();sBuy();save();warePicker();telefon()}})}
+  if(rang()<WARE[n].rang){sNope();return}
+  ware=n;audioOK=true;ac();sBuy();save();warePicker();telefon();kit();hud()})}
 function imperium(){
  var el=document.getElementById('imperium'),h='',i,zu=phase!=='tag'||haft>0;
  document.getElementById('implab').textContent=
@@ -2171,8 +2276,11 @@ function imperium(){
  h+='<h3 class="telh">Finanzamt</h3>';
  h+='<div class="row"><div><p class="name">'+
   (steuerFaellig>0?'Steuerbescheid offen':'Nichts offen')+'</p>'+
-  '<p class="desc">Satz '+Math.round(steuersatz()*100)+' % · nächster Bescheid an Tag '+
-  steuerTag+'</p>'+
+  '<p class="desc">'+Math.round(steuersatz()*100)+' % auf die Lokale · '+
+  (ertragSumme()>0?'derzeit rund '+Math.round(ertragSumme()*7*steuersatz())+' € je Woche'
+   :'ohne Lokale fällt nichts an')+' · nächster Bescheid an Tag '+steuerTag+'</p>'+
+  '<p class="desc">Das Nachtgeschäft steht in keiner Buchhaltung. Besteuert wird nur, '+
+  'was angemeldet ist.</p>'+
   (steuerFaellig>0&&bunker<steuerFaellig
    ?'<p class="err">Dir fehlen '+(steuerFaellig-bunker)+' €. Nicht zahlen bringt zwei Akten.</p>'
    :'')+'</div>'+
@@ -2205,7 +2313,7 @@ function kit(){
   ['Ladung',CAP+' Ware',lv('tasche')>0||lv('auto')>0||nCrew('fahrer')>0],
   ['Auszahlung',Math.round(PAYM*100)+' %',lv('handy')>0],
   ['Sichtbarkeit',Math.round(SICHT*100)+' %',SICHT<1],
-  ['Ware am Hafen',vorrat+' Pack',vorrat>0],
+  ['Lager',lagerText(),lagerSumme()>0],
   ['Kontakte',hierKontakte()+' von '+kontakte.length,hierKontakte()>2],
   ['Lokale',Object.keys(meine).length+' von '+LOKALE.length,ertragSumme()>0],
   ['Personal',(nCrew('laeufer')+nCrew('fahrer')+nCrew('aufpasser')+nCrew('buchhalter'))+
@@ -2364,7 +2472,7 @@ baueLief();
 startKontakte();
 tagBeginn();
 document.getElementById('bmute').textContent=mute?'Ton aus':'Ton an';
-p=idleP();packs=0;cash=0;stars=0;combo=0;cops=[];leads=[];auftraege=[];
+p=idleP();packs=0;packW=0;cash=0;stars=0;cops=[];leads=[];auftraege=[];
 shiftT=NIGHT;jailT=0;flash=0;
 kamera(true);palette();ui();hud();save();requestAnimationFrame(loop);
 })();

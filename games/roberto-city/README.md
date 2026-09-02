@@ -9,8 +9,14 @@ Reines HTML5-Canvas, keine Abhängigkeiten, kein Build. `index.html` doppelklick
 ## Tag und Nacht
 
 **Nacht** ist das Spiel: 90 Sekunden ausliefern, bunkern, der Streife entkommen.
-**Tag** ist alles andere: Ware kaufen, Aufträge annehmen, Viertel freischalten, Lokale
-kaufen, Personal einstellen, Steuern zahlen, und an manchen Tagen vor den Richter.
+**Tag** ist alles andere: Ware kaufen, Viertel freischalten, Lokale kaufen, Personal
+einstellen, Steuern zahlen, und an manchen Tagen vor den Richter.
+
+Über dem Feld steht eine **Statuszeile**: die Phase, was im Lager liegt, was Roberto
+gerade trägt, was die Lokale bringen, was sie kosten, und in Rot alles, was drückt —
+offene Steuern, Akten, Haftbefehl, Prozess, Gerichtstermin. Nachts läuft darüber ein
+Balken für die Restzeit der Schicht, die Uhr rechts zeigt sie als `1:29`. Vorher stand
+das verstreut in drei Reitern, und die Steuer tauchte erst auf, als sie fällig war.
 
 ## Steuerung
 
@@ -108,9 +114,15 @@ die ganze Mannschaft weg.
 | Löhne | Summe der Tagessätze | täglich |
 | Betriebskosten | 1,5 % des Kaufpreises aller Lokale | täglich |
 | Abgabe nach oben | 12 % des Nachtertrags, entfällt als Legende | täglich |
-| Steuerbescheid | 30 % der Lokaleinnahmen der Woche plus 20 % geschätzt auf das Nachtgeschäft, mit Buchhalter 20 % | alle 7 Tage |
+| Steuerbescheid | 30 % der Lokaleinnahmen der Woche, mit Buchhalter 20 % | alle 7 Tage |
 
 Nicht gezahlte Steuern bringen **zwei Akten** und einen um 20 % höheren Bescheid.
+
+**Besteuert wird nur, was angemeldet ist.** Das Finanzamt sieht die Lokale, nicht das
+Nachtgeschäft — vorher schätzte es 20 % auf den Nachtumsatz dazu, was weder zum Rest
+der Fiktion passte noch im Bescheid nachvollziehbar war. Wer ohne Lokale spielt, kriegt
+also nie einen Bescheid. Was der Unterwelt zusteht, holt sie sich selbst: die **Abgabe
+nach oben**, und seit die Streife wirklich fährt, jeder Zugriff.
 
 ## Was die Ökonomie vorher kaputt gemacht hat
 
@@ -192,9 +204,17 @@ Der Bedarf je Stufe wächst um rund das 1,35-fache, nie um das Doppelte: der
 
 | Ware | ab Rang | Basis | Hitze je Lieferung | XP |
 |---|---|---|---|---|
-| Cannabis | 1 | 40 € | 0,28 | 6 |
-| Speed | 4 | 95 € | 0,48 | 14 |
-| Kokain | 8 | 210 € | 0,75 | 30 |
+| Cannabis | 1 | 40 € | 0,40 | 6 |
+| Speed | 4 | 95 € | 0,68 | 14 |
+| Kokain | 8 | 210 € | 1,05 | 30 |
+
+**Jede Ware hat ihr eigenes Fach im Lager.** Umsteigen geht jederzeit, auch mit voller
+Kiste — vorher war der Wechsel gesperrt, solange noch etwas dalag, und weil Restware
+über Nacht liegen bleibt, hieß das in der Praxis: nie. Der Grund für die Sperre war,
+dass billiges Gras beim Wechsel zu teurem Kokain geworden wäre. Getrennte Fächer lösen
+das sauberer. Was Roberto trägt, behält seine Sorte bis zur Übergabe; abgeholt wird
+immer die im Telefon ausgewählte Ware, und wer schon etwas anderes trägt, muss das
+erst loswerden.
 
 ## Telefon, Kontakte, Aufträge
 
@@ -211,22 +231,75 @@ können 2 + Rang/3 Aufträge, mit Zweithandy einer mehr.
 Ein voll erfüllter Auftrag bringt +0,55 Vertrauen, eine **geplatzte Zusage kostet 0,6**
 — mehr, als eine Erfüllung bringt. Zusagen ist also eine Verpflichtung, kein Sammeln.
 
+**Pünktlichkeit statt Kombo.** Jeder Auftrag hat eine Frist von 34 Sekunden plus 10 je
+Pack. Wie viel davon noch übrig ist, zählt: bis **+30 % auf die Auszahlung**, und wer
+über die Hälfte der Frist übrig lässt, bekommt +0,75 Vertrauen statt +0,55. Der
+dringendste Auftrag steht unten links mit Restzeit und Balken.
+
+Vorher gab es dafür eine Kombo, die zehn Sekunden nach jeder Lieferung ablief. Die kann
+nicht funktionieren, seit die Aufträge zufällig per Anruf reinkommen: ob zwei Kunden
+nah beieinander wohnen und ob überhaupt zwei gleichzeitig offen sind, entscheidet der
+Zufall, nicht der Spieler. Eine Frist ist dagegen etwas, das man wirklich einhalten
+kann.
+
 ## Nachschub
 
-Ware kaufst du tagsüber auf eigene Rechnung. Sie liegt am **Hafen** und muss nachts
-dort abgeholt werden. Ist der Hafen leer, ist die Nacht gelaufen. Startkapital sind
-200 €. Was du am Morgen noch am Mann hast, wandert zurück in den Vorrat; verloren geht
-Ware nur beim Zugriff.
+Zwei Orte, zwei Dinge, und die Karte sagt beides:
+
+* **LAGER** (gelb) ist die **Ware**. Egal bei wem du kaufst — Hafen, Tarek, Nadja,
+  Werft oder Amsterdam —, geliefert wird immer dorthin. Die Zahl auf dem Block ist der
+  gesamte Bestand, gelb wenn die ausgewählte Sorte dabei ist.
+* **BUNKER** (violett) ist das **Geld**. Nachts trägst du den Umsatz dorthin.
+
+Der Block hieß vorher HAFEN, obwohl er längst jede Quelle bediente, und im Telefon
+stand weiter „am Hafen liegen …“, auch wenn man bei der Werft kaufte. Das war schlicht
+falsch beschriftet.
+
+Ware kaufst du tagsüber auf eigene Rechnung, Startkapital sind 200 €. Was du am Morgen
+noch am Mann hast, wandert in sein Fach zurück; verloren geht Ware nur beim Zugriff.
 
 ## Fahndung
 
-Die Fahndung fällt nicht dauernd ein bisschen, sondern gar nicht, solange dich ein
-Wagen sieht. Erst wenn dich **6 Sekunden** (mit Funkscanner 3,5) niemand gesehen hat,
-kühlt sie mit 0,5 pro Sekunde ab. Das **Versteck** setzt die Ruhezeit sofort auf null,
-kühlt mit 1,5 pro Sekunde und macht dich unsichtbar — die Uhr läuft trotzdem.
+**Fahndung entsteht nicht durch Lieferungen, sondern durchs Tragen.** Wer nachts mit
+Ware oder Bargeld durch die Stadt läuft, fällt jede Sekunde ein Stück weiter auf — mit
+`Hitze × 0,055` pro Sekunde, bei Cannabis also 0,022, bei Kokain 0,058. Dazu kommt der
+Sprung pro Übergabe (Tabelle oben, an einer Wache × 1,3).
 
-Streifen kommen aus der **Wache des nächstgelegenen offenen Viertels** und fahren
-dorthin zurück. In gesperrte Viertel fahren sie nicht.
+Sauber wird man nur an zwei Orten: im **Bunker** (Geld abgeben senkt die Fahndung um
+einen ganzen Stern) und im **Versteck**. Solange etwas dabei ist, kühlt gar nichts ab.
+Ist man leer, beginnt nach **5 Sekunden** Ruhe (mit Funkscanner 3) das Abkühlen mit
+0,35 pro Sekunde, mit Sonnenbrille 0,46.
+
+Streifen rücken ab **0,8 Sternen** aus, kommen aus der **Wache des nächstgelegenen
+offenen Viertels** und fahren dorthin zurück. In gesperrte Viertel fahren sie nicht.
+
+### Warum die Polizei vorher nie kam
+
+Gemessen, nicht vermutet. Hitze entstand ausschließlich pro Lieferung (+0,28 bei
+Cannabis) und fiel nach 6 Sekunden Ruhe mit 0,5 pro Sekunde. Eine Cannabis-Lieferung
+war damit nach 6,6 Sekunden restlos verschwunden. Seit die Aufträge zufällig alle 10
+bis 18 Sekunden reinkommen, lagen zwischen zwei Übergaben fast immer mehr als 6,6
+Sekunden — die Fahndung erreichte nie einen Stern, und unter einem Stern rückte keine
+Streife aus. Damit war auch das Versteck sinnlos: es hatte nie etwas abzukühlen.
+
+Nach dem Umbau, über je eine volle Nacht im Browser gemessen (Bot ohne Ausrüstung):
+
+| Spielweise | max. Sterne | Ø Sterne | max. Streifen | Nacht mit Streife | Zugriffe |
+|---|---|---|---|---|---|
+| Cannabis, bankt nach jeder Lieferung | 1,41 | 0,15 | 1 | 13 % | 0 |
+| Cannabis, bankt erst ab 300 € | 1,70 | 0,37 | 2 | 39 % | 2 |
+| Kokain, bankt erst ab 900 € | 2,11 | 1,13 | 3 | 71 % | 3 |
+
+Vorsichtig spielen wird belohnt, gierig spielen kostet. Genau das war der Punkt.
+
+### Das Versteck
+
+Es hat jetzt eine eigene Aufgabe, statt nur ein zweites Zuhause zu sein:
+
+* Ruhezeit sofort auf null, Abkühlen mit **1,6 pro Sekunde**, Streifen verlieren dich.
+* Nach 1,2 Sekunden drinnen bringt der Mann im Versteck dein **Bargeld weg — für 20 %**.
+  Der lange Weg zum Bunker bringt alles, wenn man ankommt. Das ist die Entscheidung.
+* **Leertaste** macht Feierabend und beendet die Nacht.
 
 ## Gericht und Haft
 
@@ -371,6 +444,9 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `AUSLAND` / `fliegen()` / `verhandeln()` | Flug, Gespräch, freigeschaltete Lieferanten |
 | `kontakte` / `neuerKontakt()` | benannte Abnehmer, Vertrauen, neue Bekanntschaften |
 | `spawnCop()` / `moveCop()` | Ausrücken aus der nächsten Wache, Verfolgung, Rückfahrt |
+| `lager` / `lagerSumme()` / `packW` | ein Fach je Ware, plus die Sorte, die Roberto trägt |
+| `chips()` | Statuszeile über dem Feld: Phase, Lager, Kosten, Steuer, Verfahren |
+| `passtext()` | verkleinert eine Meldung, bis sie in die Breite passt |
 | `GERICHTE` / `zustaendig()` | drei Instanzen, Besetzung, Verhandlungstage |
 | `prozessWeiter()` | Schritt und Verhandlungstag, Übergang in den nächsten Spieltag |
 | `forderung()` / `urteilSprechen()` | Antrag der Anklage und Strafzumessung |
@@ -388,6 +464,19 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 Jede Prüfung "ist Roberto an diesem Block" muss über 45 liegen. Versteck und
 Kontaktmarker standen einmal auf 44 und waren damit unerreichbar: die Marker
 erschienen, ließen sich aber nicht einsammeln.
+
+**Ein Zähler, der schneller fällt als er steigt, existiert nicht.** Die Fahndung stieg
+nur pro Lieferung um 0,28 und fiel mit 0,5 pro Sekunde — bei einem Ereignisabstand von
+10 bis 18 Sekunden ist der Zähler dauerhaft null, und alles, was daran hängt (Streifen,
+Versteck, Zugriff, Gericht), ist totes Gewicht. Wer die Quelle an ein Ereignis hängt,
+muss die Senke gegen den **tatsächlichen Ereignisabstand** rechnen, nicht gegen das
+Gefühl. Die Lösung war eine zweite Quelle, die nicht am Ereignis hängt: Tragen kostet
+pro Sekunde, und solange etwas dabei ist, läuft die Ruhezeit gar nicht erst an.
+
+**Wer eine Senke entfernt, verschiebt die ganze Bilanz.** Die 20 % geschätzte Steuer
+auf das Nachtgeschäft waren im späten Spiel rund 600 €/Tag. Sie fällt weg, weil sie
+inhaltlich nicht zu tragen war — dafür ist der Zugriff jetzt eine echte Senke. Dass
+das rechnerisch aufgeht, ist ausdrücklich nicht gemessen, siehe „Offen".
 
 **Wer einen Timer in `step()` laufen lässt, muss die Oberfläche selbst nachziehen.**
 `ui()` läuft nur bei Zustandswechseln, nicht pro Frame. Der Landeknopf beim Flug hing
@@ -441,13 +530,19 @@ Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als Fehler. Mi
   aus. Ob 120 000 € für den Marina Club zum Ertrag passen, ob Steuern und Löhne den
   Lokalgewinn richtig bremsen, ob 150 Ansehen für den Villenhang erreichbar sind, ohne
   zu grinden: alles geschätzt, nichts gemessen.
-- **Kokain ist hart an der Grenze.** Im Messlauf war die Fahndung nach zwei Sekunden am
-  Anschlag. Der Testbot nutzt allerdings weder Versteck noch Rückzug.
+- **Kokain ist hart an der Grenze.** Im Messlauf endete die Nacht dreimal von drei
+  Läufen im Zugriff, auch mit voller Ausrüstung. Der Testbot läuft allerdings in
+  geraden Linien und nutzt weder Versteck noch Rückzug — ein Mensch hat Werkzeuge, die
+  er nicht anfasst. Ungetestet bleibt es trotzdem.
 - **Kein Zwischenspeichern innerhalb einer Nacht.** Tab zu heißt laufende Schicht weg.
 - **Läufer arbeiten pauschal.** Sie räumen vier Packs zum Grundpreis ab, statt gezielt
   zugesagte Aufträge zu bedienen. Rechnerisch stimmt es jetzt, inhaltlich noch nicht.
 - **Die Ökonomie bleibt inflationär**, siehe den eigenen Abschnitt. Von 5–9 auf 2,0
-  gesenkt, gesund wären 1,0.
+  gesenkt, gesund wären 1,0. Der Wegfall der Nachtsteuer nimmt im späten Spiel rund
+  600 €/Tag Senke heraus; dagegen stehen die Zugriffe, die es vorher praktisch nicht
+  gab, und die 20 % Gebühr im Versteck. Gemessen ist das noch nicht — eine
+  Mittelspiel-Nacht (Rang 6, ein Lokal, ein Läufer, 14 Pack Einkauf) endete mit
+  +688 € über Nacht und Tagesabrechnung, bei zwei Zugriffen.
 - **Overload bei gleichzeitigen Ereignissen** bleibt bei 1/2 aus dem Feel-Pass.
 
 ## Ideenliste
