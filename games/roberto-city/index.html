@@ -706,10 +706,10 @@ function nightEnd(grund){
  p=idleP();cash=0;packs=0;
  tagBeginn();save();ui()}
 function halt(dx,dy){
- if(phase==='tag'){hold={dx:dx,dy:dy};return}   /* am Tag schiebt es die Kamera */
- if(phase!=='nacht')return;
+ if(phase!=='nacht'&&phase!=='tag')return;
  audioOK=true;ac();
- if(jailT>0&&freeze<=0){jailT=Math.max(0,jailT-0.09);sTick();kick(0.8);return}
+ if(phase==='nacht'&&jailT>0&&freeze<=0){
+  jailT=Math.max(0,jailT-0.09);sTick();kick(0.8);return}
  hold={dx:dx,dy:dy}}
 function feierabend(){
  if(phase!=='nacht'||!zuhauseT)return;
@@ -767,16 +767,23 @@ function bust(){
  jailT=1.2;
  var s=bc(HAFEN.i,HAFEN.j);jailPos={x:s.x,y:YS[HAFEN.j+1]};
  save()}
+var TOTZONE=0.25;
 function kamera(sofort){
- var zx=Math.max(0,Math.min(MAPW-VW,p.x-VW/2)),
-     zy=Math.max(0,Math.min(MAPH-VH,p.y-VH/2));
- if(sofort){cam.x=zx;cam.y=zy}
- else{cam.x+=(zx-cam.x)*0.14;cam.y+=(zy-cam.y)*0.14}}
-function kameraTag(){
- /* Tagsüber schiebt man die Karte selbst, um Lokale zu suchen. */
- if(!hold)return;
- cam.x=Math.max(0,Math.min(MAPW-VW,cam.x+hold.dx*5.5));
- cam.y=Math.max(0,Math.min(MAPH-VH,cam.y+hold.dy*5.5))}
+ if(sofort){
+  cam.x=Math.max(0,Math.min(MAPW-VW,p.x-VW/2));
+  cam.y=Math.max(0,Math.min(MAPH-VH,p.y-VH/2));return}
+ /* Totzone: solange Roberto im mittleren Bereich läuft, steht die Karte still
+    und man sieht ihn wirklich laufen. Erst am Rand zieht die Kamera nach. */
+ var lx=cam.x+VW*TOTZONE,rx=cam.x+VW*(1-TOTZONE),
+     oy=cam.y+VH*TOTZONE,uy=cam.y+VH*(1-TOTZONE),
+     zx=cam.x,zy=cam.y;
+ if(p.x<lx)zx=cam.x-(lx-p.x);
+ else if(p.x>rx)zx=cam.x+(p.x-rx);
+ if(p.y<oy)zy=cam.y-(oy-p.y);
+ else if(p.y>uy)zy=cam.y+(p.y-uy);
+ zx=Math.max(0,Math.min(MAPW-VW,zx));
+ zy=Math.max(0,Math.min(MAPH-VH,zy));
+ cam.x+=(zx-cam.x)*0.22;cam.y+=(zy-cam.y)*0.22}
 
 function step(){
  pulse+=0.07;if(flash>0)flash-=DT;
@@ -786,14 +793,15 @@ function step(){
   /* Ohne dieses ui() bleibt der Landeknopf gesperrt und der Flug endet nie. */
   if(flugRest<=0){flugRest=0;ui()}}
  palette();stepFx();
- if(phase!=='nacht'){siren(0);if(phase==='tag')kameraTag();return}
- if(freeze>0){
-  freeze-=DT;
-  if(freeze<=0&&jailPos){
-   p.x=jailPos.x;p.y=jailPos.y;p.dx=0;p.dy=0;p.ldx=1;p.ldy=0;p.face=1;jailPos=null}
-  kamera();return}
- if(jailT>0){jailT=Math.max(0,jailT-DT);kamera();return}
- /* Bewegung nur solange gehalten wird. */
+ if(phase!=='nacht'&&phase!=='tag'){siren(0);hold=null;return}
+ if(phase==='nacht'){
+  if(freeze>0){
+   freeze-=DT;
+   if(freeze<=0&&jailPos){
+    p.x=jailPos.x;p.y=jailPos.y;p.dx=0;p.dy=0;p.ldx=1;p.ldy=0;p.face=1;jailPos=null}
+   kamera();return}
+  if(jailT>0){jailT=Math.max(0,jailT-DT);kamera();return}}
+ /* Bewegung nur solange gehalten wird. Gilt tags wie nachts. */
  if(hold){
   var d=hold,r,c2;
   if(d.dx){r=idx(p.y,YS);
@@ -814,6 +822,8 @@ function step(){
   if(p.dx||p.dy){p.ldx=p.dx;p.ldy=p.dy}}
  else{p.dx=0;p.dy=0}
  if(hinweisT>0)hinweisT-=DT;
+ kamera();
+ if(phase!=='nacht'){siren(0);return}
  var i;
  var kl=bc(HAFEN.i,HAFEN.j),dxl=p.x-kl.x,dyl=p.y-kl.y,amHafen=dxl*dxl+dyl*dyl<48*48;
  if(amHafen&&packs<CAP&&vorrat>0){
@@ -923,7 +933,6 @@ function step(){
  var ci=jagd?Math.max(0.25,1-Math.min(near,220)/220):0;
  if(jagd&&near<55)redV=Math.max(redV,0.3+(55-near)/55*0.3);
  siren(ci);
- kamera();
  shiftT-=DT;
  if(shiftT<=0){shiftT=0;nightEnd('feierabend')}}
 
@@ -1525,7 +1534,7 @@ function tagKarte(){
  x.font='400 11px '+FONT;x.fillStyle='#B6BCC6';
  x.fillText(z2,18,44);
  x.textAlign='right';x.font='400 10px '+FONT;x.fillStyle='rgba(255,255,255,0.55)';
- x.fillText('Pfeiltasten schieben die Karte',VW-18,44);
+ x.fillText('Pfeiltasten: laufen · Lokal antippen: kaufen',VW-18,44);
  x.globalAlpha=1}
 function figurAn(px,py,face){
  var alt=p;p={x:px,y:py,dx:0,dy:0,face:face||1};
@@ -1860,7 +1869,7 @@ function ui(){
      :(phase==='gespraech'?'Drei Wege. Einer kann den Flug verbrennen.'
       :(ger?'Erscheinen kostet Geld. Nicht erscheinen kostet mehr.'
        :(sitzt?'Du musst deine Tage noch absitzen.'
-        :'Leertaste startet die Nacht. Pfeiltasten schieben die Karte, '+
+        :'Leertaste startet die Nacht. Pfeiltasten halten, um Roberto zu bewegen, '+
         'ein Tipp auf ein Lokal kauft es.')))))));
  szene();telefon();warePicker();imperium();kit();shop()}
 function szene(){

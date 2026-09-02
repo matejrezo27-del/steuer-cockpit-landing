@@ -20,7 +20,7 @@ Finger auf dem Feld ziehen.
 
 | Taste | nachts | tagsüber |
 |---|---|---|
-| Pfeiltasten | laufen, solange gehalten | schieben die Karte |
+| Pfeiltasten | laufen, solange gehalten | laufen, solange gehalten |
 | Enter | einem Anruf zusagen | — |
 | Leertaste | im Versteck Feierabend machen | Nacht beginnen |
 | `M` | Ton | Ton |
@@ -33,9 +33,19 @@ Kreuzung. Ohne diese gepufferte Kurve müsste man jede Abzweigung auf den Pixel 
 ## Die Stadt
 
 Ein Raster aus **8 × 8 Blöcken**, 780 × 780 Pixel, rund fünfmal so groß wie das alte
-Spielfeld. Das Sichtfenster bleibt 360 × 440, die **Kamera folgt Roberto** und stößt an
-den Stadtmauern an. Tagsüber schiebst du die Karte selbst mit den Pfeiltasten, um Lokale
-zu suchen und anzuklicken.
+Spielfeld. Das Sichtfenster bleibt 360 × 440.
+
+Die Kamera hat eine **Totzone**: solange Roberto im mittleren Bereich läuft, steht die
+Karte still und man sieht ihn wirklich über den Bildschirm gehen. Erst wenn er in den
+äußeren Rand kommt, zieht die Karte nach, und an den Stadtmauern läuft er wieder frei
+bis zum Bildrand. Ohne Totzone klebt die Kamera auf der Figur, und dann bewegt sich
+optisch die Welt statt der Figur.
+
+Gemessen beim Halten von "rechts": Bildschirmposition 166 → 228 → 274 → 280, dort
+übernimmt die Kamera. 114 Pixel sichtbarer Lauf, bevor die Karte überhaupt reagiert.
+
+Roberto läuft **auch tagsüber**, nur ohne Streifen, Aufträge und Uhr. So kommst du zu
+den Lokalen, die du anklicken willst.
 
 Das **Versteck jedes Viertels ist Robertos Zuhause**. Wer hineingeht, kühlt die Fahndung
 und kann mit der Leertaste **Feierabend machen** — die Nacht endet dann sofort, mit
@@ -352,7 +362,7 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 |---|---|
 | `VIERTEL` / `offen` / `qvon()` | Viertel, Freischaltung, Zugehörigkeit eines Blocks |
 | `passierbar()` / `zaun()` | Sperre an der Viertelgrenze, sichtbar und wirksam |
-| `kamera()` / `kameraTag()` | Sichtfenster, nachts folgend, tagsüber selbst geschoben |
+| `kamera()` / `TOTZONE` | Sichtfenster mit Totzone, damit die Figur läuft und nicht die Welt |
 | `neuerAnruf()` / `anrufAnnehmen()` | nächtliche Aufträge per Anruf |
 | `feierabend()` | Nacht im Versteck beenden |
 | `setTab()` | vier Reiter statt einer langen Seite |
