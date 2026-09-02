@@ -153,27 +153,54 @@ schon drinsteckst:
 | Fahndung stand bei fünf Sternen | **1 Tag Haft**, die Nacht ist sofort vorbei |
 | Offener Haftbefehl | **2 Tage Haft**, die Nacht ist sofort vorbei |
 
-Knast gibt es also nicht erst beim Prozess. Aus den Akten wird trotzdem ein Verfahren.
+Aus den Akten wird ein Verfahren. Drei Tage nach der ersten Akte steht der Termin.
 
-1. Beim ersten Eintrag wird ein Termin auf **Tag + 3** gesetzt.
-2. Am Termin ersetzt das Amtsgericht die Tagesansicht. Zwei Knöpfe.
-3. **Zum Gericht**: der Richter urteilt nach Aktenlage.
+### Der Gerichtssaal
 
-| Akten | Geldstrafe | Haft |
-|---|---|---|
-| 1 | 180 € | keine |
-| 2 bis 3 | 260 € je Akte | keine |
-| 4 bis 5 | 300 € je Akte | 2 Tage |
-| ab 6 | 350 € je Akte | 4 Tage |
+Der Prozess ist eine eigene Szene, kein Knopf. Saal 2, Richter hinter der Bank, die
+Anklage links, Roberto rechts. Drei Schritte:
 
-Der **Anwalt** halbiert die Geldstrafe und nimmt einen Hafttag weg. Reicht der Bunker
+**1. Anklageverlesung.** Wie viele Fälle, ob ein Haftbefehl dazukommt, und wie viele
+Vorstrafen aktenkundig sind.
+
+**2. Einlassung.** Hier entscheidest du:
+
+| Einlassung | Wirkung |
+|---|---|
+| **Gestehen** | Strafe auf 65 %, ein Hafttag weniger. Verurteilung ist sicher. |
+| **Schweigen** | Das Gericht urteilt nach Aktenlage. |
+| **Bestreiten** | Mit Anwalt 45 % Chance auf **Freispruch** ohne Vorstrafe. Sonst 35 % mehr Strafe und ein Tag drauf. |
+
+**3. Urteil.** Der Hammer fällt, das Urteil steht.
+
+Grundstrafe nach Aktenlage: 180 € bei einem Fall, 260 € je Fall bei zwei bis drei,
+300 € und zwei Tage bei vier bis fünf, ab sechs 350 € je Fall und vier Tage.
+
+**Vorstrafen** bleiben. Jede erhöht die Geldstrafe um 22 %, je zwei bringen einen
+zusätzlichen Hafttag. Zwei Fälle kosten ohne Vorstrafe 520 €, mit drei Vorstrafen
+860 € und einen Tag Haft. Ein Freispruch zählt nicht als Vorstrafe.
+
+Der **Anwalt** halbiert die Geldstrafe und nimmt einen Hafttag. Reicht der Bunker
 nicht, wandelt das Gericht je angefangene 400 € in einen weiteren Hafttag um.
 
-4. **Nicht hingehen**: Haftbefehl, eine Akte mehr, Termin zwei Tage später. Mit
-   Haftbefehl jagen die Streifen ab null Sternen und die Festnahme dauert doppelt so
-   lang. Beim nächsten Prozess zählen zwei Akten extra.
-5. **Haft** heißt aussetzen. Der einzige Knopf ist "Tag verstreichen lassen", der Shop
-   ist zu, der Bunker bleibt unangetastet.
+**Nicht hingehen** bringt einen Haftbefehl, eine Akte mehr und einen Termin zwei Tage
+später. Mit Haftbefehl jagen die Streifen ab null Sternen, und beim nächsten Prozess
+zählen zwei Akten extra.
+
+### Die Zelle
+
+Haft ist ebenfalls eine eigene Szene: Pritsche, vergittertes Fenster, Gittertür und
+eine Strichliste an der Wand, die mit jedem abgesessenen Tag wächst. Der einzige Knopf
+heißt "Tag absitzen", der Shop hat zu, der Bunker bleibt unangetastet.
+
+Jeder Tag würfelt ein Ereignis:
+
+| Ereignis | Wirkung |
+|---|---|
+| Ein Tag wie der andere | nichts |
+| Hofgang | ein neuer Kontakt draußen |
+| Ärger im Trakt | ein Tag mehr |
+| Besuch vom Anwalt | ein Tag weniger, nur mit Anwalt |
 
 ## Ausrüstung
 
@@ -205,11 +232,18 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `tagBeginn()` / `telefon()` | Tagesangebote und die Telefonoberfläche |
 | `LIEF` / `kaufen()` | Lieferanten, Einkaufspreise, Vorrat am Hafen |
 | `spawnCop()` / `moveCop()` | Ausrücken aus der Wache, Verfolgung, Rückfahrt |
-| `urteil()` / `zumGericht()` | Strafzumessung, Haft, Haftbefehl |
 | `roberto()` / `auto()` | Figur samt sichtbarer Ausrüstung |
 | `mauer()` | geschlossene Umrandung |
+| `gerichtSzene()` / `zelleSzene()` | Gerichtssaal und Zelle als eigene Bilder |
+| `urteil()` / `einlassung()` | Strafzumessung, Einlassung, Vorstrafen |
 | `loop()` | feste Schrittweite, entkoppelt von der Bildwiederholrate |
 | `save()` / `load()` | Fortschritt im `localStorage`, versioniert und migriert |
+
+**Der Radius 48 ist kein runder Wert, sondern Geometrie.** Eine Blockmitte liegt
+`CELL/2` = 45 px von der nächstgelegenen Fahrspur entfernt, denn Roberto fährt auf den
+Kanten, nicht durch die Häuser. Jede Prüfung "ist Roberto an diesem Block" muss also
+über 45 liegen. Versteck und Kontaktmarker standen eine Zeit lang auf 44 und waren
+damit unerreichbar: die Marker erschienen, ließen sich aber nicht einsammeln.
 
 Der `cool`-Zähler in `moveCop()` ist kein Schmuck: ohne ihn gilt ein Wagen mehrere
 Frames lang als "an der Kreuzung", setzt sich jedes Mal zurück und zappelt auf der
