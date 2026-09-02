@@ -41,14 +41,27 @@ Kreuzung. Ohne diese gepufferte Kurve müsste man jede Abzweigung auf den Pixel 
 Ein Raster aus **8 × 8 Blöcken**, 780 × 780 Pixel, rund fünfmal so groß wie das alte
 Spielfeld. Das Sichtfenster bleibt 360 × 440.
 
-Die Kamera hat eine **Totzone**: solange Roberto im mittleren Bereich läuft, steht die
-Karte still und man sieht ihn wirklich über den Bildschirm gehen. Erst wenn er in den
-äußeren Rand kommt, zieht die Karte nach, und an den Stadtmauern läuft er wieder frei
-bis zum Bildrand. Ohne Totzone klebt die Kamera auf der Figur, und dann bewegt sich
-optisch die Welt statt der Figur.
+**Der Zoom richtet sich danach, wie viel Stadt offen ist.** Er wird so weit
+herausgezogen, dass der freigeschaltete Teil ins Bild passt — bis zur Grenze von 0,68,
+darunter würden die Beschriftungen unlesbar. Passt alles hinein, steht die Karte still
+und nur Roberto läuft. Passt es nicht mehr, **geht die Kamera mit ihm mit** und hält
+ihn mittig.
 
-Gemessen beim Halten von "rechts": Bildschirmposition 166 → 228 → 274 → 280, dort
-übernimmt die Kamera. 114 Pixel sichtbarer Lauf, bevor die Karte überhaupt reagiert.
+| offen | Zoom | sichtbar | Kamera |
+|---|---|---|---|
+| Altstadt | 0,92 | 390 × 477 von 390 × 390 | steht still, alle 16 Blöcke im Bild |
+| zwei Viertel | 0,68 | 529 × 647 von 780 × 390 | folgt waagerecht, senkrecht mittig |
+| alle vier | 0,68 | 529 × 647 von 780 × 780 | folgt Roberto in beide Richtungen |
+
+Gemessen beim Halten von "rechts" auf der vollen Karte: Roberto läuft von 165 auf 540
+Weltpixel, die Kamera zieht von 0 auf 251 mit, und er steht dabei bei Bildschirm-x 197
+von 360 — also durchgehend mittig.
+
+Vorher stand eine **Totzone** von 25 % darin: die Karte blieb stehen, bis Roberto den
+äußeren Rand erreichte. Das löste zwar das Problem, dass sich optisch die Welt statt
+der Figur bewegt, ließ aber bei nur einem offenen Viertel drei Viertel der Altstadt
+außerhalb des Bildes. Der Zoom löst beides auf einmal: früh sieht man alles, spät
+folgt die Kamera.
 
 Roberto läuft **auch tagsüber**, nur ohne Streifen, Aufträge und Uhr. So kommst du zu
 den Lokalen, die du anklicken willst.
@@ -435,7 +448,7 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 |---|---|
 | `VIERTEL` / `offen` / `qvon()` | Viertel, Freischaltung, Zugehörigkeit eines Blocks |
 | `passierbar()` / `zaun()` | Sperre an der Viertelgrenze, sichtbar und wirksam |
-| `kamera()` / `TOTZONE` | Sichtfenster mit Totzone, damit die Figur läuft und nicht die Welt |
+| `kamera()` / `offenRahmen()` | Zoom auf den offenen Teil, Kamera folgt erst, wenn es nicht mehr passt |
 | `neuerAnruf()` / `anrufAnnehmen()` | nächtliche Aufträge per Anruf |
 | `feierabend()` | Nacht im Versteck beenden |
 | `setTab()` | vier Reiter statt einer langen Seite |

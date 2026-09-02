@@ -796,23 +796,33 @@ function bust(){
  jailT=1.2;
  var s=bc(HAFEN.i,HAFEN.j);jailPos={x:s.x,y:YS[HAFEN.j+1]};
  save()}
-var TOTZONE=0.25;
+/* Der Ausschnitt richtet sich danach, wie viel Stadt offen ist. Passt alles
+   hinein, steht die Karte still und nur Roberto läuft. Wird die Stadt größer,
+   geht die Kamera mit ihm mit, statt ihn erst am Bildrand einzuholen. */
+var ZMIN=0.68,zoom=1,sichtW=VW,sichtH=VH;
+function offenRahmen(){
+ var l=1e9,o=1e9,r=-1e9,u=-1e9,q;
+ for(q=0;q<4;q++){
+  if(!offen[q])continue;
+  var R=qRect(q);
+  if(R.x<l)l=R.x;
+  if(R.y<o)o=R.y;
+  if(R.x+R.w>r)r=R.x+R.w;
+  if(R.y+R.h>u)u=R.y+R.h}
+ if(l>r)return{x:0,y:0,w:MAPW,h:MAPH};
+ return{x:l,y:o,w:r-l,h:u-o}}
 function kamera(sofort){
- if(sofort){
-  cam.x=Math.max(0,Math.min(MAPW-VW,p.x-VW/2));
-  cam.y=Math.max(0,Math.min(MAPH-VH,p.y-VH/2));return}
- /* Totzone: solange Roberto im mittleren Bereich läuft, steht die Karte still
-    und man sieht ihn wirklich laufen. Erst am Rand zieht die Kamera nach. */
- var lx=cam.x+VW*TOTZONE,rx=cam.x+VW*(1-TOTZONE),
-     oy=cam.y+VH*TOTZONE,uy=cam.y+VH*(1-TOTZONE),
-     zx=cam.x,zy=cam.y;
- if(p.x<lx)zx=cam.x-(lx-p.x);
- else if(p.x>rx)zx=cam.x+(p.x-rx);
- if(p.y<oy)zy=cam.y-(oy-p.y);
- else if(p.y>uy)zy=cam.y+(p.y-uy);
- zx=Math.max(0,Math.min(MAPW-VW,zx));
- zy=Math.max(0,Math.min(MAPH-VH,zy));
- cam.x+=(zx-cam.x)*0.22;cam.y+=(zy-cam.y)*0.22}
+ var R=offenRahmen();
+ var ziel=Math.max(ZMIN,Math.min(1,Math.min(VW/R.w,VH/R.h)));
+ zoom=sofort?ziel:zoom+(ziel-zoom)*0.10;
+ sichtW=VW/zoom;sichtH=VH/zoom;
+ var zx,zy;
+ if(R.w<=sichtW)zx=R.x+(R.w-sichtW)/2;
+ else zx=Math.max(R.x,Math.min(R.x+R.w-sichtW,p.x-sichtW/2));
+ if(R.h<=sichtH)zy=R.y+(R.h-sichtH)/2;
+ else zy=Math.max(R.y,Math.min(R.y+R.h-sichtH,p.y-sichtH/2));
+ if(sofort){cam.x=zx;cam.y=zy;return}
+ cam.x+=(zx-cam.x)*0.20;cam.y+=(zy-cam.y)*0.20}
 
 /* Meldungen sind mal kurz, mal lang. Statt sie abzuschneiden, wird die Schrift
    so weit verkleinert, bis die Zeile in die Breite passt. */
@@ -1412,15 +1422,17 @@ function stadtSzene(){
  var i,j,q,BW=CELL-36;
  x.save();
  if(shake>0){var a=Math.random()*6.3,m=shake*0.6;x.translate(Math.cos(a)*m,Math.sin(a)*m)}
- x.translate(-Math.round(cam.x),-Math.round(cam.y));
- x.fillStyle=COL.road;x.fillRect(-40,-40,MAPW+80,MAPH+80);
+ x.scale(zoom,zoom);
+ x.translate(-Math.round(cam.x*zoom)/zoom,-Math.round(cam.y*zoom)/zoom);
+ x.fillStyle=COL.road;
+ x.fillRect(cam.x-CELL,cam.y-CELL,sichtW+CELL*2,sichtH+CELL*2);
  x.strokeStyle=COL.lane;x.lineWidth=1;x.setLineDash([6,8]);
  for(i=0;i<XS.length;i++){x.beginPath();x.moveTo(XS[i],YS[0]);x.lineTo(XS[i],YS[ROWS]);x.stroke()}
  for(j=0;j<YS.length;j++){x.beginPath();x.moveTo(XS[0],YS[j]);x.lineTo(XS[COLS],YS[j]);x.stroke()}
  x.setLineDash([]);
  for(i=0;i<COLS;i++)for(j=0;j<ROWS;j++){
   var bx=XS[i]+18,by=YS[j]+18;
-  if(bx-cam.x<-CELL||bx-cam.x>VW+CELL||by-cam.y<-CELL||by-cam.y>VH+CELL)continue;
+  if(bx-cam.x<-CELL||bx-cam.x>sichtW+CELL||by-cam.y<-CELL||by-cam.y>sichtH+CELL)continue;
   if(!frei(i,j))continue;
   var isH=(i===HAFEN.i&&j===HAFEN.j),isB=(i===BUNKER.i&&j===BUNKER.j),
       isF=(i===FLUGHAFEN.i&&j===FLUGHAFEN.j),isW=false,isV=false,lok=null,tg=null,lead=null,m2;
@@ -1900,7 +1912,7 @@ function chips(nacht){
  else if(ein>0)h+=chip('Steuerbescheid','an Tag '+steuerTag,'');
  if(akten>0)h+=chip('Akten',String(akten),'warn');
  if(haftbefehl)h+=chip('Haftbefehl','offen','warn');
- if(haft>0)h+=chip('Haft',haft+' Tage','warn');
+ if(haft>0)h+=chip('Haft',haft+(haft===1?' Tag':' Tage'),'warn');
  else if(prozess)h+=chip('Prozess',GERICHTE[prozess.g].kammer,'warn');
  else if(revision)h+=chip('Revision','BGH','warn');
  else if(gerichtTag>0)h+=chip('Gerichtstermin','Tag '+gerichtTag,'warn');
@@ -2419,7 +2431,7 @@ function canvasPos(e){
  var r=c.getBoundingClientRect();
  return{x:(e.clientX-r.left)/r.width*VW,y:(e.clientY-r.top)/r.height*VH}}
 function blockUnter(cp){
- var wx=cp.x+cam.x,wy=cp.y+cam.y,
+ var wx=cp.x/zoom+cam.x,wy=cp.y/zoom+cam.y,
      i=Math.floor((wx-MARG)/CELL),j=Math.floor((wy-MARG)/CELL);
  if(i<0||j<0||i>=COLS||j>=ROWS)return null;
  return{i:i,j:j}}
