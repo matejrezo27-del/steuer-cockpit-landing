@@ -112,13 +112,47 @@ Karte** — tagsüber die Karte mit den Pfeiltasten hinschieben und den Laden an
 
 | Rolle | ab Ansehen | Lohn am Tag | Wirkung |
 |---|---|---|---|
-| Läufer (bis 4) | 5 | 60 € | arbeitet nachts vier Packs zum Grundpreis ab, 10 % Risiko einer Akte |
+| Läufer (bis 4) | 5 | 60 € | läuft nachts mit, +1 Auftrag gleichzeitig |
 | Fahrer | 15 | 200 € | +2 Ware pro Ladung |
-| Aufpasser | 30 | 250 € | Streifen erkennen dich 15 % später |
+| Aufpasser | 30 | 250 € | Streifen erkennen dich 15 % später, Läufer fliegen seltener auf |
 | Buchhalter | 45 | 300 € | Steuersatz 10 Punkte niedriger |
 
 Löhne werden **jeden Tag** abgezogen. Reicht der Bunker nicht, ist am nächsten Morgen
 die ganze Mannschaft weg.
+
+#### Läufer laufen wirklich mit
+
+Sie standen vorher nicht auf der Karte. Beim Morgengrauen räumten sie pauschal vier
+Packs Restware ab — und wer sauber spielt, hat morgens nichts liegen. Also taten sie
+sichtbar nichts und kosteten nur Lohn.
+
+Jetzt sind sie nachts als graue Figuren unterwegs und arbeiten dieselbe Schleife wie
+Roberto: **im Lager laden** (3 Pack, die im Telefon ausgewählte Ware), **zu einem
+zugesagten Auftrag laufen**, abliefern, zurück. Das Geld geht direkt in den Bunker. Sie
+bekommen keinen Sternbonus und keinen Pünktlichkeitsaufschlag — sie liefern nur ab —,
+und **eine Streife kann sie aufgreifen**: Ware weg, eine Akte für dich, 14 Sekunden
+raus. Der Aufpasser drückt dieses Risiko von 0,75 auf 0,35 pro Sekunde in Reichweite.
+
+Zwei Dinge mussten sich dafür ändern, beide gemessen:
+
+* **Erledigte Aufträge blieben ewig in der Liste**, weil ihr Zeitzähler erst nach dem
+  `offen`-Test lief. Sie werden jetzt entfernt.
+* **Die Anrufrate hing an nichts.** Alle 10 bis 18 Sekunden ein Anruf, egal wie groß
+  der Laden war — damit war die *Nachfrage* der Deckel, nicht das Personal. Im Test
+  stand der zweite Läufer die halbe Nacht mit voller Tasche da, weil es keinen zweiten
+  Auftrag gab. Jetzt teilt sich das Intervall durch `1 + Kontakte × 0,10 + Läufer ×
+  0,30`, und `MAXAUF` steigt um einen je Läufer: mehr Leute heißt mehr Betrieb.
+
+Gemessen über eine Nacht, Mittelspiel mit sechs Kontakten und zwei Läufern, Roberto
+steht still:
+
+| | vorher | nach dem Umbau |
+|---|---|---|
+| von Läufern geliefert | 4 Pack / 170 € | **13 Pack / 650 €** |
+| Proben mit Ware, aber ohne Auftrag | 166 von 168 | 84 von 173 |
+
+Bei 120 € Lohn und rund 182 € Wareneinsatz bleiben so etwa **350 € je Nacht** übrig,
+bei Kokain ein Vielfaches. Vorher war es ein Minusgeschäft.
 
 ### Laufende Kosten
 
@@ -544,6 +578,7 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `AUSLAND` / `fliegen()` / `verhandeln()` | Flug, Gespräch, freigeschaltete Lieferanten |
 | `kontakte` / `neuerKontakt()` | benannte Abnehmer, Vertrauen, neue Bekanntschaften |
 | `spawnCop()` / `moveCop()` | Ausrücken aus der nächsten Wache, Verfolgung, Rückfahrt |
+| `stepCrew()` / `gehZu()` / `auftragFuer()` | Läufer holen Ware und beliefern Aufträge |
 | `lager` / `lagerSumme()` / `packW` | ein Fach je Ware, plus die Sorte, die Roberto trägt |
 | `chips()` | Statuszeile über dem Feld: Phase, Lager, Kosten, Steuer, Verfahren |
 | `passtext()` | verkleinert eine Meldung, bis sie in die Breite passt |
@@ -639,8 +674,9 @@ Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als Fehler. Mi
   geraden Linien und nutzt weder Versteck noch Rückzug — ein Mensch hat Werkzeuge, die
   er nicht anfasst. Ungetestet bleibt es trotzdem.
 - **Kein Zwischenspeichern innerhalb einer Nacht.** Tab zu heißt laufende Schicht weg.
-- **Läufer arbeiten pauschal.** Sie räumen vier Packs zum Grundpreis ab, statt gezielt
-  zugesagte Aufträge zu bedienen. Rechnerisch stimmt es jetzt, inhaltlich noch nicht.
+- **Läufer nehmen keine eigenen Kontakte auf.** Sie bedienen nur, was Roberto zugesagt
+  hat, plus verfallene Anrufe. Ein eigener Kundenstamm je Mitarbeiter wäre der nächste
+  Schritt.
 - **Die Ökonomie bleibt inflationär**, siehe den eigenen Abschnitt. Von 5–9 auf 2,0
   gesenkt, gesund wären 1,0. Der Wegfall der Nachtsteuer nimmt im späten Spiel rund
   600 €/Tag Senke heraus; dagegen stehen die Zugriffe, die es vorher praktisch nicht

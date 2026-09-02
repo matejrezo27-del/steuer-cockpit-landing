@@ -282,9 +282,9 @@ var LOKALE=[
  {k:'marina',n:'Marina Club',q:3,i:5,j:7,preis:120000,ertrag:5640}];
 var meine={};
 var ROLLEN=[
- {k:'laeufer',n:'Läufer',d:'Arbeitet nachts vier Packs zum Grundpreis ab',lohn:60,ansehen:5,max:4},
+ {k:'laeufer',n:'Läufer',d:'Läuft nachts mit: holt Ware und beliefert Aufträge',lohn:60,ansehen:5,max:4},
  {k:'fahrer',n:'Fahrer',d:'+2 Ware pro Ladung',lohn:200,ansehen:15,max:1},
- {k:'aufpasser',n:'Aufpasser',d:'Streifen erkennen dich 15 % später',lohn:250,ansehen:30,max:1},
+ {k:'aufpasser',n:'Aufpasser',d:'Streifen erkennen dich 15 % später, Läufer fliegen seltener auf',lohn:250,ansehen:30,max:1},
  {k:'buchhalter',n:'Buchhalter',d:'Steuersatz 10 Punkte niedriger',lohn:300,ansehen:45,max:1}];
 var crew={};
 function nCrew(k){return crew[k]||0}
@@ -397,7 +397,7 @@ function apply(){
  SICHT=(lv('kapuze')?0.75:1)*(lv('auto')?1.4:1)*(nCrew('aufpasser')?0.85:1);
  KUEHL=0.35*(lv('brille')?1.3:1);
  RUHEZEIT=lv('scanner')?3:5;
- MAXAUF=2+Math.floor(rang()/3)+(lv('handy')?1:0)}
+ MAXAUF=2+Math.floor(rang()/3)+(lv('handy')?1:0)+nCrew('laeufer')}
 
 /* ---------- Fortschritt ---------- */
 var bunker=STARTGELD,high=0,mute=false,day=1,xp=0,ansehen=0,
@@ -444,7 +444,8 @@ function prozessPhase(){
 var flugZiel=null,flugRest=0,gesprText='',gesprOk=null;
 var ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0,kontakte:0,geplatzt:0,
         steuer:0,loehne:0,mieten:0,abgabe:0,zinsen:0};
-var NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
+var NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,
+        grund:'',crew:0,crewPacks:0,crewAkte:false};
 var NAMEN=['Kalle','Mesut','Sonja','Der Lange','Bine','Ratko','Frau Özdemir','Pit',
  'Jenny','Der Doktor','Ali','Schwester Marion','Uwe','Lucia','Bruno','Tanja',
  'Der Student','Miro','Hanne','Gino','Vera','Schrauber-Olli','Nuri','Elke','Toni',
@@ -602,7 +603,8 @@ function wipe(){
  revisionOffen=false;revision=null;
  schuldB=0;schuldS=0;pleiteB=0;pleiteS=0;antrittTag=0;bewaehrung=null;verteidiger=false;
  for(var k in ST)ST[k]=0;
- NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,grund:'',crew:0};
+ NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,
+     grund:'',crew:0,crewPacks:0,crewAkte:false};
  for(var i=0;i<UP.length;i++)UP[i].lv=0;
  baueLief();apply();startKontakte();p=idleP();tagBeginn();ui();hud()}
 
@@ -707,15 +709,16 @@ function neuerAnruf(){
  var k3=pool[Math.floor(Math.random()*pool.length)];
  return{kid:k3.id,n:k3.n,i:k3.i,j:k3.j,v:k3.v,
   menge:1+Math.floor(Math.random()*(1+Math.min(2,Math.floor(k3.v)))),t:7}}
-function anrufAnnehmen(){
+function anrufAnnehmen(auto){
  if(!anruf)return;
- if(offeneAuftraege()>=MAXAUF){sNope();return}
+ if(!auto&&offeneAuftraege()>=MAXAUF){sNope();return}
  auftraege.push({kid:anruf.kid,n:anruf.n,i:anruf.i,j:anruf.j,v:anruf.v,
   menge:anruf.menge,offen:anruf.menge,t:0,frist:0});
  var na=auftraege[auftraege.length-1];
  na.frist=Math.min(shiftT,34+anruf.menge*10+Math.random()*16);na.t=na.frist;
- ftxt(p.x,p.y-30,'Zugesagt',COL.star);
- sBuy();anruf=null}
+ if(auto)ftxt(p.x,p.y-30,'Läufer übernimmt','#9CE08A');
+ else{ftxt(p.x,p.y-30,'Zugesagt',COL.star);sBuy()}
+ anruf=null}
 function offeneAuftraege(){var n=0;
  for(var q=0;q<auftraege.length;q++)if(auftraege[q].offen>0&&auftraege[q].t>0)n++;return n}
 function einkaufspreis(){return Math.max(5,Math.round(WARE[ware].preis*LIEF[lieferant].faktor/5)*5)}
@@ -740,7 +743,10 @@ function nextDay(){
   if(bunker>=bk){bunker-=bk;tagesBericht.push({t:'Betriebskosten',v:'-'+bk+' €',gut:false})}
   else tagesBericht.push({t:'Betriebskosten',v:'nicht gedeckt',gut:false})}
  if(NI.crewPacks>0)
-  tagesBericht.push({t:'Läufer · '+NI.crewPacks+' Pack',v:'+'+NI.crew+' €',gut:true});
+  tagesBericht.push({t:'Läufer haben '+NI.crewPacks+' Pack geliefert',
+   v:'+'+NI.crew+' €',gut:true});
+ else if(nCrew('laeufer')>0&&ST.naechte>0)
+  tagesBericht.push({t:'Läufer ohne Arbeit',v:'kein Nachschub im Lager',gut:false});
  if(NI.crewAkte)
   tagesBericht.push({t:'Läufer erwischt',v:'eine Akte',gut:false});
  /* Wer nicht ganz oben steht, gibt nach oben ab. Als Legende behältst du alles. */
@@ -777,6 +783,110 @@ function addXP(n){
 
 /* ---------- Nacht ---------- */
 function idleP(){var k=bc(HAFEN.i,HAFEN.j);return{x:k.x,y:YS[HAFEN.j+1],dx:0,dy:0,face:1}}
+
+/* ---------- Läufer ---------- */
+/* Sie räumten vorher beim Morgengrauen pauschal Restware ab. Wer sauber
+   spielt, hat morgens aber nichts liegen — also taten sie sichtbar nichts und
+   kosteten nur Lohn. Jetzt laufen sie die Nacht über wirklich mit: Ware im
+   Lager holen, an zugesagte Aufträge liefern, und sie können auffliegen. */
+var mitarbeiter=[],SPDL=2.3,CAPL=3;
+function mkLaeufer(){
+ var k=bc(HAFEN.i,HAFEN.j);
+ return{x:k.x,y:YS[HAFEN.j+1],dx:0,dy:0,face:1,packs:0,w:0,
+        ziel:null,zustand:'lager',raus:0,leer:0}}
+function crewAufstellen(){
+ mitarbeiter=[];
+ var n=nCrew('laeufer');
+ for(var i=0;i<n;i++){
+  var m=mkLaeufer();
+  /* Nur fürs Auge versetzt, sonst stehen sie am Lager exakt übereinander. */
+  m.off=(i-(n-1)/2)*10;
+  mitarbeiter.push(m)}}
+function freierLaeufer(){
+ for(var i=0;i<mitarbeiter.length;i++){
+  var m=mitarbeiter[i];
+  if(m.raus<=0&&!m.ziel)return true}
+ return false}
+function gehZu(o,tx,ty,sp){
+ /* Erst auf eine Spalte, dann auf die Zielreihe, dann waagerecht ans Ziel.
+    Anders als Roberto brauchen sie keine gepufferte Kurve, nur einen Weg. */
+ var c=idx(o.x,XS),r=idx(o.y,YS),d,i;
+ if(r>=0&&Math.abs(o.y-ty)<1){
+  d=tx-o.x;
+  if(Math.abs(d)<=sp){o.x=tx;o.dx=0;return true}
+  o.dx=d>0?1:-1;o.dy=0;o.face=o.dx;
+  if(passierbar(o.x+sp*o.dx,o.y))o.x+=sp*o.dx;
+  return false}
+ if(c>=0){
+  d=ty-o.y;
+  if(Math.abs(d)<=sp){o.y=ty;o.dy=0;return false}
+  o.dy=d>0?1:-1;o.dx=0;
+  if(passierbar(o.x,o.y+sp*o.dy))o.y+=sp*o.dy;
+  return false}
+ var nx=XS[0];
+ for(i=0;i<XS.length;i++)if(Math.abs(XS[i]-o.x)<Math.abs(nx-o.x))nx=XS[i];
+ d=nx-o.x;
+ o.dx=d>0?1:-1;o.dy=0;o.face=o.dx;
+ if(Math.abs(d)<=sp)o.x=nx;else o.x+=sp*o.dx;
+ return false}
+function auftragFuer(m){
+ var best=null,bd=1e9,i,q;
+ for(i=0;i<auftraege.length;i++){
+  var a=auftraege[i];
+  if(a.offen<=0||a.t<=0)continue;
+  var belegt=false;
+  for(q=0;q<mitarbeiter.length;q++)
+   if(mitarbeiter[q]!==m&&mitarbeiter[q].ziel===a)belegt=true;
+  if(belegt)continue;
+  var k=bc(a.i,a.j),d=Math.abs(k.x-m.x)+Math.abs(k.y-m.y);
+  if(d<bd){bd=d;best=a}}
+ return best}
+function stepCrew(){
+ var i,q;
+ for(i=0;i<mitarbeiter.length;i++){
+  var m=mitarbeiter[i];
+  if(m.raus>0){m.raus-=DT;continue}
+  /* Streifen greifen auch Läufer auf, egal ob sie gerade liefern oder warten.
+     Dafür ist der Aufpasser da. */
+  if(m.packs>0){
+   var erwischt=false;
+   for(q=0;q<cops.length;q++){
+    var o=cops[q],ddx=o.x-m.x,ddy=o.y-m.y;
+    if(ddx*ddx+ddy*ddy<22*22&&Math.random()<(nCrew('aufpasser')?0.35:0.75)*DT){
+     akten++;NI.crewAkte=true;m.packs=0;m.ziel=null;m.raus=14;erwischt=true;
+     ftxt(m.x,m.y-20,'aufgegriffen','#F09595');fring(m.x,m.y,26,'#E2585A');
+     break}}
+   if(erwischt)continue}
+  if(m.packs<=0){
+   /* Nachschub holen. Er nimmt die Ware, die im Telefon ausgewählt ist. */
+   m.ziel=null;
+   var kl=bc(HAFEN.i,HAFEN.j);
+   if(gehZu(m,kl.x,YS[HAFEN.j+1],SPDL)){
+    var nimm=Math.min(CAPL,lager[ware]);
+    if(nimm>0){
+     lager[ware]-=nimm;m.packs=nimm;m.w=ware;m.leer=0;
+     ftxt(m.x,m.y-18,nimm+'x','#C8D8E8')}
+    else if(m.leer<=0){m.leer=6;ftxt(m.x,m.y-18,'Lager leer','#8A9099')}
+    else m.leer-=DT}
+   continue}
+  var a=m.ziel;
+  if(!a||a.offen<=0||a.t<=0){a=auftragFuer(m);m.ziel=a}
+  if(!a)continue;
+  var ka=bc(a.i,a.j);
+  if(gehZu(m,ka.x,YS[a.j+1],SPDL)){
+   var wr=WARE[m.w];
+   m.packs--;a.offen--;NI.drops++;NI.crewPacks++;
+   /* Ohne Sternbonus und ohne Pünktlichkeit: der Läufer liefert nur ab. */
+   var pay=Math.round(wr.preis*(1+a.v*0.08)*PAYM/5)*5;
+   bunker+=pay;NI.crew+=pay;
+   ftxt(ka.x,ka.y-16,'+'+pay+' €','#9CE08A');fring(ka.x,ka.y,24,'#7BC96F');
+   addXP(Math.round(wr.xp*0.4));
+   if(a.offen<=0){
+    var kk=kontaktById(a.kid);
+    if(kk)kk.v=Math.min(5,kk.v+0.4);
+    NI.erfuellt++;ansehen++;
+    ftxt(ka.x,ka.y-34,a.n+' bedient','#9CE08A')}
+   if(m.packs<=0)m.ziel=null}}}
 function mkcop(px2,py,dx,dy,q){return{x:px2,y:py,dx:dx,dy:dy,cool:0,ch:false,heim:false,q:q}}
 function wachePos(q){var w=VIERTEL[q].wache;return{x:XS[w.i]+CELL/2,y:YS[w.j+1]}}
 function naechsteWache(){
@@ -798,9 +908,11 @@ function nightStart(){
  p={x:s.x,y:YS[HAFEN.j+1],dx:0,dy:0,face:1};
  packs=0;packW=ware;cash=0;stars=0;prevStars=0;fx=[];cops=[];leads=[];
  dispatchT=0;ruhe=99;leadT=14;hinweisT=0;versteckT=0;
+ crewAufstellen();
  auftraege=[];anruf=null;anrufT=5;zuhauseT=0;
  shiftT=NIGHT;jailT=0;jailPos=null;flash=0;freeze=0;shake=0;redV=0;
- NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:bunker,erfuellt:0,geplatzt:0,grund:'',crew:0};
+ NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:bunker,erfuellt:0,geplatzt:0,
+     grund:'',crew:0,crewPacks:0,crewAkte:false};
  kamera(true);sNight();ui()}
 function nightEnd(grund){
  phase='tag';siren(0);hold=null;
@@ -812,18 +924,11 @@ function nightEnd(grund){
   var k=kontaktById(a.kid);
   if(k){k.v=Math.max(0,k.v-0.6);NI.geplatzt++;ST.geplatzt++}}
  auftraege=[];
- /* Läufer arbeiten die Nacht über selbstständig, solange Ware da ist. */
- var l=nCrew('laeufer');
- NI.crewPacks=0;NI.crewAkte=false;
- if(l>0&&grund!=='knast'){
-  var bw=0,bi;
-  for(bi=0;bi<lager.length;bi++)if(lager[bi]>lager[bw])bw=bi;
-  var packsL=Math.min(lager[bw],l*4);
-  if(packsL>0){
-   lager[bw]-=packsL;
-   var ertrag=Math.round(packsL*WARE[bw].preis);
-   bunker+=ertrag;NI.crew=ertrag;NI.crewPacks=packsL;
-   if(Math.random()<0.10*l){akten++;NI.crewAkte=true}}}
+ /* Was die Läufer noch tragen, kommt zurück in sein Fach. */
+ for(q=0;q<mitarbeiter.length;q++){
+  var m2=mitarbeiter[q];
+  if(m2.packs>0)lager[m2.w]+=m2.packs}
+ mitarbeiter=[];
  if(packs>0)lager[packW]+=packs;
  NI.cash=bunker-NI.start;NI.done=true;
  ST.naechte++;ST.drops+=NI.drops;ST.busts+=NI.busts;
@@ -1017,9 +1122,11 @@ function step(){
     kick(2.5);sBank();cash=0;save()}
    break}}
  if(!drin)versteckT=0;
+ /* Erledigte Aufträge raus, sonst wächst die Liste die ganze Nacht und die
+    Läufer suchen sich an Leichen dumm. */
+ for(i=auftraege.length-1;i>=0;i--)if(auftraege[i].offen<=0)auftraege.splice(i,1);
  for(i=0;i<auftraege.length;i++){
   var a=auftraege[i];
-  if(a.offen<=0)continue;
   a.t-=DT;
   if(a.t<=0)continue;
   var ka=bc(a.i,a.j),adx=p.x-ka.x,ady=p.y-ka.y;
@@ -1052,12 +1159,19 @@ function step(){
  /* Anrufe */
  if(anruf){
   anruf.t-=DT;
-  if(anruf.t<=0)anruf=null}
+  if(anruf.t<=0){
+   /* Was Roberto verfallen lässt, nimmt ein freier Läufer mit. Dafür hat man
+      schließlich Personal: es erweitert die Kapazität, statt sie zu teilen. */
+   if(freierLaeufer()&&auftraege.length<MAXAUF+nCrew('laeufer'))anrufAnnehmen(true);
+   anruf=null}}
  else{
   anrufT-=DT;
   if(anrufT<=0){
    if(offeneAuftraege()<MAXAUF){anruf=neuerAnruf();if(anruf)sStar()}
-   anrufT=10+Math.random()*8}}
+   /* Wer mehr Leute kennt und Läufer bezahlt, bei dem klingelt es öfter.
+      Vorher kam alle 10 bis 18 Sekunden ein Anruf, egal wie groß der Laden
+      war — damit war die Nachfrage der Deckel und Personal sinnlos. */
+   anrufT=(10+Math.random()*8)/(1+hierKontakte()*0.10+nCrew('laeufer')*0.30)}}
  leadT-=DT;
  if(leadT<=0&&!leads.length){
   var fb=freieBloecke();
@@ -1098,6 +1212,7 @@ function step(){
     ist die eigentliche Quelle der Fahndung; eine einzelne Lieferung war zu
     wenig, um je einen Stern zu erreichen. Sauber wird man nur im Bunker
     (Geld abgeben) oder im Versteck. */
+ stepCrew();
  var belastet=packs>0||cash>0;
  if(belastet&&!drin)
   stars=Math.min(5,stars+WARE[packW].hitze*0.055*DT*(lv('brille')?0.75:1));
@@ -1536,6 +1651,24 @@ function roberto(){
   x.beginPath();x.roundRect(9,31,17,7,2.5);x.fill();x.stroke()}
  x.restore();x.restore();
  if(packs>0)pouch(p.x+(p.face>0?6:-17),p.y-2+bob,12)}
+function laeuferFigur(m){
+ /* Kleiner als Roberto und in Grau: man soll sie unterscheiden können. */
+ var bob=Math.sin(pulse*1.6+m.x*0.05)*1.2;
+ if(m.raus>0){
+  x.globalAlpha=0.35;
+  x.fillStyle='#6C7481';x.beginPath();x.arc(m.x+(m.off||0),m.y-6,5,0,6.3);x.fill();
+  x.globalAlpha=1;return}
+ x.save();x.translate(m.x+(m.off||0),m.y+bob);x.scale(m.face<0?-1:1,1);
+ x.strokeStyle=COL.line;x.lineWidth=1.6;x.lineJoin='round';
+ x.fillStyle='#5F6B7A';
+ x.beginPath();x.moveTo(-6,6);x.lineTo(-4,-6);x.lineTo(6,-5);x.lineTo(6,6);
+ x.closePath();x.fill();x.stroke();
+ x.fillStyle=COL.skin;
+ x.beginPath();x.arc(1,-11,5.4,0,6.3);x.fill();x.stroke();
+ x.fillStyle='#2A2320';
+ x.beginPath();x.arc(1,-12.5,5.4,Math.PI,0);x.fill();
+ x.restore();
+ if(m.packs>0)pouch(m.x+(m.off||0)+(m.face>0?5:-13),m.y-4,9)}
 function copcar(o){
  if(o.ch){var g=1+Math.sin(pulse*4)*0.12;
   x.globalAlpha=0.26;x.fillStyle=COL.pin;
@@ -1703,7 +1836,9 @@ function stadtSzene(){
   x.fillStyle='#8A9099';
   x.beginPath();x.roundRect(R.x+R.w/2-12,R.y+R.h/2-36,24,18,3);x.fill()}
  zaun();mauer();
- if(phase==='nacht')for(i=0;i<cops.length;i++)copcar(cops[i]);
+ if(phase==='nacht'){
+  for(i=0;i<mitarbeiter.length;i++)laeuferFigur(mitarbeiter[i]);
+  for(i=0;i<cops.length;i++)copcar(cops[i])}
  roberto();
  drawFx();
  x.restore();
@@ -2076,6 +2211,12 @@ function chips(nacht){
  h+=chip(nacht?'Schicht':'Tagsüber',nacht?'liefern':'aufbauen',nacht?'now':'');
  h+=chip('Lager',l?lagerText():'leer',l?'ok':'warn');
  if(nacht&&packs>0)h+=chip('dabei',packs+'× '+WARE[packW].n,'now');
+ if(nacht&&mitarbeiter.length){
+  var tr=0,dr=0,qq;
+  for(qq=0;qq<mitarbeiter.length;qq++){
+   if(mitarbeiter[qq].raus>0)dr++;else tr+=mitarbeiter[qq].packs}
+  h+=chip('Läufer',mitarbeiter.length-dr+' unterwegs'+(tr?' · '+tr+' Pack':'')+
+   (dr?' · '+dr+' aufgegriffen':''),dr?'warn':'ok')}
  if(ein>0)h+=chip('Lokale','+'+ein+' €/Tag','ok');
  if(lo>0)h+=chip('Kosten','−'+lo+' €/Tag','');
  if(schuldSumme()>0)h+=chip('Schulden',schuldSumme()+' €','warn');
@@ -2418,7 +2559,9 @@ function telefon(){
  h+='<h3 class="telh">Aufträge</h3>';
  h+='<p class="desc">Aufträge kommen nachts per Anruf, nicht mehr tagsüber. '+
   'Wer dir vertraut, meldet sich öfter und bestellt mehr. Du kannst bis zu <b>'+MAXAUF+
-  '</b> gleichzeitig offen haben. Ein Anruf, den du ignorierst, kostet nichts. '+
+  '</b> gleichzeitig offen haben'+(nCrew('laeufer')?', davon '+nCrew('laeufer')+
+   ' dank deiner Läufer':'')+'. Ein Anruf, den du ignorierst, kostet nichts — '+
+  'einen verfallenen nimmt ein freier Läufer mit. '+
   'Eine Zusage, die du nicht lieferst, kostet 0,6 Vertrauen.</p>';
  h+='<h3 class="telh">Kontakte</h3>';
  var meineK=[];
@@ -2595,6 +2738,8 @@ function kit(){
   ['Lokale',Object.keys(meine).length+' von '+LOKALE.length,ertragSumme()>0],
   ['Personal',(nCrew('laeufer')+nCrew('fahrer')+nCrew('aufpasser')+nCrew('buchhalter'))+
    ' · '+lohnSumme()+' €/Tag',lohnSumme()>0],
+  ['Läufer letzte Nacht',NI.crewPacks>0?NI.crewPacks+' Pack · '+NI.crew+' €'
+   :(nCrew('laeufer')?'nichts geliefert':'keine'),NI.crewPacks>0],
   ['Offene Akten',String(akten)+(haftbefehl?' + Haftbefehl':''),false],
   ['Vorstrafen',String(vorstrafen),false],
   ['Verfahren',prozess?GERICHTE[prozess.g].kammer+' · Tag '+(prozess.tag+1)+'/'+
