@@ -103,6 +103,15 @@ h2{font-size:16px;font-weight:500;margin:0}
 .kv span:first-child{font-size:13px;color:var(--muted)}
 .kv span:last-child{font-size:14px;font-variant-numeric:tabular-nums}
 .kv .up{color:var(--green)}
+.bil{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+ padding:6px 0;border-bottom:1px solid var(--edge);font-size:14px}
+.bil span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.bil.plus span:last-child{color:var(--green)}
+.bil.minus span:last-child{color:var(--red)}
+.bil.grau span{color:var(--muted);font-size:13px}
+.bil.summe{border-bottom:0;border-top:2px solid var(--edge);margin-top:4px;
+ padding-top:9px;font-size:17px;font-weight:500}
+.bil.summe span:last-child{font-size:19px}
 .kv .warn{color:var(--red)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;
  padding:10px 0;border-bottom:1px solid var(--edge)}
@@ -182,6 +191,11 @@ footer{font-size:12px;color:var(--muted);margin:20px 0 8px;line-height:1.6}
 <div class="sec" id="secszene" style="display:none">
 <div class="shead"><h2 id="szenekopf">Szene</h2><span class="lab" id="szenelab"></span></div>
 <div class="szene" id="szenetext"></div>
+</div>
+
+<div class="sec" id="secbilanz" style="display:none">
+<div class="shead"><h2>Tagesabschluss</h2><span class="lab" id="bilanzlab"></span></div>
+<div id="bilanz"></div>
 </div>
 
 <div class="sec" id="secware">
@@ -322,7 +336,11 @@ function steuersatz(){return Math.max(0.05,0.30-(nCrew('buchhalter')?0.10:0))}
    Der Zins läuft täglich auf die Restschuld und wird sofort abgebucht; die
    Schuld selbst bleibt stehen, bis du tilgst. */
 var schuldB=0,schuldS=0,pleiteB=0,pleiteS=0;
-var ZINSS=0.12;
+/* Wer bedient, wird billiger: je drei saubere Tage ein Fünftelpunkt weniger,
+   bis zu einem Punkt. Ein Zahlungsausfall setzt das zurück. */
+var treue=0,ZINSS=0.09;
+var kommission=0,kommSchuld=0;
+var pleiteTage=0,gameOver=null;
 function lokalWert(){var s=0,i;
  for(i=0;i<LOKALE.length;i++)if(meine[LOKALE[i].k])s+=LOKALE[i].preis;return s}
 function bonitaet(){
@@ -332,7 +350,9 @@ function bonitaet(){
  var b=lokalWert()/1200+ST.steuer/1500+(nCrew('buchhalter')?12:0)
       -(steuerFaellig>0?18:0)-akten*6-vorstrafen*14-(haftbefehl?20:0);
  return Math.max(0,Math.min(100,Math.round(b)))}
-function zinsB(){return Math.max(0.012,0.030-bonitaet()/100*0.018)}
+function zinsB(){
+ return Math.max(0.008,0.030-bonitaet()/100*0.018-Math.min(3,Math.floor(treue/3))*0.002)}
+function zinsS(){return Math.max(0.05,ZINSS-Math.min(3,Math.floor(treue/4))*0.01)}
 function limitB(){var b=bonitaet();return b<20?0:Math.round(b*b*9/100)*100}
 function limitS(){var n=hierKontakte();
  return n<2?0:Math.round((ansehen*60+n*400)/100)*100}
@@ -384,14 +404,61 @@ function betragVon(k){
  if(!el)return 0;
  var n=Math.floor(+el.value);
  return isFinite(n)&&n>0?n:0}
+function umschulden(){
+ /* Teure Straßenschuld mit billigem Bankgeld ablösen. 3 % Gebühr, und der
+    Rahmen muss reichen - genau dafür baut man Bonität auf. */
+ if(phase!=='tag'||inHaft()||schuldS<=0)return;
+ var platz=limitB()-schuldB,geb=Math.ceil(schuldS*0.03),n=Math.min(schuldS,platz-geb);
+ if(n<=0||platz<=geb){sNope();return}
+ audioOK=true;ac();
+ schuldS-=n;schuldB+=n+geb;pleiteS=0;
+ flashT='Umgeschuldet · '+geb+' € Gebühr';flash=2.2;
+ sGross();save();ui();hud()}
+function kommMax(){
+ /* Ware auf Kommission gibt es nur, wenn wirklich nichts mehr da ist, und nur
+    von Leuten, die dich kennen. Das ist das Netz nach einem Zugriff. */
+ if(lagerSumme()>0||kommSchuld>0)return 0;
+ var n=hierKontakte();
+ if(n<2)return 0;
+ return Math.min(10,2+Math.floor(ansehen/25)+n)}
+function kommNehmen(){
+ var n=kommMax();
+ if(phase!=='tag'||inHaft()||n<=0)return;
+ audioOK=true;ac();
+ var pr=Math.round(einkaufspreis()*1.6/5)*5;
+ lager[ware]+=n;kommission=n;kommSchuld=pr*n;
+ flashT=n+'× '+WARE[ware].n+' auf Kommission';flash=2.4;
+ sBuy();save();ui();hud()}
+function pleitePruefen(){
+ /* Pleite ist kein einzelner schlechter Tag. Erst wenn drei Tage lang nichts
+    mehr zu holen ist und die Schulden alles übersteigen, ist Schluss. */
+ var werte=lokalWert()+bunker+lagerSumme()*40;
+ if(schuldSumme()>0&&schuldSumme()>werte*1.5&&bunker<200)pleiteTage++;
+ else pleiteTage=0;
+ if(pleiteTage>=3&&!gameOver){
+  gameOver={tag:day,schuld:schuldSumme(),naechte:ST.naechte,rang:rang(),
+            best:ST.best,grund:'Insolvenz'};
+  phase='pleite';siren(0);sHammer();save()}}
 function kreditTag(){
  var i;
+ if(kommSchuld>0){
+  /* Kommissionsware wird am Tageswechsel abgerechnet, ob verkauft oder nicht. */
+  if(bunker>=kommSchuld){
+   bunker-=kommSchuld;
+   tagesBericht.push({t:'Kommission abgerechnet',v:'-'+kommSchuld+' €',
+    n:-kommSchuld,gut:false})}
+  else{
+   schuldS+=kommSchuld;
+   tagesBericht.push({t:'Kommission nicht bezahlt',
+    v:'+'+kommSchuld+' € Straßenschuld',gut:false})}
+  kommSchuld=0;kommission=0}
+ var sauber=true;
  if(schuldB>0){
   var zb=Math.ceil(schuldB*zinsB());
   if(bunker>=zb){bunker-=zb;ST.zinsen+=zb;pleiteB=0;
-   tagesBericht.push({t:'Bankzinsen',v:'-'+zb+' €',gut:false})}
+   tagesBericht.push({t:'Bankzinsen',v:'-'+zb+' €',n:-zb,gut:false})}
   else{
-   schuldB+=zb;pleiteB++;
+   schuldB+=zb;pleiteB++;sauber=false;
    tagesBericht.push({t:'Zinsen gestundet',v:'+'+zb+' € Schuld',gut:false});
    if(pleiteB>=3){
     /* Nach drei Tagen verwertet die Bank die Sicherheit. */
@@ -406,11 +473,11 @@ function kreditTag(){
      tagesBericht.push({t:'Bank erstattet Anzeige',v:'eine Akte',gut:false})}}}}
  else pleiteB=0;
  if(schuldS>0){
-  var zs=Math.ceil(schuldS*ZINSS);
+  var zs=Math.ceil(schuldS*zinsS());
   if(bunker>=zs){bunker-=zs;ST.zinsen+=zs;pleiteS=0;
-   tagesBericht.push({t:'Zinsen auf der Straße',v:'-'+zs+' €',gut:false})}
+   tagesBericht.push({t:'Zinsen auf der Straße',v:'-'+zs+' €',n:-zs,gut:false})}
   else{
-   schuldS+=zs;pleiteS++;
+   schuldS+=zs;pleiteS++;sauber=false;
    tagesBericht.push({t:'Die Straße stundet',v:'+'+zs+' € Schuld',gut:false});
    if(pleiteS>=2){
     /* Die Straße pfändet nicht, die Straße kommt vorbei. */
@@ -419,7 +486,9 @@ function kreditTag(){
      var n2=Math.min(lager[i],weg);lager[i]-=n2;weg-=n2}
     ansehen=Math.max(0,ansehen-8);pleiteS=0;
     tagesBericht.push({t:'Besuch bekommen',v:'Ware und Ansehen weg',gut:false})}}}
- else pleiteS=0}
+ else pleiteS=0;
+ if(schuldSumme()>0)treue=sauber?treue+1:0;
+ else treue=0}
 
 /* ---------- Ausrüstung ---------- */
 var UP=[
@@ -554,7 +623,7 @@ function save(){try{localStorage.setItem(SKEY,JSON.stringify({
  akten:akten,ger:gerichtTag,hb:haftbefehl,haft:haft,vs:vorstrafen,
   stf:steuerFaellig,stt:steuerTag,offen:offen,meine:meine,crew:crew,ausland:ausland,
  proz:prozess,ber:berufungOffen,revOffen:revisionOffen,rev:revision,
- sb:schuldB,ss:schuldS,pb:pleiteB,ps:pleiteS,
+ sb:schuldB,ss:schuldS,pb:pleiteB,ps:pleiteS,tr:treue,ks:kommSchuld,pt:pleiteTage,
  anT:antrittTag,bew:bewaehrung,vert:verteidiger,
  kontakte:kontakte,lager:lager,lief:lieferant,nid:nextId,
  st:ST,
@@ -606,6 +675,7 @@ function load(){
     if(prozess.tag>=GERICHTE[prozess.g].tage.length)prozess=null}
    schuldB=num(o.sb,0);schuldS=num(o.ss,0);
    pleiteB=num(o.pb,0);pleiteS=num(o.ps,0);
+   treue=num(o.tr,0);kommSchuld=num(o.ks,0);pleiteTage=num(o.pt,0);
    antrittTag=num(o.anT,0);verteidiger=!!o.vert;
    if(o.bew&&typeof o.bew==='object')
     bewaehrung={tage:num(o.bew.tage,1),bis:num(o.bew.bis,day),
@@ -627,6 +697,7 @@ function load(){
   bunker=STARTGELD;high=0;day=1;xp=0;ansehen=0;kontakte=[];lager=[0,0,0];lieferant=0;
   akten=0;gerichtTag=0;haftbefehl=false;haft=0;vorstrafen=0;meine={};crew={};ausland={};
   schuldB=0;schuldS=0;antrittTag=0;bewaehrung=null;verteidiger=false;
+  treue=0;kommSchuld=0;kommission=0;pleiteTage=0;
   offen=[true,false,false,false];apply()}}
 function baueLief(){
  /* Freigeschaltete Auslandskontakte hängen hinten an der Lieferantenliste. */
@@ -645,6 +716,7 @@ function wipe(){
  zellText='';zellStrich=0;flugZiel=null;flugRest=0;prozess=null;berufungOffen=false;
  revisionOffen=false;revision=null;
  schuldB=0;schuldS=0;pleiteB=0;pleiteS=0;antrittTag=0;bewaehrung=null;verteidiger=false;
+ treue=0;kommission=0;kommSchuld=0;pleiteTage=0;gameOver=null;bilanz=null;
  for(var k in ST)ST[k]=0;
  NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,
      grund:'',crew:0,crewPacks:0,crewAkte:false,crewStrafe:0,crewErwischt:0,schwund:0};
@@ -769,35 +841,37 @@ function einkaufspreis(){return Math.max(5,Math.round(WARE[ware].preis*LIEF[lief
 
 /* ---------- Tageswechsel: Einnahmen, Löhne, Steuern ---------- */
 var tagesBericht=[];
+var bilanz=null;
 function nextDay(){
  day++;
  tagesBericht=[];
+ var kasseVor=bunker,nachtErtrag=NI.done?(NI.cash||0):0;
  var ein=ertragSumme();
  if(ein>0){bunker+=ein;ST.mieten+=ein;
-  tagesBericht.push({t:'Lokale',v:'+'+ein+' €',gut:true})}
+  tagesBericht.push({t:'Lokale',v:'+'+ein+' €',n:ein,gut:true})}
  var lo=lohnSumme();
  if(lo>0){
   if(bunker>=lo){bunker-=lo;ST.loehne+=lo;
-   tagesBericht.push({t:'Löhne',v:'-'+lo+' €',gut:false})}
+   tagesBericht.push({t:'Löhne',v:'-'+lo+' €',n:-lo,gut:false})}
   else{
    crew={};apply();
    tagesBericht.push({t:'Löhne',v:'nicht bezahlt, alle weg',gut:false})}}
  var bk=betriebSumme();
  if(bk>0){
-  if(bunker>=bk){bunker-=bk;tagesBericht.push({t:'Betriebskosten',v:'-'+bk+' €',gut:false})}
+  if(bunker>=bk){bunker-=bk;tagesBericht.push({t:'Betriebskosten',v:'-'+bk+' €',n:-bk,gut:false})}
   else tagesBericht.push({t:'Betriebskosten',v:'nicht gedeckt',gut:false})}
  if(NI.crewPacks>0)
   tagesBericht.push({t:'Läufer haben '+NI.crewPacks+' Pack geliefert',
-   v:'+'+NI.crew+' €',gut:true});
+   v:'+'+NI.crew+' €',n:NI.crew,gut:true});
  else if(nCrew('laeufer')>0&&ST.naechte>0)
   tagesBericht.push({t:'Läufer ohne Arbeit',v:'kein Nachschub im Lager',gut:false});
  if(NI.schwund>0)
-  tagesBericht.push({t:'Schwund',v:'-'+NI.schwund+' €',gut:false});
+  tagesBericht.push({t:'Schwund',v:'-'+NI.schwund+' €',n:-NI.schwund,gut:false});
  if(NI.crewStrafe>0){
   var cs=NI.crewStrafe;
   if(bunker>=cs){bunker-=cs;
    tagesBericht.push({t:NI.crewErwischt+'× Läufer aufgegriffen',
-    v:'-'+cs+' € Strafe',gut:false})}
+    v:'-'+cs+' € Strafe',n:-cs,gut:false})}
   else{
    akten++;
    tagesBericht.push({t:'Strafe für deine Läufer nicht bezahlt',
@@ -809,7 +883,7 @@ function nextDay(){
  if(roh>0&&rang()<RANG.length){
   var ab=Math.round(roh*0.12);
   if(ab>0&&bunker>=ab){bunker-=ab;ST.abgabe=(ST.abgabe||0)+ab;
-   tagesBericht.push({t:'Abgabe nach oben',v:'-'+ab+' €',gut:false})}}
+   tagesBericht.push({t:'Abgabe nach oben',v:'-'+ab+' €',n:-ab,gut:false})}}
  kreditTag();
  bewaehrungTag();
  if(day>=steuerTag){
@@ -817,7 +891,13 @@ function nextDay(){
      steht in keiner Buchhaltung, dafuer geht dort die Abgabe nach oben ab. */
   var neu=Math.round(ertragSumme()*7*steuersatz());
   steuerFaellig+=neu;steuerTag=day+7;
-  if(neu>0)tagesBericht.push({t:'Steuerbescheid',v:neu+' €',gut:false})}}
+  if(neu>0)tagesBericht.push({t:'Steuerbescheid',v:neu+' €',gut:false})}
+ /* Unterm Strich: der Nachtertrag plus alles, was der Tageswechsel am Bunker
+    bewegt hat. Der Steuerbescheid steht dabei bewusst außen vor, er ist eine
+    Forderung und noch kein Abfluss. */
+ bilanz={nacht:nachtErtrag,tag:bunker-kasseVor,
+         summe:nachtErtrag+(bunker-kasseVor),stand:bunker};
+ pleitePruefen()}
 function ansehenPlus(n){
  ansehen+=n;
  while(true){
@@ -1125,7 +1205,7 @@ function step(){
   /* Ohne dieses ui() bleibt der Landeknopf gesperrt und der Flug endet nie. */
   if(flugRest<=0){flugRest=0;ui()}}
  palette();stepFx();
- if(phase!=='nacht'&&phase!=='tag'){siren(0);hold=null;return}
+ if(phase!=='nacht'&&phase!=='tag'){siren(0);hold=null;febAn=false;return}
  if(phase==='nacht'){
   if(freeze>0){
    freeze-=DT;
@@ -1198,11 +1278,11 @@ function step(){
     if(hinweisT<=0){hinweisT=2.6;
      ftxt(kvv.x,kvv.y-18,'Richtung halten','#9CC4F0')}
     break}
-   vsDrin=1;vsQ=i;vsRest=2+stars*1.6;vsVoll=vsRest;
+   vsDrin=1;vsQ=i;vsRest=stars<0.5?0.3:1.2+stars*1.5;vsVoll=Math.max(0.3,vsRest);
    p.x=kvv.x;p.y=kvv.y;p.dx=0;p.dy=0;p.ldx=0;p.ldy=0;
    hold=null;freeze=0.18;kick(4);sPick();
    for(var cq=0;cq<cops.length;cq++)cops[cq].ch=false;
-   flashT='Untergetaucht';flash=1.6;ui();
+   flashT=stars<0.5?'Zuhause':'Untergetaucht · '+Math.ceil(vsRest)+' s';flash=1.6;ui();
    break}}
  var drin=!!vsDrin;
  if(drin){
@@ -1977,7 +2057,7 @@ function stadtSzene(){
   gr.addColorStop(1,'rgba(226,88,90,'+(redV*0.55).toFixed(3)+')');
   x.fillStyle=gr;x.fillRect(0,0,VW,VH)}
  if(phase==='nacht'){
-  randzeiger();
+  randzeiger();uebersicht();
   for(var w=0;w<packs;w++)pouch(8+w*15,7,12);
   if(stars>=4){
    var wp=0.35+Math.sin(pulse*5)*0.25;
@@ -2020,7 +2100,48 @@ function stadtSzene(){
    x.font='400 14px '+FONT;x.fillText('Tasten hämmern, du kommst gleich frei',VW/2,VH/2+8);
    x.font='400 13px '+FONT;x.fillStyle='#F0A8A8';
    x.fillText('Akte Nr. '+akten+' · das klärt der Richter',VW/2,VH/2+32)}}
- else tagKarte()}
+ else{tagKarte();uebersicht()}}
+var MK=96;
+function uebersicht(){
+ var sk=MK/Math.max(MAPW,MAPH),ox=VW-MK-8,oy=VH-MK-8,i,j,q;
+ var P=function(wx,wy){return{x:ox+wx*sk,y:oy+wy*sk}};
+ x.fillStyle='rgba(10,12,18,0.82)';
+ x.beginPath();x.roundRect(ox-4,oy-4,MK+8,MK+8,7);x.fill();
+ x.strokeStyle='rgba(255,255,255,0.18)';x.lineWidth=1;x.stroke();
+ /* Gesperrte Viertel bleiben dunkel, offene sind Asphalt. */
+ for(q=0;q<4;q++){
+  var R=qRect(q),a=P(R.x,R.y);
+  x.fillStyle=offen[q]?'rgba(150,158,170,0.30)':'rgba(255,255,255,0.05)';
+  x.fillRect(a.x,a.y,R.w*sk,R.h*sk)}
+ var punkt=function(wx,wy,r,c){
+  var a=P(wx,wy);x.fillStyle=c;
+  x.beginPath();x.arc(a.x,a.y,r,0,6.3);x.fill()};
+ var kl=bc(HAFEN.i,HAFEN.j),kt=bc(BUNKER.i,BUNKER.j);
+ punkt(kl.x,kl.y,2.6,COL.lager);
+ punkt(kt.x,kt.y,2.6,COL.trap);
+ for(q=0;q<4;q++)if(offen[q]){
+  var w=VIERTEL[q].wache,v=VIERTEL[q].versteck;
+  punkt(XS[w.i]+CELL/2,YS[w.j]+CELL/2,2,'#5B87C8');
+  punkt(XS[v.i]+CELL/2,YS[v.j]+CELL/2,2,'#8A9099')}
+ for(q=0;q<LOKALE.length;q++)if(meine[LOKALE[q].k])
+  punkt(XS[LOKALE[q].i]+CELL/2,YS[LOKALE[q].j]+CELL/2,2,COL.lokal);
+ for(q=0;q<auftraege.length;q++){
+  var a2=auftraege[q];
+  if(a2.offen<=0||a2.t<=0)continue;
+  var ka=bc(a2.i,a2.j);punkt(ka.x,ka.y,3,COL.pin)}
+ for(q=0;q<leads.length;q++){
+  var kL=bc(leads[q].i,leads[q].j);
+  punkt(kL.x,kL.y,3,'#7FB0F0')}
+ for(q=0;q<mitarbeiter.length;q++)if(mitarbeiter[q].raus<=0)
+  punkt(mitarbeiter[q].x,mitarbeiter[q].y,2,'#9CE08A');
+ for(q=0;q<cops.length;q++)punkt(cops[q].x,cops[q].y,2.4,'#E2585A');
+ /* Das Sichtfenster als Rahmen, damit man weiß, wo man gerade guckt. */
+ var f=P(cam.x,cam.y);
+ x.strokeStyle='rgba(255,255,255,0.55)';x.lineWidth=1;
+ x.strokeRect(f.x,f.y,sichtW*sk,sichtH*sk);
+ var pm=P(p.x,p.y);
+ x.fillStyle='#FFFFFF';x.strokeStyle=COL.line;x.lineWidth=1;
+ x.beginPath();x.arc(pm.x,pm.y,3.2,0,6.3);x.fill();x.stroke()}
 function randPfeil(wx,wy,farbe,zeichen){
  /* Bildschirmposition des Ziels; liegt sie draußen, klebt der Pfeil am Rand. */
  var sx=(wx-cam.x)*zoom,sy=(wy-cam.y)*zoom,R=17,M=R+6;
@@ -2031,6 +2152,13 @@ function randPfeil(wx,wy,farbe,zeichen){
  if(dy)t=Math.min(t,Math.max((M-cy)/dy,(VH-M-cy)/dy));
  if(!isFinite(t))return;
  var px2=cx+dx*t,py2=cy+dy*t,a=Math.atan2(dy,dx);
+ /* Die Übersicht in der Ecke bleibt frei, samt Platz für Kreis und Entfernung
+    unter dem Pfeil - sonst hängt die Schrift über der Karte. */
+ var ux=VW-MK-12-(R+4),uy2=VH-MK-12-(R+14);
+ if(px2>ux&&py2>uy2){
+  if(ux-px2>uy2-py2)px2=ux;else py2=uy2}
+ /* Oben liegen Ware und Sterne, unten das Auftragsband. */
+ py2=Math.max(32,Math.min(py2,VH-36));
  var m=Math.round(Math.sqrt((wx-p.x)*(wx-p.x)+(wy-p.y)*(wy-p.y))/9);
  x.save();x.translate(px2,py2);
  x.save();x.rotate(a);
@@ -2319,7 +2447,44 @@ function revisionSzene(){
   :'Post aus Karlsruhe',
   e&&e.art==='verworfen'?'Das Urteil ist rechtskräftig'
    :'Ohne Hauptverhandlung, nach Aktenlage')}
+function pleiteSzene(){
+ var i,g=gameOver||{};
+ x.fillStyle='#1A1417';x.fillRect(0,0,VW,VH);
+ x.fillStyle='#221A1D';
+ for(i=0;i<10;i++)x.fillRect(0,i*(VH/10)+3,VW,VH/10-6);
+ /* Ein Siegel auf einem Aktendeckel. */
+ var lw=VW*0.78,lh=VH*0.56,lx=(VW-lw)/2,ly=VH*0.16;
+ x.save();x.translate(VW/2,ly+lh/2);x.rotate(0.02);x.translate(-VW/2,-(ly+lh/2));
+ x.fillStyle='rgba(0,0,0,0.4)';
+ x.beginPath();x.roundRect(lx+5,ly+7,lw,lh,3);x.fill();
+ x.fillStyle='#EDE7DC';x.strokeStyle='#C4B9A6';x.lineWidth=1.5;
+ x.beginPath();x.roundRect(lx,ly,lw,lh,3);x.fill();x.stroke();
+ x.textAlign='center';x.fillStyle='#1E1B16';x.font='600 13px '+FONT;
+ x.fillText('AMTSGERICHT · INSOLVENZGERICHT',VW/2,ly+34);
+ x.strokeStyle='#C4B9A6';x.lineWidth=1;
+ x.beginPath();x.moveTo(lx+18,ly+46);x.lineTo(lx+lw-18,ly+46);x.stroke();
+ x.font='600 17px '+FONT;x.fillStyle='#8A0F1E';
+ x.fillText('INSOLVENZ',VW/2,ly+76);
+ x.font='400 11px '+FONT;x.fillStyle='#3A362E';
+ x.fillText('Das Verfahren über das Vermögen wird eröffnet.',VW/2,ly+98);
+ x.fillText('Roberto ist zahlungsunfähig.',VW/2,ly+114);
+ x.font='500 12px '+FONT;x.fillStyle='#1E1B16';
+ var z=[['Tage überlebt',(g.tag||day)-1],['Nächte gearbeitet',g.naechte||0],
+        ['höchster Rang',(g.rang||1)+' · '+RANG[(g.rang||1)-1].n],
+        ['beste Nacht',(g.best||0)+' €'],['Schulden am Ende',(g.schuld||0)+' €']];
+ for(i=0;i<z.length;i++){
+  x.textAlign='left';x.fillStyle='#6B665C';x.font='400 11px '+FONT;
+  x.fillText(z[i][0],lx+22,ly+146+i*20);
+  x.textAlign='right';x.fillStyle='#1E1B16';x.font='500 12px '+FONT;
+  x.fillText(String(z[i][1]),lx+lw-22,ly+146+i*20)}
+ x.fillStyle='rgba(138,15,30,0.85)';
+ x.beginPath();x.arc(lx+lw-44,ly+lh-32,17,0,6.3);x.fill();
+ x.strokeStyle='rgba(255,255,255,0.4)';x.lineWidth=1;
+ x.beginPath();x.arc(lx+lw-44,ly+lh-32,12,0,6.3);x.stroke();
+ x.restore();
+ band('Pleite','Der Knopf oben fängt von vorn an')}
 function draw(){
+ if(phase==='pleite'){pleiteSzene();return}
  if(phase==='revision'){revisionSzene();return}
  if(phase==='gericht'){gerichtSzene();return}
  if(phase==='zelle'){zelleSzene();return}
@@ -2390,7 +2555,10 @@ function chips(nacht){
    (dr?' · '+dr+' aufgegriffen':''),dr?'warn':'ok')}
  if(ein>0)h+=chip('Lokale','+'+ein+' €/Tag','ok');
  if(lo>0)h+=chip('Kosten','−'+lo+' €/Tag','');
- if(schuldSumme()>0)h+=chip('Schulden',schuldSumme()+' €','warn');
+ if(schuldSumme()>0)h+=chip('Schulden',schuldSumme()+' €',
+  pleiteTage>0?'warn':(treue>2?'':'warn'));
+ if(kommSchuld>0)h+=chip('Kommission',kommSchuld+' € fällig','warn');
+ if(pleiteTage>0)h+=chip('Pleite droht',(3-pleiteTage)+' Tage','warn');
  if(steuerFaellig>0)h+=chip('Steuer',steuerFaellig+' € offen','warn');
  else if(ein>0)h+=chip('Steuerbescheid','an Tag '+steuerTag,'');
  if(akten>0)h+=chip('Akten',String(akten),'warn');
@@ -2420,7 +2588,7 @@ function setTab(t){
  ui()}
 function ui(){
  var nacht=phase==='nacht',szeneAn=phase==='gericht'||phase==='zelle'||
-     phase==='flug'||phase==='gespraech'||phase==='revision',
+     phase==='flug'||phase==='gespraech'||phase==='revision'||phase==='pleite',
      ger=gerichtHeute(),sitzt=inHaft(),wartet=haft>0&&!sitzt;
  document.body.className=nacht?'':'tag';
  document.getElementById('pad').className='pad'+(nacht||phase==='tag'?'':' off');
@@ -2438,6 +2606,7 @@ function ui(){
    bm.textContent=haft>0?'Abführen lassen':'Saal verlassen';bm.disabled=false}
   else if(ph==='anklage'){bm.textContent='Anklage anhören';bm.disabled=false}
   else{bm.textContent='Verhandlungstag beenden';bm.disabled=false}}
+ else if(phase==='pleite'){bm.textContent='Von vorn anfangen';bm.disabled=false}
  else if(phase==='zelle'){bm.textContent='Tag absitzen';bm.disabled=false}
  else if(phase==='revision'){bm.textContent='Beschluss weglegen';bm.disabled=false}
  else if(revisionFaellig()){bm.textContent='Post vom BGH';bm.disabled=false}
@@ -2476,7 +2645,9 @@ function ui(){
        :(sitzt?'Du musst deine Tage noch absitzen.'
         :'Leertaste startet die Nacht. Pfeiltasten halten, um Roberto zu bewegen, '+
         'ein Tipp auf ein Lokal kauft es.')))))));
- szene();telefon();warePicker();imperium();kit();shop()}
+ var zeigBilanz=!nacht&&!szeneAn&&bilanz&&NI.done;
+ document.getElementById('secbilanz').style.display=zeigBilanz?'':'none';
+ szene();bilanzUI();telefon();warePicker();imperium();kit();shop()}
 function szene(){
  var el=document.getElementById('szenetext'),kopf=document.getElementById('szenekopf'),
      lab=document.getElementById('szenelab'),h='',vor='',i;
@@ -2561,6 +2732,18 @@ function szene(){
      (letztesUrteil.tage?' · Haft: <b>'+letztesUrteil.tage+'</b> '+
       (letztesUrteil.tage===1?'Tag':'Tage'):' · keine Haft')+'</p>'+
      '<p class="muted">Vorstrafen jetzt: '+vorstrafen+'</p>'}}
+ else if(phase==='pleite'){
+  kopf.textContent='Insolvenz';lab.textContent='Ende';
+  var g=gameOver||{};
+  h='<p class="big">Zahlungsunfähig.</p>'+
+    '<p>Drei Tage in Folge standen Schulden von mehr als dem Anderthalbfachen '+
+    'deines Vermögens gegen einen leeren Bunker. Die Gläubiger haben genug.</p>'+
+    '<p class="muted">Überlebt: '+((g.tag||day)-1)+' Tage · '+(g.naechte||0)+
+    ' Nächte · beste Nacht '+(g.best||0)+' € · Schulden am Ende '+
+    (g.schuld||0)+' €.</p>'+
+    '<p class="muted">Was dagegen geholfen hätte: früher umschulden, die Straße '+
+    'zuerst tilgen, Ware auf Kommission statt auf Kredit, oder ein Lokal '+
+    'verkaufen, bevor die Bank es holt.</p>'}
  else if(phase==='zelle'){
   kopf.textContent='Justizvollzug';lab.textContent='Zelle';
   h='<p class="big">'+(haft>0?'Noch '+haft+' '+(haft===1?'Tag':'Tage'):'Heute kommst du raus.')+'</p>'+
@@ -2786,6 +2969,31 @@ function warePicker(){
   var n=+e.currentTarget.getAttribute('data-w');
   if(rang()<WARE[n].rang){sNope();return}
   ware=n;audioOK=true;ac();sBuy();save();warePicker();telefon();kit();hud()})}
+function bilanzUI(){
+ var el=document.getElementById('bilanz'),h='',i;
+ if(!bilanz){el.innerHTML='';return}
+ document.getElementById('bilanzlab').textContent='Nacht '+(day-1)+' auf Tag '+day;
+ var eur=function(n){return (n>0?'+':n<0?'−':'')+Math.abs(n)+' €'};
+ h+='<div class="bil '+(bilanz.nacht>=0?'plus':'minus')+'">'+
+  '<span>Nachtgeschäft</span><span>'+eur(bilanz.nacht)+'</span></div>';
+ for(i=0;i<tagesBericht.length;i++){
+  var r=tagesBericht[i];
+  if(typeof r.n!=='number')continue;
+  h+='<div class="bil '+(r.n>=0?'plus':'minus')+'">'+
+   '<span>'+r.t+'</span><span>'+eur(r.n)+'</span></div>'}
+ h+='<div class="bil summe '+(bilanz.summe>=0?'plus':'minus')+'">'+
+  '<span>Unterm Strich</span><span>'+eur(bilanz.summe)+'</span></div>';
+ h+='<div class="bil grau"><span>Bunker jetzt</span><span>'+bunker+' €</span></div>';
+ if(schuldSumme()>0)
+  h+='<div class="bil grau"><span>Schulden</span><span>'+schuldSumme()+' €</span></div>';
+ /* Was kein Geld bewegt hat, steht getrennt darunter: Forderungen und Ärger. */
+ var notiz=[];
+ for(i=0;i<tagesBericht.length;i++){
+  var r2=tagesBericht[i];
+  if(typeof r2.n==='number')continue;
+  notiz.push(r2.t+': '+r2.v)}
+ if(notiz.length)h+='<p class="desc">'+notiz.join(' · ')+'</p>';
+ el.innerHTML=h}
 function imperium(){
  var el=document.getElementById('imperium'),h='',i,zu=phase!=='tag'||inHaft();
  document.getElementById('implab').textContent=
@@ -2841,16 +3049,44 @@ function imperium(){
   betragZeile('b',lb-schuldB,schuldB,zu);
  h+='<div class="row"><div><p class="name">'+geldgeber()+'</p>'+
   (ls>0
-   ?'<p class="desc">12 % Zinsen am Tag · Rahmen '+ls+' € · offen <b>'+schuldS+
-    ' €</b></p>'+(schuldS>0?'<p class="desc">Zinsen morgen: '+
-     Math.ceil(schuldS*ZINSS)+' €. Zwei Tage nicht bedient, und es kommt jemand '+
-     'vorbei und nimmt sich Ware.</p>'
+   ?'<p class="desc">'+(Math.round(zinsS()*1000)/10)+' % Zinsen am Tag · Rahmen '+
+    ls+' € · offen <b>'+schuldS+' €</b></p>'+(schuldS>0?'<p class="desc">Zinsen '+
+     'morgen: '+Math.ceil(schuldS*zinsS())+' €. Zwei Tage nicht bedient, und es '+
+     'kommt jemand vorbei und nimmt sich Ware.</p>'
     :'<p class="desc">Fragt nicht nach Papieren, nur nach Leuten. Wer voll '+
      'zurückzahlt, bekommt Ansehen.</p>')
    :'<p class="err">Erst zwei Kontakte in offenen Vierteln, dann redet die '+
     'Straße mit dir.</p>')+
   '</div></div>'+
   betragZeile('s',ls-schuldS,schuldS,zu);
+ if(schuldS>0){
+  var pl=limitB()-schuldB,geb=Math.ceil(schuldS*0.03);
+  h+='<div class="row"><div><p class="name">Umschulden</p>'+
+   '<p class="desc">Die Straßenschuld mit Bankgeld ablösen: '+schuldS+' € zu '+
+   (Math.round(zinsS()*1000)/10)+' % werden '+(schuldS+geb)+' € zu '+
+   (Math.round(zinsB()*1000)/10)+' % am Tag. Gebühr '+geb+' €.</p>'+
+   (pl<schuldS+geb?'<p class="err">Dein Bankrahmen reicht nicht: es fehlen '+
+    (schuldS+geb-pl)+' €. Bonität aufbauen.</p>':'')+
+   '</div><button data-um="1"'+(zu||pl<schuldS+geb?' disabled':'')+
+   '>ablösen</button></div>'}
+ if(treue>0&&schuldSumme()>0)
+  h+='<p class="ok">'+treue+' Tage pünktlich bedient. Das drückt den Zins.</p>';
+ var km=kommMax();
+ if(km>0||kommSchuld>0){
+  var kpr=Math.round(einkaufspreis()*1.6/5)*5;
+  h+='<h3 class="telh">Kommission</h3>';
+  h+='<div class="row"><div><p class="name">'+geldgeber()+' streckt vor</p>'+
+   (kommSchuld>0
+    ?'<p class="desc">Offen: <b>'+kommSchuld+' €</b>, fällig am nächsten '+
+     'Tageswechsel. Reicht der Bunker nicht, wird daraus Straßenschuld.</p>'
+    :'<p class="desc">Bis <b>'+km+'</b> Pack '+WARE[ware].n+' ohne Geld, '+kpr+
+     ' € je Pack statt '+einkaufspreis()+' €. Abgerechnet wird am nächsten '+
+     'Tageswechsel, verkauft oder nicht.</p>'+
+     '<p class="desc">Gibt es nur bei leerem Lager. Damit du nach einem Zugriff '+
+     'wieder anfangen kannst.</p>')+
+   '</div>'+(kommSchuld>0?'<span class="own">läuft</span>'
+    :'<button data-komm="1"'+(zu?' disabled':'')+'>'+km+' Pack holen</button>')+
+   '</div>'}
  h+='<h3 class="telh">Finanzamt</h3>';
  h+='<div class="row"><div><p class="name">'+
   (steuerFaellig>0?'Steuerbescheid offen':'Nichts offen')+'</p>'+
@@ -2893,6 +3129,10 @@ function imperium(){
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
   var k=e.currentTarget.getAttribute('data-tilg');
   tilgen(k==='b'?'bank':'strasse',betragVon(k))});
+ bs=el.querySelectorAll('button[data-um]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',umschulden);
+ bs=el.querySelectorAll('button[data-komm]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',kommNehmen);
  bs=el.querySelectorAll('button[data-setz]');
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
   var p2=e.currentTarget.getAttribute('data-setz').split(':'),
@@ -2918,6 +3158,9 @@ function kit(){
   ['Steuern offen',steuerFaellig+' €',false],
   ['Bonität',bonitaet()+' / 100',bonitaet()>=20],
   ['Schulden',schuldSumme()>0?schuldB+' € Bank · '+schuldS+' € Straße':'keine',false],
+  ['Zinsen am Tag',schuldSumme()>0?(Math.ceil(schuldB*zinsB())+Math.ceil(schuldS*zinsS()))+
+   ' €':'keine',false],
+  ['Pünktlich bedient',treue+(treue===1?' Tag':' Tage'),treue>2],
   ['Nächte gearbeitet',String(ST.naechte),false],
   ['Lieferungen gesamt',String(ST.drops),false],
   ['Zugriffe gesamt',String(ST.busts),false],
@@ -2929,7 +3172,7 @@ function kit(){
  var h='',i;
  for(i=0;i<rows.length;i++)
   h+='<div class="kv"><span>'+rows[i][0]+'</span><span'+
-   (rows[i][2]?' class="up"':(/Akten|Vorstrafen|Steuern offen|Schulden/.test(rows[i][0])&&
+   (rows[i][2]?' class="up"':(/Akten|Vorstrafen|Steuern offen|^Schulden/.test(rows[i][0])&&
     parseInt(rows[i][1],10)>0?' class="warn"':''))+'>'+rows[i][1]+'</span></div>';
  document.getElementById('kit').innerHTML=h}
 function shop(){
@@ -2960,6 +3203,7 @@ function buy(k){
   bunker-=pr;u.lv++;apply();sBuy();save();shop();kit();hud();return}}
 function mainAction(){
  if(phase==='nacht')return;
+ if(phase==='pleite'){gameOver=null;wipe();return}
  if(phase==='revision'){revisionSchliessen();return}
  if(phase==='gericht'){prozessWeiter();return}
  if(revisionFaellig()){revisionOeffnen();return}

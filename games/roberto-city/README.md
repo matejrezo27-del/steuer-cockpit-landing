@@ -71,6 +71,13 @@ Fragezeichen) und offene Aufträge (rote Nadel mit der Stückzahl) kleben mit Ri
 und Entfernung am Bildschirmrand, sobald sie aus dem Ausschnitt laufen. Vorher tauchte
 hinten in der Stadt jemand auf, und man erfuhr es nie.
 
+**Dazu eine Übersicht in der Ecke**, Tag wie Nacht. Sie zeigt die ganze Stadt als Punkte
+— Lager, Bunker, Wachen, Verstecke, deine Lokale, offene Aufträge, neue Kontakte, deine
+Läufer, Streifen, Roberto — plus einen Rahmen für das, was gerade im Bild ist. Das ist
+die Antwort auf „das ganze Spielfeld sehen, ohne dass alles zu klein wird": das Feld
+bleibt groß, die Übersicht ist klein, und weil sie nur Punkte zeichnet, bleibt sie
+lesbar. Die Randpfeile weichen ihr aus.
+
 Das **Versteck jedes Viertels ist Robertos Zuhause**. Wer hineingeht, kühlt die Fahndung
 und kann mit der Leertaste **Feierabend machen** — die Nacht endet dann sofort, mit
 allem was bis dahin im Bunker liegt. Wer bis zum Morgen draußen bleibt, riskiert mehr.
@@ -186,7 +193,8 @@ damit ein Läufer nicht mehr trägt als Roberto am Anfang.
 | Betriebskosten | 1,5 % des Kaufpreises aller Lokale | täglich |
 | Abgabe nach oben | 12 % des Nachtertrags, entfällt als Legende | täglich |
 | Bankzinsen | 1,2 bis 3,0 % der Restschuld, je nach Bonität | täglich |
-| Zinsen auf der Straße | 12 % der Restschuld | täglich |
+| Zinsen auf der Straße | 5 bis 9 % der Restschuld, je nach Zahlungstreue | täglich |
+| Kommission | 1,6-facher Einkaufspreis der vorgestreckten Ware | am Tag danach |
 | Steuerbescheid | 30 % der Lokaleinnahmen der Woche, mit Buchhalter 20 % | alle 7 Tage |
 
 Nicht gezahlte Steuern bringen **zwei Akten** und einen um 20 % höheren Bescheid.
@@ -380,8 +388,10 @@ die Fahrspur liegt nur 45 px von der Blockmitte, ein reiner Näherungsradius hä
 erwischt, der vorbeikommt. Im Messlauf blieb der Testbot damit die halbe Nacht in
 fremden Verstecken hängen.
 
-Drinnen ist die Tür für **2 + 1,6 × Sterne Sekunden** zu. Bei drei Sternen sind das
-knapp sieben. Solange:
+Drinnen ist die Tür für **1,2 + 1,5 × Sterne Sekunden** zu. Ohne Fahndung geht sie
+nach 0,3 Sekunden wieder auf — dann ist es einfach Robertos Wohnung und keine Falle.
+Heiß wird daraus der Unterschlupf: bei drei Sternen bleibt sie knapp sechs Sekunden zu.
+Solange:
 
 * keine Bewegung, außen läuft ein Ring als Uhr;
 * Abkühlen mit **1,6 pro Sekunde**, Streifen verlieren dich sofort;
@@ -554,6 +564,18 @@ Haft ist eine eigene Szene mit Strichliste an der Wand. Jeder Tag würfelt ein E
 Hofgang bringt einen Kontakt, Ärger im Trakt einen Tag mehr, ein Anwaltsbesuch einen
 weniger.
 
+## Tagesabschluss
+
+Nach jeder Nacht steht unter dem Feld eine **Plus-Minus-Rechnung**: das Nachtgeschäft,
+darunter jede Bewegung des Tageswechsels einzeln — Lokale, Löhne, Betriebskosten, was
+die Läufer gebracht und was sie gekostet haben, Zinsen, die Abgabe nach oben — und
+unterm Strich die Summe. Darunter der Bunkerstand und die Schulden.
+
+Was **kein Geld bewegt**, steht getrennt als Notiz darunter: der Steuerbescheid ist
+eine Forderung, keine Zahlung, und Akten sind gar kein Betrag. Vorher gab es nur eine
+Liste von Zeilen ohne Summe; man sah, was passiert war, aber nicht, ob der Tag sich
+gelohnt hat.
+
 ## Geld leihen
 
 Zwei Quellen, zwei Preise. Der Zins läuft täglich auf die Restschuld und wird sofort
@@ -588,8 +610,36 @@ Lager und 8 Ansehen** sind weg. Wer voll zurückzahlt, bekommt 3 Ansehen.
 
 Das ist kein Ersatz für die Bank, sondern der Notgroschen: die Geldstrafe bezahlen,
 bevor sie in Ersatzhaft umschlägt, oder die erste Ladung Ware kaufen, wenn noch kein
-Lokal steht. Deshalb ist der Rahmen klein — 12 % am Tag auf eine große Summe wäre eine
-Falle ohne Ausweg.
+Lokal steht. Deshalb ist der Rahmen klein — ein zweistelliger Tagessatz auf eine große
+Summe wäre eine Falle ohne Ausweg. Aus demselben Grund liegt der Satz bei **9 % statt
+12 %**.
+
+### Wieder herauskommen
+
+Drei Wege aus der Zinsfalle, weil ein hoher Satz allein nur frustriert:
+
+* **Umschulden.** Die Straßenschuld mit Bankgeld ablösen: 3 % Gebühr, und der Bankrahmen
+  muss reichen. Aus 4000 € zu 9 % werden 4120 € zu 2,4 % am Tag — das ist der eigentliche
+  Lohn dafür, Bonität aufgebaut zu haben.
+* **Pünktlich bedienen senkt den Zins.** Jeder Tag, an dem alle Zinsen aus dem Bunker
+  gedeckt sind, zählt: je drei Tage 0,2 Punkte weniger bei der Bank (bis 0,8 %), je vier
+  Tage ein Punkt weniger auf der Straße (bis 5 %). Ein Zahlungsausfall setzt den Zähler
+  auf null. Gemessen: nach neun sauberen Tagen fiel der Bankzins von 2,4 auf 1,8 %.
+* **Ware auf Kommission.** Wenn das Lager leer ist und du mindestens zwei Kontakte hast,
+  streckt dir die Straße bis zu `2 + Ansehen/25 + Kontakte` Pack vor, höchstens zehn —
+  zum **1,6-fachen Einkaufspreis**, abgerechnet am nächsten Tageswechsel, verkauft oder
+  nicht. Reicht der Bunker dann nicht, wird daraus Straßenschuld. Das ist das Netz nach
+  einem Zugriff: ohne Ware und ohne Geld gäbe es sonst keinen Weg zurück.
+
+### Pleite
+
+Es gibt ein Ende. Stehen **drei Tage in Folge** Schulden von mehr als dem
+Anderthalbfachen deines Vermögens (Lokale + Bunker + Lagerwert) gegen einen Bunker unter
+200 €, ist Schluss: eine eigene Szene mit dem Insolvenzbeschluss, der Abschlussbilanz
+(überlebte Tage, Nächte, höchster Rang, beste Nacht, Schulden am Ende) und einem Knopf,
+der von vorn anfängt. Ein einzelner schlechter Tag reicht ausdrücklich nicht — die drei
+Tage sind da, damit man umschulden, ein Lokal verkaufen oder auf Kommission gehen kann,
+bevor es vorbei ist. Die Statuszeile warnt ab dem ersten Tag mit einem Countdown.
 
 ### Wofür man sich Geld leiht
 
@@ -636,6 +686,11 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `randzeiger()` / `randPfeil()` | Wegweiser zu Zielen außerhalb des Bildes |
 | `betragZeile()` / `betragVon()` | Kredit mit eingebbarer Summe |
 | `besteWare()` | Fallback, wenn das gewählte Fach leer ist |
+| `bilanz` / `bilanzUI()` | Plus-Minus-Rechnung nach jeder Nacht |
+| `umschulden()` / `treue` / `zinsS()` | Straßenschuld ablösen, Zins durch Pünktlichkeit |
+| `kommMax()` / `kommNehmen()` | Ware auf Kommission als Netz nach dem Zugriff |
+| `pleitePruefen()` / `pleiteSzene()` | Insolvenz nach drei aussichtslosen Tagen |
+| `uebersicht()` | Stadtplan in der Ecke |
 | `lager` / `lagerSumme()` / `packW` | ein Fach je Ware, plus die Sorte, die Roberto trägt |
 | `chips()` | Statuszeile über dem Feld: Phase, Lager, Kosten, Steuer, Verfahren |
 | `passtext()` | verkleinert eine Meldung, bis sie in die Breite passt |
@@ -731,6 +786,9 @@ Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als Fehler. Mi
   geraden Linien und nutzt weder Versteck noch Rückzug — ein Mensch hat Werkzeuge, die
   er nicht anfasst. Ungetestet bleibt es trotzdem.
 - **Kein Zwischenspeichern innerhalb einer Nacht.** Tab zu heißt laufende Schicht weg.
+- **Die Pleitegrenze ist gesetzt, nicht gemessen.** Anderthalbfaches Vermögen, drei Tage,
+  200 € im Bunker: plausibel, aber nicht an echten Verläufen geprüft. Ob man in der Praxis
+  je hineinrutscht, ohne es kommen zu sehen, weiß ich nicht.
 - **Läufer nehmen keine eigenen Kontakte auf.** Sie bedienen nur, was Roberto zugesagt
   hat, plus verfallene Anrufe. Ein eigener Kundenstamm je Mitarbeiter wäre der nächste
   Schritt.
@@ -739,7 +797,9 @@ Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als Fehler. Mi
   sich die langsamere Abkühlung für einen Menschen anfühlt, der die Werkzeuge benutzt,
   ist ungetestet.
 - **Die Ökonomie bleibt inflationär**, siehe den eigenen Abschnitt. Von 5–9 auf 2,0
-  gesenkt, gesund wären 1,0. Der Wegfall der Nachtsteuer nimmt im späten Spiel rund
+  gesenkt, gesund wären 1,0. Seit es Zinsen, Läuferstrafen, Schwund und die Kommission
+  gibt, ist die Senkenseite deutlich größer geworden — nachgerechnet ist das Verhältnis
+  aber immer noch nicht. Der Wegfall der Nachtsteuer nimmt im späten Spiel rund
   600 €/Tag Senke heraus; dagegen stehen die Zugriffe, die es vorher praktisch nicht
   gab, und die 20 % Gebühr im Versteck. Gemessen ist das noch nicht — eine
   Mittelspiel-Nacht (Rang 6, ein Lokal, ein Läufer, 14 Pack Einkauf) endete mit
