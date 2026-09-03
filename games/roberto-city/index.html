@@ -360,8 +360,15 @@ function bonitaet(){
  /* Was eine Bank sehen kann: angemeldetes Vermögen, gezahlte Steuern, ein
     Buchhalter. Was sie abschreckt: offene Steuern, Akten, Vorstrafen. Das
     Nachtgeschäft taucht nirgends auf und zählt deshalb auch nicht. */
- var b=lokalWert()/1200+ST.steuer/1500+(nCrew('buchhalter')?12:0)
-      -(steuerFaellig>0?18:0)-akten*6-vorstrafen*14-(haftbefehl?20:0);
+ var n=0,i;
+ for(i=0;i<LOKALE.length;i++)if(meine[LOKALE[i].k])n++;
+ var b=lokalWert()/700           /* was das Geschäft wert ist */
+      +n*4                        /* mehrere Standbeine überzeugen */
+      +Math.min(18,ST.naechte*0.6)/* Betriebsdauer, eine Historie eben */
+      +ST.steuer/1500             /* wer zahlt, ist aktenkundig sauber */
+      +(nCrew('buchhalter')?12:0)
+      -(steuerFaellig>0?12:0)-akten*6-vorstrafen*14-(haftbefehl?20:0);
+ if(n===0)b=Math.min(b,12);       /* ohne Geschäft keine Bonität, Punkt */
  return Math.max(0,Math.min(100,Math.round(b)))}
 function zinsB(){
  return Math.max(0.008,0.030-bonitaet()/100*0.018-Math.min(3,Math.floor(treue/3))*0.002)}
@@ -634,7 +641,7 @@ function setMute(m){
 function save(){try{localStorage.setItem(SKEY,JSON.stringify({
  v:SVER,b:bunker,h:high,m:mute,day:day,xp:xp,ans:ansehen,ware:ware,
  akten:akten,ger:gerichtTag,hb:haftbefehl,haft:haft,vs:vorstrafen,
-  stf:steuerFaellig,stt:steuerTag,offen:offen,meine:meine,crew:crew,ausland:ausland,
+  stf:steuerFaellig,stt:steuerTag,sae:saeumig,offen:offen,meine:meine,crew:crew,ausland:ausland,
  proz:prozess,ber:berufungOffen,revOffen:revisionOffen,rev:revision,
  sb:schuldB,ss:schuldS,pb:pleiteB,ps:pleiteS,tr:treue,ks:kommSchuld,pt:pleiteTage,
  anT:antrittTag,bew:bewaehrung,vert:verteidiger,
@@ -749,7 +756,7 @@ function load(){
    if(o.meine&&typeof o.meine==='object')meine=o.meine;
    if(o.crew&&typeof o.crew==='object')crew=o.crew;
    if(o.ausland&&typeof o.ausland==='object')ausland=o.ausland;
-   steuerFaellig=num(o.stf,0);steuerTag=Math.max(1,num(o.stt,7));
+   steuerFaellig=num(o.stf,0);steuerTag=Math.max(1,num(o.stt,7));saeumig=num(o.sae,0);
    if(o.proz&&typeof o.proz==='object'&&GERICHTE[o.proz.g]){
     prozess={g:num(o.proz.g,0),tag:num(o.proz.tag,0),schritt:num(o.proz.schritt,0),
      akten:num(o.proz.akten,1),hb:!!o.proz.hb,plea:o.proz.plea||null,
@@ -795,7 +802,7 @@ function wipe(){
  try{localStorage.removeItem(SKEY);localStorage.removeItem(OLD5)}catch(e){}
  bunker=STARTGELD;high=0;day=1;xp=0;ansehen=0;ware=0;
  akten=0;gerichtTag=0;haftbefehl=false;haft=0;vorstrafen=0;
- steuerFaellig=0;steuerTag=7;offen=[true,false,false,false];
+ steuerFaellig=0;steuerTag=7;saeumig=0;offen=[true,false,false,false];
  meine={};crew={};ausland={};kontakte=[];auftraege=[];anruf=null;
  lager=[0,0,0];lieferant=0;nextId=1;phase='tag';dayF=1;
  zellText='';zellStrich=0;flugZiel=null;flugRest=0;prozess=null;berufungOffen=false;
@@ -975,8 +982,10 @@ function nextDay(){
   /* Besteuert wird nur, was angemeldet ist: die Lokale. Das Nachtgeschaeft
      steht in keiner Buchhaltung, dafuer geht dort die Abgabe nach oben ab. */
   var neu=Math.round(ertragSumme()*7*steuersatz());
+  if(neu>0)ST.bescheide=(ST.bescheide||0)+1;
   steuerFaellig+=neu;steuerTag=day+7;
-  if(neu>0)tagesBericht.push({t:'Steuerbescheid',v:neu+' €',gut:false})}
+  neuerBescheid=neu}
+ steuernAbbuchen();
  /* Unterm Strich: der Nachtertrag plus alles, was der Tageswechsel am Bunker
     bewegt hat. Der Steuerbescheid steht dabei bewusst außen vor, er ist eine
     Forderung und noch kein Abfluss. */
@@ -1871,17 +1880,37 @@ function entlassen(k){
  if(!nCrew(k))return;
  audioOK=true;ac();
  crew[k]=nCrew(k)-1;apply();sTick();save();ui();hud()}
+var saeumig=0,neuerBescheid=0;
+function steuernAbbuchen(){
+ /* Das Finanzamt bucht ab, es wartet nicht auf einen Knopf. Reicht der Bunker
+    nicht, wird genommen was da ist; der Rest bekommt Säumniszuschlag. */
+ if(steuerFaellig<=0){saeumig=0;return}
+ if(bunker>=steuerFaellig){
+  var voll=steuerFaellig;
+  bunker-=voll;ST.steuer+=voll;steuerFaellig=0;saeumig=0;ansehen+=1;
+  tagesBericht.push({t:neuerBescheid>0?'Steuern abgebucht':'Steuerrückstand beglichen',
+   v:'-'+voll+' €',n:-voll,gut:false});
+  neuerBescheid=0;return}
+ var teil=Math.max(0,bunker);
+ if(teil>0){bunker-=teil;ST.steuer+=teil;steuerFaellig-=teil;
+  tagesBericht.push({t:'Steuern teilweise abgebucht',v:'-'+teil+' €',n:-teil,gut:false})}
+ saeumig++;neuerBescheid=0;
+ var zu=Math.round(steuerFaellig*0.2);
+ steuerFaellig+=zu;
+ tagesBericht.push({t:'Säumniszuschlag',v:'+'+zu+' € offen',gut:false});
+ if(saeumig>=3){
+  akten+=2;saeumig=0;
+  if(!gerichtTag)gerichtTag=day+3;
+  tagesBericht.push({t:'Steuerstrafverfahren',v:'zwei Akten',gut:false})}}
 function steuernZahlen(){
+ /* Der Knopf zahlt nur noch freiwillig vorab, damit der Zuschlag ausbleibt. */
  if(steuerFaellig<=0)return;
  audioOK=true;ac();
- if(bunker<steuerFaellig){
-  sNope();
-  akten+=2;
-  steuerFaellig=Math.round(steuerFaellig*1.2);
-  if(!gerichtTag)gerichtTag=day+3;
-  save();ui();hud();return}
- bunker-=steuerFaellig;ST.steuer+=steuerFaellig;steuerFaellig=0;
- ansehen+=1;sBank();save();ui();hud()}
+ var n=Math.min(steuerFaellig,bunker);
+ if(n<=0){sNope();return}
+ bunker-=n;ST.steuer+=n;steuerFaellig-=n;
+ if(steuerFaellig<=0){saeumig=0;ansehen+=1}
+ sBank();save();ui();hud()}
 
 /* ---------- Zeichnen ---------- */
 function pouch(bx,by,s){
@@ -2676,7 +2705,7 @@ function chips(nacht){
   pleiteTage>0?'warn':(treue>2?'':'warn'));
  if(kommSchuld>0)h+=chip('Kommission',kommSchuld+' € fällig','warn');
  if(pleiteTage>0)h+=chip('Pleite droht',(3-pleiteTage)+' Tage','warn');
- if(steuerFaellig>0)h+=chip('Steuer',steuerFaellig+' € offen','warn');
+ if(steuerFaellig>0)h+=chip('Steuer',steuerFaellig+' € offen'+(saeumig?' · säumig':''),'warn');
  else if(ein>0)h+=chip('Steuerbescheid','an Tag '+steuerTag,'');
  if(akten>0)h+=chip('Akten',String(akten),'warn');
  if(haftbefehl)h+=chip('Haftbefehl','offen','warn');
@@ -3160,8 +3189,10 @@ function imperium(){
  h+='<h3 class="telh">Geld leihen</h3>';
  var bo=bonitaet(),lb=limitB(),ls=limitS(),zb=Math.round(zinsB()*1000)/10;
  h+='<p class="desc">Deine <b>Bonität: '+bo+' von 100</b>. Sie zählt nur, was '+
-  'angemeldet ist: Lokale, gezahlte Steuern, ein Buchhalter. Offene Steuern, '+
-  'Akten und Vorstrafen ziehen ab. Das Nachtgeschäft sieht die Bank nicht.</p>';
+  'angemeldet ist: <b>der Wert deiner Lokale</b>, wie viele es sind, wie lange '+
+  'du schon läufst, gezahlte Steuern und ein Buchhalter. Offene Steuern, Akten '+
+  'und Vorstrafen ziehen ab. Das Nachtgeschäft sieht die Bank nicht — ohne ein '+
+  'einziges Lokal kommst du nie über 12.</p>';
  h+='<div class="row"><div><p class="name">Stadtsparkasse</p>'+
   (lb>0
    ?'<p class="desc">'+zb+' % Zinsen am Tag · Rahmen '+lb+' € · offen <b>'+schuldB+
@@ -3218,12 +3249,18 @@ function imperium(){
   '<p class="desc">'+Math.round(steuersatz()*100)+' % auf die Lokale · '+
   (ertragSumme()>0?'derzeit rund '+Math.round(ertragSumme()*7*steuersatz())+' € je Woche'
    :'ohne Lokale fällt nichts an')+' · nächster Bescheid an Tag '+steuerTag+'</p>'+
-  '<p class="desc">Das Nachtgeschäft steht in keiner Buchhaltung. Besteuert wird nur, '+
+  '<p class="desc">Wird am Tageswechsel <b>automatisch abgebucht</b> und steht so im '+
+  'Tagesabschluss. Das Nachtgeschäft steht in keiner Buchhaltung, besteuert wird nur, '+
   'was angemeldet ist.</p>'+
   (steuerFaellig>0&&bunker<steuerFaellig
-   ?'<p class="err">Dir fehlen '+(steuerFaellig-bunker)+' €. Nicht zahlen bringt zwei Akten.</p>'
-   :'')+'</div>'+
-  (steuerFaellig>0?'<button data-st="1"'+(zu?' disabled':'')+'>'+steuerFaellig+' € zahlen</button>'
+   ?'<p class="err">Der Bunker deckt nur '+bunker+' €. Was offen bleibt, bekommt '+
+    '20 % Säumniszuschlag; nach dem dritten Mal kommen zwei Akten dazu.</p>'
+   :'')+
+  (saeumig>0?'<p class="err">'+saeumig+'× säumig. Noch '+(3-saeumig)+
+   ' mal, dann ermittelt das Finanzamt.</p>':'')+'</div>'+
+  (steuerFaellig>0&&bunker>0
+   ?'<button data-st="1"'+(zu?' disabled':'')+'>'+Math.min(steuerFaellig,bunker)+
+    ' € vorab</button>'
    :'<span class="own">—</span>')+'</div>';
  if(tagesBericht.length){
   h+='<h3 class="telh">Gestern</h3>';

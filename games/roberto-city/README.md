@@ -199,9 +199,13 @@ damit ein Läufer nicht mehr trägt als Roberto am Anfang.
 | Bankzinsen | 1,2 bis 3,0 % der Restschuld, je nach Bonität | täglich |
 | Zinsen auf der Straße | 5 bis 9 % der Restschuld, je nach Zahlungstreue | täglich |
 | Kommission | 1,6-facher Einkaufspreis der vorgestreckten Ware | am Tag danach |
-| Steuerbescheid | 30 % der Lokaleinnahmen der Woche, mit Buchhalter 20 % | alle 7 Tage |
+| Steuerbescheid | 30 % der Lokaleinnahmen der Woche, mit Buchhalter 20 % | alle 7 Tage, automatisch abgebucht |
 
-Nicht gezahlte Steuern bringen **zwei Akten** und einen um 20 % höheren Bescheid.
+**Das Finanzamt bucht ab, es wartet nicht auf einen Knopf.** Der Bescheid wird am
+Tageswechsel sofort vom Bunker eingezogen und steht als Zeile im Tagesabschluss. Reicht
+das Geld nicht, wird genommen was da ist, und der Rest bekommt **20 % Säumniszuschlag**;
+beim dritten Mal in Folge kommen **zwei Akten** und ein Gerichtstermin dazu. Der Knopf
+im Finanzamt zahlt nur noch freiwillig vorab.
 
 **Besteuert wird nur, was angemeldet ist.** Das Finanzamt sieht die Lokale, nicht das
 Nachtgeschäft — vorher schätzte es 20 % auf den Nachtumsatz dazu, was weder zum Rest
@@ -613,14 +617,29 @@ ist der Punkt: die Bank ist der Lohn dafür, legal aufgebaut zu haben.
 
 | zählt dazu | zählt ab |
 |---|---|
-| Kaufpreis deiner Lokale ÷ 1200 | offener Steuerbescheid: −18 |
-| gezahlte Steuern ÷ 1500 | je Akte: −6 |
-| Buchhalter: +12 | je Vorstrafe: −14, Haftbefehl: −20 |
+| Kaufpreis deiner Lokale ÷ 700 | offener Steuerrückstand: −12 |
+| je Lokal: +4 | je Akte: −6 |
+| Betriebsdauer: +0,6 je gearbeitete Nacht, bis +18 | je Vorstrafe: −14 |
+| gezahlte Steuern ÷ 1500 | Haftbefehl: −20 |
+| Buchhalter: +12 | ohne ein einziges Lokal: gedeckelt auf 12 |
+
+**Es reicht, Geschäfte zu haben und zu laufen.** Vorher hing die Bonität fast nur an
+gezahlten Steuern — und Steuern zahlt erst, wer Lokale hat. Wer eins besaß, kam damit
+kaum über 5 und sah nie einen Kredit. Jetzt zählt das Geschäft selbst: sein Wert, wie
+viele Standbeine es sind und wie lange du schon läufst. Gemessen:
+
+| Lage | Bonität | Bankrahmen | Zins |
+|---|---|---|---|
+| nichts | 0 | — | — |
+| Späti (2500 €) | 8 | — | — |
+| Späti + Imbiss | 18 | — | — |
+| dieselben, nach 10 Nächten | 24 | 5200 € | 2,6 % |
+| dazu die Hafenbar (9000 €) | 40 | 14 400 € | 2,3 % |
+| dazu ein Buchhalter | 52 | 24 300 € | 2,1 % |
+| davon zwei Akten | 40 | 14 400 € | 2,3 % |
 
 Ab Bonität 20 leiht die Bank, der Rahmen ist `Bonität² × 9 €`, der Zins fällt von 3,0 %
-auf 1,2 % am Tag. Gemessen: drei Lokale, 9000 € gezahlte Steuern und ein Buchhalter
-ergeben Bonität 31, also 8600 € zu 2,4 %. Ein offener Steuerbescheid und zwei Akten
-drücken dieselbe Lage auf Bonität 1 — und damit auf null Kredit.
+auf 0,8 % am Tag (mit Zahlungstreue).
 
 Drei Tage die Zinsen nicht bedienen, und die Bank **verwertet die Sicherheit**: dein
 billigstes Lokal ist weg, dafür sinkt die Schuld um 60 % seines Kaufpreises.
@@ -728,6 +747,7 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `bewaehrung` / `bewaehrungTag()` | Aussetzung, Geldauflage, Widerruf, Straferlass |
 | `antrittTag` / `inHaft()` | Ladung zum Strafantritt statt sofortiger Zelle |
 | `bonitaet()` / `limitB()` / `kreditTag()` | Bank und Straße, Zins und Verwertung |
+| `steuernAbbuchen()` / `saeumig` | automatischer Einzug, Säumniszuschlag, Eskalation |
 | `RUEGEN` / `revisionEinlegen()` | Sach- und Verfahrensrüge, Kosten, Aussetzung |
 | `revisionEntscheiden()` | der Beschluss des Senats nach Aktenlage |
 | `revisionSzene()` | Post aus Karlsruhe statt Gerichtssaal |
