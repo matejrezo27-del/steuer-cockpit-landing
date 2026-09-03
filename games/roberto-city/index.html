@@ -351,7 +351,7 @@ function steuersatz(){return Math.max(0.05,0.30-(nCrew('buchhalter')?0.10:0))}
 var schuldB=0,schuldS=0,pleiteB=0,pleiteS=0;
 /* Wer bedient, wird billiger: je drei saubere Tage ein Fünftelpunkt weniger,
    bis zu einem Punkt. Ein Zahlungsausfall setzt das zurück. */
-var treue=0,ZINSS=0.09;
+var treue=0,ZINSS=0.09,boni=0;
 var kommission=0,kommSchuld=0;
 var pleiteTage=0,gameOver=null;
 function lokalWert(){var s=0,i;
@@ -360,16 +360,18 @@ function bonitaet(){
  /* Was eine Bank sehen kann: angemeldetes Vermögen, gezahlte Steuern, ein
     Buchhalter. Was sie abschreckt: offene Steuern, Akten, Vorstrafen. Das
     Nachtgeschäft taucht nirgends auf und zählt deshalb auch nicht. */
+ /* Der Punktestand wächst von selbst; was gerade gegen dich läuft, zieht
+    davon ab und kommt zurück, sobald es erledigt ist. */
+ var b=boni+(nCrew('buchhalter')?8:0)
+      -(steuerFaellig>0?8:0)-akten*4-vorstrafen*10-(haftbefehl?15:0);
+ return Math.max(0,Math.min(100,Math.round(b)))}
+function boniZuwachs(){
+ /* Ein Punkt am Tag fürs bloße Weitermachen, dazu ein halber je Lokal. */
  var n=0,i;
  for(i=0;i<LOKALE.length;i++)if(meine[LOKALE[i].k])n++;
- var b=lokalWert()/700           /* was das Geschäft wert ist */
-      +n*4                        /* mehrere Standbeine überzeugen */
-      +Math.min(18,ST.naechte*0.6)/* Betriebsdauer, eine Historie eben */
-      +ST.steuer/1500             /* wer zahlt, ist aktenkundig sauber */
-      +(nCrew('buchhalter')?12:0)
-      -(steuerFaellig>0?12:0)-akten*6-vorstrafen*14-(haftbefehl?20:0);
- if(n===0)b=Math.min(b,12);       /* ohne Geschäft keine Bonität, Punkt */
- return Math.max(0,Math.min(100,Math.round(b)))}
+ return 1+Math.min(3,n*0.5)}
+function boniTag(){
+ boni=Math.min(100,boni+boniZuwachs())}
 function zinsB(){
  return Math.max(0.008,0.030-bonitaet()/100*0.018-Math.min(3,Math.floor(treue/3))*0.002)}
 function zinsS(){return Math.max(0.05,ZINSS-Math.min(3,Math.floor(treue/4))*0.01)}
@@ -400,6 +402,9 @@ function tilgen(k,n){
  if(n<=0){sNope();return}
  bunker-=n;
  if(k==='bank')schuldB-=n;else{schuldS-=n;if(schuldS<=0){ansehen+=3;pleiteS=0}}
+ /* Wer zurückzahlt, baut Bonität auf. Das ist der schnellste Weg nach oben. */
+ boni=Math.min(100,boni+Math.min(6,n/800));
+ flashT='Getilgt · Bonität +'+(Math.round(Math.min(6,n/800)*10)/10);flash=1.8;
  sBuy();save();ui();hud()}
 function betragZeile(k,frei2,schuld,zu){
  /* Vorher zahlte der Knopf immer alles auf einmal. Jetzt steht eine Summe
@@ -478,7 +483,7 @@ function kreditTag(){
   if(bunker>=zb){bunker-=zb;ST.zinsen+=zb;pleiteB=0;
    tagesBericht.push({t:'Bankzinsen',v:'-'+zb+' €',n:-zb,gut:false})}
   else{
-   schuldB+=zb;pleiteB++;sauber=false;
+   schuldB+=zb;pleiteB++;sauber=false;boni=Math.max(0,boni-6);
    tagesBericht.push({t:'Zinsen gestundet',v:'+'+zb+' € Schuld',gut:false});
    if(pleiteB>=3){
     /* Nach drei Tagen verwertet die Bank die Sicherheit. */
@@ -497,7 +502,7 @@ function kreditTag(){
   if(bunker>=zs){bunker-=zs;ST.zinsen+=zs;pleiteS=0;
    tagesBericht.push({t:'Zinsen auf der Straße',v:'-'+zs+' €',n:-zs,gut:false})}
   else{
-   schuldS+=zs;pleiteS++;sauber=false;
+   schuldS+=zs;pleiteS++;sauber=false;boni=Math.max(0,boni-6);
    tagesBericht.push({t:'Die Straße stundet',v:'+'+zs+' € Schuld',gut:false});
    if(pleiteS>=2){
     /* Die Straße pfändet nicht, die Straße kommt vorbei. */
@@ -643,7 +648,7 @@ function save(){try{localStorage.setItem(SKEY,JSON.stringify({
  akten:akten,ger:gerichtTag,hb:haftbefehl,haft:haft,vs:vorstrafen,
   stf:steuerFaellig,stt:steuerTag,sae:saeumig,offen:offen,meine:meine,crew:crew,ausland:ausland,
  proz:prozess,ber:berufungOffen,revOffen:revisionOffen,rev:revision,
- sb:schuldB,ss:schuldS,pb:pleiteB,ps:pleiteS,tr:treue,ks:kommSchuld,pt:pleiteTage,
+ sb:schuldB,ss:schuldS,pb:pleiteB,ps:pleiteS,tr:treue,ks:kommSchuld,pt:pleiteTage,bo:boni,
  anT:antrittTag,bew:bewaehrung,vert:verteidiger,
  kontakte:kontakte,lager:lager,lief:lieferant,nid:nextId,
  st:ST,nacht:nachtStand(),
@@ -766,6 +771,7 @@ function load(){
    schuldB=num(o.sb,0);schuldS=num(o.ss,0);
    pleiteB=num(o.pb,0);pleiteS=num(o.ps,0);
    treue=num(o.tr,0);kommSchuld=num(o.ks,0);pleiteTage=num(o.pt,0);
+   boni=Math.max(0,Math.min(100,+o.bo||0));
    antrittTag=num(o.anT,0);verteidiger=!!o.vert;
    if(o.bew&&typeof o.bew==='object')
     bewaehrung={tage:num(o.bew.tage,1),bis:num(o.bew.bis,day),
@@ -789,7 +795,7 @@ function load(){
   bunker=STARTGELD;high=0;day=1;xp=0;ansehen=0;kontakte=[];lager=[0,0,0];lieferant=0;
   akten=0;gerichtTag=0;haftbefehl=false;haft=0;vorstrafen=0;meine={};crew={};ausland={};
   schuldB=0;schuldS=0;antrittTag=0;bewaehrung=null;verteidiger=false;
-  treue=0;kommSchuld=0;kommission=0;pleiteTage=0;
+  treue=0;kommSchuld=0;kommission=0;pleiteTage=0;boni=0;
   offen=[true,false,false,false];apply()}}
 function baueLief(){
  /* Freigeschaltete Auslandskontakte hängen hinten an der Lieferantenliste. */
@@ -808,7 +814,7 @@ function wipe(){
  zellText='';zellStrich=0;flugZiel=null;flugRest=0;prozess=null;berufungOffen=false;
  revisionOffen=false;revision=null;
  schuldB=0;schuldS=0;pleiteB=0;pleiteS=0;antrittTag=0;bewaehrung=null;verteidiger=false;
- treue=0;kommission=0;kommSchuld=0;pleiteTage=0;gameOver=null;bilanz=null;
+ treue=0;kommission=0;kommSchuld=0;pleiteTage=0;gameOver=null;bilanz=null;boni=0;
  for(var k in ST)ST[k]=0;
  NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,
      grund:'',crew:0,crewPacks:0,crewAkte:false,crewStrafe:0,crewErwischt:0,schwund:0};
@@ -978,6 +984,7 @@ function nextDay(){
    tagesBericht.push({t:'Abgabe nach oben',v:'-'+ab+' €',n:-ab,gut:false})}}
  kreditTag();
  bewaehrungTag();
+ boniTag();
  if(day>=steuerTag){
   /* Besteuert wird nur, was angemeldet ist: die Lokale. Das Nachtgeschaeft
      steht in keiner Buchhaltung, dafuer geht dort die Abgabe nach oben ab. */
@@ -1888,6 +1895,7 @@ function steuernAbbuchen(){
  if(bunker>=steuerFaellig){
   var voll=steuerFaellig;
   bunker-=voll;ST.steuer+=voll;steuerFaellig=0;saeumig=0;ansehen+=1;
+  boni=Math.min(100,boni+1);
   tagesBericht.push({t:neuerBescheid>0?'Steuern abgebucht':'Steuerrückstand beglichen',
    v:'-'+voll+' €',n:-voll,gut:false});
   neuerBescheid=0;return}
@@ -3188,11 +3196,20 @@ function imperium(){
    '</div></div>'}
  h+='<h3 class="telh">Geld leihen</h3>';
  var bo=bonitaet(),lb=limitB(),ls=limitS(),zb=Math.round(zinsB()*1000)/10;
- h+='<p class="desc">Deine <b>Bonität: '+bo+' von 100</b>. Sie zählt nur, was '+
-  'angemeldet ist: <b>der Wert deiner Lokale</b>, wie viele es sind, wie lange '+
-  'du schon läufst, gezahlte Steuern und ein Buchhalter. Offene Steuern, Akten '+
-  'und Vorstrafen ziehen ab. Das Nachtgeschäft sieht die Bank nicht — ohne ein '+
-  'einziges Lokal kommst du nie über 12.</p>';
+ var abzug=[];
+ if(steuerFaellig>0)abzug.push('offene Steuern −8');
+ if(akten>0)abzug.push(akten+' Akten −'+(akten*4));
+ if(vorstrafen>0)abzug.push(vorstrafen+' Vorstrafen −'+(vorstrafen*10));
+ if(haftbefehl)abzug.push('Haftbefehl −15');
+ h+='<p class="desc">Deine <b>Bonität: '+bo+' von 100</b>. Sie baut sich auf wie '+
+  'ein Ruf: <b>+'+(Math.round(boniZuwachs()*10)/10)+' jeden Tag</b>, allein fürs '+
+  'Weitermachen — ein Punkt für dich, ein halber je Lokal. Dazu <b>+1 je '+
+  'abgebuchter Steuer</b> und <b>+1 je 800 € Tilgung</b>. Ein Zahlungsausfall '+
+  'kostet 6 Punkte, und die sind weg.</p>'+
+  (abzug.length?'<p class="err">Zieht gerade ab: '+abzug.join(' · ')+
+   '. Das kommt zurück, sobald es erledigt ist.</p>'
+   :'<p class="ok">Nichts zieht gerade ab.</p>')+
+  (nCrew('buchhalter')?'<p class="ok">Buchhalter +8.</p>':'');
  h+='<div class="row"><div><p class="name">Stadtsparkasse</p>'+
   (lb>0
    ?'<p class="desc">'+zb+' % Zinsen am Tag · Rahmen '+lb+' € · offen <b>'+schuldB+
@@ -3318,7 +3335,8 @@ function kit(){
   ['Verfahren',prozess?GERICHTE[prozess.g].kammer+' · Tag '+(prozess.tag+1)+'/'+
    GERICHTE[prozess.g].tage.length:(revision?'Revision beim BGH':'keines'),false],
   ['Steuern offen',steuerFaellig+' €',false],
-  ['Bonität',bonitaet()+' / 100',bonitaet()>=20],
+  ['Bonität',bonitaet()+' / 100 · +'+(Math.round(boniZuwachs()*10)/10)+' am Tag',
+   bonitaet()>=20],
   ['Schulden',schuldSumme()>0?schuldB+' € Bank · '+schuldS+' € Straße':'keine',false],
   ['Zinsen am Tag',schuldSumme()>0?(Math.ceil(schuldB*zinsB())+Math.ceil(schuldS*zinsS()))+
    ' €':'keine',false],

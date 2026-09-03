@@ -615,28 +615,41 @@ Die **Bonität** ist ein Wert von 0 bis 100 und zählt nur, was angemeldet ist. 
 Nachtgeschäft taucht in keiner Buchhaltung auf und hilft hier deshalb auch nicht — das
 ist der Punkt: die Bank ist der Lohn dafür, legal aufgebaut zu haben.
 
-| zählt dazu | zählt ab |
+**Die Bonität ist ein Konto, kein Kassensturz.** Sie war vorher eine Momentaufnahme
+des Besitzes — wer nichts hatte, hatte auch keine Bonität und kam nie an den ersten
+Kredit. Jetzt baut sie sich auf wie ein Ruf, Tag für Tag:
+
+| was sie aufbaut | |
 |---|---|
-| Kaufpreis deiner Lokale ÷ 700 | offener Steuerrückstand: −12 |
-| je Lokal: +4 | je Akte: −6 |
-| Betriebsdauer: +0,6 je gearbeitete Nacht, bis +18 | je Vorstrafe: −14 |
-| gezahlte Steuern ÷ 1500 | Haftbefehl: −20 |
-| Buchhalter: +12 | ohne ein einziges Lokal: gedeckelt auf 12 |
+| jeder Tag, allein fürs Weitermachen | +1 |
+| je Lokal, zusätzlich am Tag | +0,5, höchstens +3 |
+| jede abgebuchte Steuer | +1 |
+| je 800 € Tilgung | +1, höchstens +6 auf einmal |
+| Buchhalter | +8, solange er da ist |
 
-**Es reicht, Geschäfte zu haben und zu laufen.** Vorher hing die Bonität fast nur an
-gezahlten Steuern — und Steuern zahlt erst, wer Lokale hat. Wer eins besaß, kam damit
-kaum über 5 und sah nie einen Kredit. Jetzt zählt das Geschäft selbst: sein Wert, wie
-viele Standbeine es sind und wie lange du schon läufst. Gemessen:
+| was abzieht | |
+|---|---|
+| Zahlungsausfall bei Bank oder Straße | −6, dauerhaft |
+| offener Steuerrückstand | −8, solange er offen ist |
+| je Akte | −4 |
+| je Vorstrafe | −10 |
+| Haftbefehl | −15 |
 
-| Lage | Bonität | Bankrahmen | Zins |
-|---|---|---|---|
-| nichts | 0 | — | — |
-| Späti (2500 €) | 8 | — | — |
-| Späti + Imbiss | 18 | — | — |
-| dieselben, nach 10 Nächten | 24 | 5200 € | 2,6 % |
-| dazu die Hafenbar (9000 €) | 40 | 14 400 € | 2,3 % |
-| dazu ein Buchhalter | 52 | 24 300 € | 2,1 % |
-| davon zwei Akten | 40 | 14 400 € | 2,3 % |
+Die untere Tabelle ist der Unterschied: der Ausfall ist **weg**, der Rest **kommt
+zurück**, sobald die Sache erledigt ist. Gemessen: bei Punktestand 50 drücken drei
+Akten, eine Vorstrafe und ein Haftbefehl auf 13 — Akten abgearbeitet und Haftbefehl
+erledigt, steht sie wieder bei 40.
+
+Der Aufbau, gemessen über 25 Tage:
+
+| | Tag 5 | Tag 10 | Tag 15 | Tag 20 | Tag 25 |
+|---|---|---|---|---|---|
+| ohne jedes Geschäft | 5 | 10 | 15 | **20** · 3600 € | 25 · 5600 € |
+| mit zwei kleinen Lokalen | 10 | **20** · 3600 € | 30 · 8100 € | 40 · 14 400 € | 50 · 22 500 € |
+
+Auch ohne einen einzigen Laden kommt man also an den ersten Kredit, es dauert nur
+doppelt so lang. Und **Tilgen ist der schnellste Weg nach oben**: 4000 € zurückgezahlt
+sind sofort +5 Punkte.
 
 Ab Bonität 20 leiht die Bank, der Rahmen ist `Bonität² × 9 €`, der Zins fällt von 3,0 %
 auf 0,8 % am Tag (mit Zahlungstreue).
@@ -746,7 +759,8 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `verteidigerBuchen()` / `anwDa()` | Wahlverteidiger mitten im Verfahren |
 | `bewaehrung` / `bewaehrungTag()` | Aussetzung, Geldauflage, Widerruf, Straferlass |
 | `antrittTag` / `inHaft()` | Ladung zum Strafantritt statt sofortiger Zelle |
-| `bonitaet()` / `limitB()` / `kreditTag()` | Bank und Straße, Zins und Verwertung |
+| `boni` / `boniTag()` / `bonitaet()` | Bonität als Konto, das täglich wächst |
+| `limitB()` / `kreditTag()` | Bank und Straße, Zins und Verwertung |
 | `steuernAbbuchen()` / `saeumig` | automatischer Einzug, Säumniszuschlag, Eskalation |
 | `RUEGEN` / `revisionEinlegen()` | Sach- und Verfahrensrüge, Kosten, Aussetzung |
 | `revisionEntscheiden()` | der Beschluss des Senats nach Aktenlage |
