@@ -71,16 +71,10 @@ Fragezeichen) und offene Aufträge (rote Nadel mit der Stückzahl) kleben mit Ri
 und Entfernung am Bildschirmrand, sobald sie aus dem Ausschnitt laufen. Vorher tauchte
 hinten in der Stadt jemand auf, und man erfuhr es nie.
 
-**Dazu ein Stadtplan neben dem Steuerkreuz**, Tag wie Nacht. Er zeigt die ganze Stadt
-als Punkte — Lager, Bunker, Wachen, Verstecke, deine Lokale, offene Aufträge, neue
-Kontakte, deine Läufer, Streifen, Roberto — plus einen Rahmen für das, was gerade im
-Bild ist. Das ist die Antwort auf „das ganze Spielfeld sehen, ohne dass alles zu klein
-wird": das Feld bleibt groß, der Plan ist klein, und weil er nur Punkte zeichnet, bleibt
-er lesbar.
-
-Zuerst lag er als Kachel **in** der Spielfläche, unten rechts. Das verdeckte Blöcke und
-störte. Jetzt ist es eine eigene kleine Fläche unter dem Feld, links vom Steuerkreuz —
-sie nimmt dem Spiel nichts mehr weg.
+Ein **Stadtplan** war zwischenzeitlich da — erst als Kachel im Spielfeld, dann als
+eigene Fläche neben dem Steuerkreuz. Beides ist wieder raus: im Feld verdeckte er
+Blöcke, daneben brauchte ihn niemand. Die Randpfeile allein reichen, um zu wissen, wo
+etwas los ist.
 
 Das **Versteck jedes Viertels ist Robertos Zuhause**. Wer hineingeht, kühlt die Fahndung
 und kann mit der Leertaste **Feierabend machen** — die Nacht endet dann sofort, mit
@@ -574,6 +568,11 @@ weniger.
 
 ## Pause und Zwischenstand
 
+**Kein Text auf der Seite lässt sich markieren.** `user-select: none` und
+`-webkit-touch-callout: none` liegen auf dem `body`, Eingabefelder ausgenommen. Vorher
+stand das nur auf einzelnen Leisten, und ein Fehltipp auf Überschrift, Fußzeile oder
+einen Knopf brachte auf dem Handy die Lupe und markierte Buchstaben mitten im Spiel.
+
 **P, Escape oder der Knopf rechts vom Steuerkreuz** hält die Nacht an: Uhr, Streifen,
 Anrufe, Läufer, alles steht. Der Stand wird dabei gesichert.
 
@@ -746,7 +745,6 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `umschulden()` / `treue` / `zinsS()` | Straßenschuld ablösen, Zins durch Pünktlichkeit |
 | `kommMax()` / `kommNehmen()` | Ware auf Kommission als Netz nach dem Zugriff |
 | `pleitePruefen()` / `pleiteSzene()` | Insolvenz nach drei aussichtslosen Tagen |
-| `uebersicht()` | Stadtplan neben dem Steuerkreuz |
 | `pause()` / `pausiert` | Nacht anhalten, Uhr und alles darin |
 | `nachtStand()` / `nachtLaden()` | laufende Schicht sichern und fortsetzen |
 | `lager` / `lagerSumme()` / `packW` | ein Fach je Ware, plus die Sorte, die Roberto trägt |
