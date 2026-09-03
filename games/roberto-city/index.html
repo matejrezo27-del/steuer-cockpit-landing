@@ -47,7 +47,16 @@ h1{font-size:23px;font-weight:500;letter-spacing:-0.01em;margin:0 0 2px}
 .xp i{display:block;height:100%;background:var(--amber);border-radius:2px;transition:width .3s}
 canvas{width:100%;display:block;border-radius:12px;background:var(--panel);
  border:1px solid var(--edge);touch-action:none}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px auto 0;max-width:230px}
+.unten{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 0}
+#mini{width:96px;height:96px;flex:0 0 auto;border-radius:9px;border:1px solid var(--edge);
+ background:var(--panel)}
+.pausbtn{flex:0 0 auto;width:46px;height:46px;border-radius:10px;cursor:pointer;
+ background:var(--panel);color:var(--ink);border:1px solid var(--edge);
+ font-size:15px;letter-spacing:1px;-webkit-user-select:none;user-select:none}
+.pausbtn.an{background:var(--amber);color:#14161A;border-color:var(--amber)}
+@media (max-width:360px){#mini{width:76px;height:76px}}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0;
+ max-width:200px;flex:1 1 auto}
 .pad button{height:54px;font-size:22px;background:var(--panel);color:var(--ink);
  border:1px solid var(--edge);border-radius:10px;touch-action:none;cursor:pointer;
  -webkit-user-select:none;user-select:none}
@@ -160,6 +169,8 @@ footer{font-size:12px;color:var(--muted);margin:20px 0 8px;line-height:1.6}
 
 <canvas id="gc" width="360" height="440"></canvas>
 
+<div class="unten">
+<canvas id="mini" width="96" height="96" aria-label="Stadtplan"></canvas>
 <div class="pad off" id="pad">
 <button class="sp" aria-hidden="true">·</button>
 <button id="bu" aria-label="hoch">↑</button>
@@ -167,6 +178,8 @@ footer{font-size:12px;color:var(--muted);margin:20px 0 8px;line-height:1.6}
 <button id="bl" aria-label="links">←</button>
 <button id="bd" aria-label="runter">↓</button>
 <button id="br" aria-label="rechts">→</button>
+</div>
+<button class="pausbtn" id="bpause" aria-label="Pause">II</button>
 </div>
 
 <div class="acts">
@@ -626,8 +639,78 @@ function save(){try{localStorage.setItem(SKEY,JSON.stringify({
  sb:schuldB,ss:schuldS,pb:pleiteB,ps:pleiteS,tr:treue,ks:kommSchuld,pt:pleiteTage,
  anT:antrittTag,bew:bewaehrung,vert:verteidiger,
  kontakte:kontakte,lager:lager,lief:lieferant,nid:nextId,
- st:ST,
+ st:ST,nacht:nachtStand(),
  u:UP.map(function(u){return u.lv})}))}catch(e){}}
+function nachtStand(){
+ /* Alles, was eine laufende Schicht ausmacht. Ohne das war eine Nacht beim
+    Schließen des Tabs weg - der eine Punkt, der jahrelang offen stand. */
+ if(phase!=='nacht')return null;
+ var i,q;
+ var auf=auftraege.map(function(a){
+  return{kid:a.kid,n:a.n,i:a.i,j:a.j,v:a.v,menge:a.menge,offen:a.offen,
+         t:a.t,frist:a.frist}});
+ return{
+  p:{x:p.x,y:p.y,dx:p.dx,dy:p.dy,face:p.face,ldx:p.ldx||0,ldy:p.ldy||0},
+  packs:packs,packW:packW,cash:cash,stars:stars,shiftT:shiftT,ruhe:ruhe,
+  cops:cops.map(function(c){
+   return{x:c.x,y:c.y,dx:c.dx,dy:c.dy,cool:c.cool,heim:!!c.heim,q:c.q}}),
+  auf:auf,
+  leads:leads.map(function(l){return{i:l.i,j:l.j,t:l.t}}),
+  crew:mitarbeiter.map(function(m){
+   return{x:m.x,y:m.y,face:m.face,packs:m.packs,w:m.w,raus:m.raus,off:m.off||0,
+          z:m.ziel?auftraege.indexOf(m.ziel):-1}}),
+  anruf:anruf?{kid:anruf.kid,n:anruf.n,i:anruf.i,j:anruf.j,v:anruf.v,
+               menge:anruf.menge,t:anruf.t}:null,
+  anrufT:anrufT,leadT:leadT,dispatchT:dispatchT,
+  vs:{d:vsDrin,r:vsRest,v:vsVoll,q:vsQ,s:vsSperre,a:vsAus,t:versteckT},
+  ni:NI}}
+function nachtLaden(o){
+ var i;
+ if(!o||typeof o!=='object')return false;
+ try{
+  phase='nacht';
+  p={x:+o.p.x,y:+o.p.y,dx:+o.p.dx,dy:+o.p.dy,face:+o.p.face||1,
+     ldx:+o.p.ldx||0,ldy:+o.p.ldy||0};
+  packs=num(o.packs,0);packW=Math.min(WARE.length-1,num(o.packW,0));
+  cash=num(o.cash,0);stars=Math.max(0,Math.min(5,+o.stars||0));
+  shiftT=Math.max(1,+o.shiftT||NIGHT);ruhe=+o.ruhe||0;
+  cops=[];
+  if(o.cops)for(i=0;i<o.cops.length;i++){
+   var c=o.cops[i],k=mkcop(+c.x,+c.y,+c.dx,+c.dy,num(c.q,0));
+   k.cool=num(c.cool,0);k.heim=!!c.heim;cops.push(k)}
+  auftraege=[];
+  if(o.auf)for(i=0;i<o.auf.length;i++){
+   var a=o.auf[i];
+   auftraege.push({kid:num(a.kid,0),n:String(a.n||'?'),i:num(a.i,0),j:num(a.j,0),
+    v:+a.v||0,menge:num(a.menge,1),offen:num(a.offen,0),t:+a.t||0,
+    frist:+a.frist||60})}
+  leads=[];
+  if(o.leads)for(i=0;i<o.leads.length;i++)
+   leads.push({i:num(o.leads[i].i,0),j:num(o.leads[i].j,0),t:+o.leads[i].t||10});
+  mitarbeiter=[];
+  if(o.crew)for(i=0;i<o.crew.length;i++){
+   var m=mkLaeufer(),s=o.crew[i];
+   m.x=+s.x;m.y=+s.y;m.face=+s.face||1;m.packs=num(s.packs,0);
+   m.w=Math.min(WARE.length-1,num(s.w,0));m.raus=+s.raus||0;m.off=+s.off||0;
+   m.ziel=(s.z>=0&&auftraege[s.z])?auftraege[s.z]:null;
+   mitarbeiter.push(m)}
+  anruf=o.anruf?{kid:num(o.anruf.kid,0),n:String(o.anruf.n||'?'),
+   i:num(o.anruf.i,0),j:num(o.anruf.j,0),v:+o.anruf.v||0,
+   menge:num(o.anruf.menge,1),t:+o.anruf.t||1}:null;
+  anrufT=+o.anrufT||5;leadT=+o.leadT||20;dispatchT=+o.dispatchT||0;
+  if(o.vs){vsDrin=o.vs.d?1:0;vsRest=+o.vs.r||0;vsVoll=Math.max(0.3,+o.vs.v||1);
+   vsQ=num(o.vs.q,0);vsSperre=+o.vs.s||0;vsAus=o.vs.a?1:0;versteckT=+o.vs.t||0}
+  if(o.ni&&typeof o.ni==='object')for(var kk in NI)
+   if(typeof o.ni[kk]===typeof NI[kk])NI[kk]=o.ni[kk];
+  jailT=0;jailPos=null;freeze=0;flash=0;shake=0;redV=0;fx=[];
+  prevStars=Math.floor(stars);hinweisT=0;zuhauseT=0;febT=0;febAn=false;
+  /* Angehalten weitermachen, damit man nicht mitten in eine Streife startet. */
+  pausiert=true;
+  kamera(true);
+  return true}
+ catch(e){phase='tag';return false}}
+var speicherT=0;
+function nachtSpeichern(){if(phase==='nacht')save()}
 function num(v,d){return typeof v==='number'&&isFinite(v)&&v>=0?Math.floor(v):d}
 function load(){
  var o=null,alt=0,q,i;
@@ -692,7 +775,9 @@ function load(){
      i:Math.min(COLS-1,num(c6.i,0)),j:Math.min(ROWS-1,num(c6.j,0)),
      v:Math.max(0,Math.min(5,+c6.v||0))})}
   }
-  baueLief();apply()}
+  baueLief();apply();
+  /* Eine unterbrochene Schicht wird fortgesetzt, angehalten. */
+  if(o.nacht&&!inHaft()&&!gameOver)nachtLaden(o.nacht)}
  catch(e){
   bunker=STARTGELD;high=0;day=1;xp=0;ansehen=0;kontakte=[];lager=[0,0,0];lieferant=0;
   akten=0;gerichtTag=0;haftbefehl=false;haft=0;vorstrafen=0;meine={};crew={};ausland={};
@@ -1066,9 +1151,9 @@ function nightStart(){
  shiftT=NIGHT;jailT=0;jailPos=null;flash=0;freeze=0;shake=0;redV=0;
  NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:bunker,erfuellt:0,geplatzt:0,
      grund:'',crew:0,crewPacks:0,crewAkte:false,crewStrafe:0,crewErwischt:0,schwund:0};
- kamera(true);sNight();ui()}
+ pausiert=false;speicherT=0;kamera(true);sNight();save();ui()}
 function nightEnd(grund){
- phase='tag';siren(0);hold=null;vsDrin=0;
+ phase='tag';siren(0);hold=null;vsDrin=0;pausiert=false;
  if(grund==='knast')sHammer();else sDawn();
  NI.grund=grund||'feierabend';
  var q;
@@ -1197,7 +1282,16 @@ function passtext(t,px2,py,breite,gr){
  var g=gr;
  while(g>8){x.font='500 '+g+'px '+FONT;if(x.measureText(t).width<=breite)break;g--}
  x.fillText(t,px2,py)}
+var pausiert=false;
+function pause(an){
+ if(phase!=='nacht'&&phase!=='tag'){pausiert=false;return}
+ pausiert=(an===undefined)?!pausiert:!!an;
+ if(pausiert){hold=null;febAn=false;febT=0;siren(0);nachtSpeichern()}
+ var b=document.getElementById('bpause');
+ if(b)b.className='pausbtn'+(pausiert?' an':'');
+ ui()}
 function step(){
+ if(pausiert){palette();return}
  pulse+=0.07;if(flash>0)flash-=DT;
  dayF=Math.max(0,Math.min(1,dayF+(phase==='nacht'?-DT/1.2:DT/1.2)));
  if(hammerT>0)hammerT-=DT;
@@ -1419,6 +1513,8 @@ function step(){
  if(jagd&&near<55)redV=Math.max(redV,0.3+(55-near)/55*0.3);
  siren(ci);
  shiftT-=DT;
+ speicherT+=DT;
+ if(speicherT>=2){speicherT=0;save()}
  if(shiftT<=0){shiftT=0;nightEnd('feierabend')}}
 
 /* ---------- Gericht ---------- */
@@ -2057,7 +2153,7 @@ function stadtSzene(){
   gr.addColorStop(1,'rgba(226,88,90,'+(redV*0.55).toFixed(3)+')');
   x.fillStyle=gr;x.fillRect(0,0,VW,VH)}
  if(phase==='nacht'){
-  randzeiger();uebersicht();
+  randzeiger();
   for(var w=0;w<packs;w++)pouch(8+w*15,7,12);
   if(stars>=4){
    var wp=0.35+Math.sin(pulse*5)*0.25;
@@ -2100,18 +2196,29 @@ function stadtSzene(){
    x.font='400 14px '+FONT;x.fillText('Tasten hämmern, du kommst gleich frei',VW/2,VH/2+8);
    x.font='400 13px '+FONT;x.fillStyle='#F0A8A8';
    x.fillText('Akte Nr. '+akten+' · das klärt der Richter',VW/2,VH/2+32)}}
- else{tagKarte();uebersicht()}}
-var MK=96;
+ else tagKarte()}
+var MK=96,mc=null,mx=null;
 function uebersicht(){
- var sk=MK/Math.max(MAPW,MAPH),ox=VW-MK-8,oy=VH-MK-8,i,j,q;
+ /* Eigene Fläche unter dem Feld statt einer Ecke darin. */
+ if(!mc){mc=document.getElementById('mini');if(!mc)return;mx=mc.getContext('2d');
+  var d=Math.min(window.devicePixelRatio||1,3);
+  mc.width=Math.round(MK*d);mc.height=Math.round(MK*d);
+  mx.setTransform(d,0,0,d,0,0);
+  if(!mx.roundRect)mx.roundRect=function(a,b,w,h,r){this.rect(a,b,w,h)}}
+ if(phase!=='tag'&&phase!=='nacht'){mx.clearRect(0,0,MK,MK);return}
+ var xx=x;x=mx;
+ try{uebersichtMalen()}finally{x=xx}}
+function uebersichtMalen(){
+ var sk=MK/Math.max(MAPW,MAPH),ox=0,oy=0,i,j,q;
  var P=function(wx,wy){return{x:ox+wx*sk,y:oy+wy*sk}};
- x.fillStyle='rgba(10,12,18,0.82)';
- x.beginPath();x.roundRect(ox-4,oy-4,MK+8,MK+8,7);x.fill();
- x.strokeStyle='rgba(255,255,255,0.18)';x.lineWidth=1;x.stroke();
+ x.clearRect(0,0,MK,MK);
+ x.fillStyle=dayF>0.5?'rgba(210,206,196,0.9)':'rgba(16,19,26,0.9)';
+ x.beginPath();x.roundRect(0,0,MK,MK,8);x.fill();
  /* Gesperrte Viertel bleiben dunkel, offene sind Asphalt. */
  for(q=0;q<4;q++){
   var R=qRect(q),a=P(R.x,R.y);
-  x.fillStyle=offen[q]?'rgba(150,158,170,0.30)':'rgba(255,255,255,0.05)';
+  x.fillStyle=offen[q]?(dayF>0.5?'rgba(120,128,140,0.45)':'rgba(150,158,170,0.30)')
+   :'rgba(0,0,0,0.10)';
   x.fillRect(a.x,a.y,R.w*sk,R.h*sk)}
  var punkt=function(wx,wy,r,c){
   var a=P(wx,wy);x.fillStyle=c;
@@ -2137,10 +2244,11 @@ function uebersicht(){
  for(q=0;q<cops.length;q++)punkt(cops[q].x,cops[q].y,2.4,'#E2585A');
  /* Das Sichtfenster als Rahmen, damit man weiß, wo man gerade guckt. */
  var f=P(cam.x,cam.y);
- x.strokeStyle='rgba(255,255,255,0.55)';x.lineWidth=1;
+ x.strokeStyle=dayF>0.5?'rgba(30,33,38,0.55)':'rgba(255,255,255,0.55)';x.lineWidth=1;
  x.strokeRect(f.x,f.y,sichtW*sk,sichtH*sk);
  var pm=P(p.x,p.y);
- x.fillStyle='#FFFFFF';x.strokeStyle=COL.line;x.lineWidth=1;
+ x.fillStyle=dayF>0.5?'#1E2126':'#FFFFFF';x.strokeStyle=dayF>0.5?'#FFF':COL.line;
+ x.lineWidth=1;
  x.beginPath();x.arc(pm.x,pm.y,3.2,0,6.3);x.fill();x.stroke()}
 function randPfeil(wx,wy,farbe,zeichen){
  /* Bildschirmposition des Ziels; liegt sie draußen, klebt der Pfeil am Rand. */
@@ -2483,6 +2591,14 @@ function pleiteSzene(){
  x.beginPath();x.arc(lx+lw-44,ly+lh-32,12,0,6.3);x.stroke();
  x.restore();
  band('Pleite','Der Knopf oben fängt von vorn an')}
+function pauseSchirm(){
+ x.fillStyle='rgba(8,10,14,0.72)';x.fillRect(0,0,VW,VH);
+ x.textAlign='center';
+ x.fillStyle=COL.star;x.font='600 22px '+FONT;
+ x.fillText('Pause',VW/2,VH/2-10);
+ x.fillStyle='#B6BCC6';x.font='400 13px '+FONT;
+ x.fillText('Stand ist gespeichert. Du kannst den Tab zumachen.',VW/2,VH/2+16);
+ x.fillText('Knopf oder P macht weiter.',VW/2,VH/2+36)}
 function draw(){
  if(phase==='pleite'){pleiteSzene();return}
  if(phase==='revision'){revisionSzene();return}
@@ -2490,7 +2606,8 @@ function draw(){
  if(phase==='zelle'){zelleSzene();return}
  if(phase==='flug'){flugSzene();return}
  if(phase==='gespraech'){gespraechSzene();return}
- stadtSzene()}
+ stadtSzene();
+ if(pausiert)pauseSchirm()}
 
 /* ---------- Schleife ---------- */
 var acc=0,last=0;
@@ -2503,7 +2620,7 @@ function loop(ts){
  var n=0;
  while(acc>=DT&&n<MAXSTEP){step();acc-=DT;n++}
  if(n>=MAXSTEP)acc=0;
- draw();hud()}
+ draw();uebersicht();hud()}
 
 /* ---------- HUD ---------- */
 var EL={},CACHE={};
@@ -2592,9 +2709,14 @@ function ui(){
      ger=gerichtHeute(),sitzt=inHaft(),wartet=haft>0&&!sitzt;
  document.body.className=nacht?'':'tag';
  document.getElementById('pad').className='pad'+(nacht||phase==='tag'?'':' off');
+ var bp=document.getElementById('bpause');
+ bp.style.visibility=nacht?'visible':'hidden';
+ bp.className='pausbtn'+(pausiert?' an':'');
+ bp.textContent=pausiert?'▶':'II';
  var bm=document.getElementById('bmain'),ba=document.getElementById('balt');
  ba.style.display='none';
- if(nacht){
+ if(nacht&&pausiert){bm.textContent='Weiterspielen';bm.disabled=false}
+ else if(nacht){
   bm.textContent=febAn?'Feierabend … halten'
    :(vsDrin?'Feierabend · halten':'Schicht beenden · 3 s halten');
   bm.disabled=false}
@@ -2634,8 +2756,11 @@ function ui(){
  document.getElementById('secszene').style.display=
   (szeneAn||ger||sitzt||wartet||bewaehrung||letztesUrteil||revision)&&!nacht?'':'none';
  document.getElementById('hint').textContent=nacht
-  ?'Halten zum Laufen · Enter sagt einem Anruf zu · Versteck zieht dich rein und '+
-   'kühlt die Fahndung · Leertaste oder Knopf 3 Sekunden halten beendet die Schicht'
+  ?(pausiert?'Angehalten und gespeichert. Du kannst den Tab schließen und später '+
+    'genau hier weitermachen.'
+   :'Halten zum Laufen · Enter sagt einem Anruf zu · Versteck zieht dich rein und '+
+    'kühlt die Fahndung · P hält an · Leertaste oder Knopf 3 Sekunden halten '+
+    'beendet die Schicht')
   :(phase==='gericht'?'Der Saal ist voll. Was du sagst, steht nachher im Urteil.'
    :(phase==='revision'?'Karlsruhe entscheidet nach Aktenlage, nicht im Saal.'
     :(phase==='zelle'?'Jeder Tag zählt. Manchmal passiert etwas.'
@@ -3202,7 +3327,7 @@ function buy(k){
   if(bunker<pr){sNope();shop();return}
   bunker-=pr;u.lv++;apply();sBuy();save();shop();kit();hud();return}}
 function mainAction(){
- if(phase==='nacht')return;
+ if(phase==='nacht'){if(pausiert)pause(false);return}
  if(phase==='pleite'){gameOver=null;wipe();return}
  if(phase==='revision'){revisionSchliessen();return}
  if(phase==='gericht'){prozessWeiter();return}
@@ -3221,15 +3346,23 @@ document.addEventListener('keydown',function(e){
  var k=KEYS[e.key];
  if(k){halt(k[0],k[1]);padAn(k);e.preventDefault();return}
  if(e.key==='m'||e.key==='M'){audioOK=true;ac();setMute(!mute)}
+ if(e.key==='p'||e.key==='P'||e.key==='Escape'){
+  if(phase==='nacht'){pause();e.preventDefault();return}}
+ if(pausiert)return;
  if(phase==='nacht'){
   if(e.key==='Enter'){anrufAnnehmen();e.preventDefault();return}
-  if(e.key===' '){febStart();e.preventDefault();return}
+  if(e.key===' '){if(pausiert)pause(false);else febStart();e.preventDefault();return}
   return}
  if(e.key===' '||e.key==='Enter'){mainAction();e.preventDefault()}});
 document.addEventListener('keyup',function(e){
  var k=KEYS[e.key];if(k){los(k[0],k[1]);padAus()}
  if(e.key===' ')febStop()});
-window.addEventListener('blur',function(){hold=null;padAus();febStop()});
+window.addEventListener('blur',function(){
+ hold=null;padAus();febStop();
+ /* Tab weg heißt Pause und Sicherung, sonst läuft die Schicht ohne dich. */
+ if(phase==='nacht'&&!pausiert)pause(true)});
+document.addEventListener('visibilitychange',function(){
+ if(document.hidden&&phase==='nacht'&&!pausiert)pause(true)});
 var PADS={bu:[0,-1],bd:[0,1],bl:[-1,0],br:[1,0]};
 function padAn(k){
  for(var id in PADS)
@@ -3252,12 +3385,13 @@ bind('bu');bind('bd');bind('bl');bind('br');
  /* Nachts ist der Hauptknopf ein Halteknopf: kurzes Antippen soll die Schicht
     nicht aus Versehen beenden. Tags bleibt es ein normaler Klick. */
  var bm=document.getElementById('bmain');
- bm.addEventListener('click',function(){if(phase!=='nacht')mainAction()});
+ bm.addEventListener('click',function(){
+  if(phase!=='nacht'||pausiert)mainAction()});
  bm.addEventListener('pointerdown',function(e){
-  if(phase!=='nacht')return;
+  if(phase!=='nacht'||pausiert)return;
   e.preventDefault();try{bm.setPointerCapture(e.pointerId)}catch(er){}
   febStart()});
- var auf=function(){if(phase==='nacht')febStop()};
+ var auf=function(){if(phase==='nacht'&&!pausiert)febStop()};
  bm.addEventListener('pointerup',auf);
  bm.addEventListener('pointercancel',auf);
  bm.addEventListener('lostpointercapture',auf)})();
@@ -3266,6 +3400,8 @@ document.getElementById('balt').addEventListener('click',function(){
  if(gerichtHeute()){gerichtSchwaenzen();return}
  if(inHaft()){nichtStellen();return}
  if(haft>0)frueherAntreten()});
+document.getElementById('bpause').addEventListener('click',function(){
+ audioOK=true;ac();pause()});
 document.getElementById('bmute').addEventListener('click',function(){
  audioOK=true;ac();setMute(!mute)});
 document.getElementById('breset').addEventListener('click',function(){
@@ -3326,10 +3462,11 @@ fit();
 load();
 baueLief();
 startKontakte();
-tagBeginn();
+if(phase!=='nacht')tagBeginn();
 document.getElementById('bmute').textContent=mute?'Ton aus':'Ton an';
-p=idleP();packs=0;packW=0;cash=0;stars=0;cops=[];leads=[];auftraege=[];
-shiftT=NIGHT;jailT=0;flash=0;
+if(phase!=='nacht'){
+ p=idleP();packs=0;packW=0;cash=0;stars=0;cops=[];leads=[];auftraege=[];
+ shiftT=NIGHT;jailT=0;flash=0}
 kamera(true);palette();ui();hud();save();requestAnimationFrame(loop);
 })();
 </script>

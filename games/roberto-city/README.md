@@ -71,12 +71,16 @@ Fragezeichen) und offene Aufträge (rote Nadel mit der Stückzahl) kleben mit Ri
 und Entfernung am Bildschirmrand, sobald sie aus dem Ausschnitt laufen. Vorher tauchte
 hinten in der Stadt jemand auf, und man erfuhr es nie.
 
-**Dazu eine Übersicht in der Ecke**, Tag wie Nacht. Sie zeigt die ganze Stadt als Punkte
-— Lager, Bunker, Wachen, Verstecke, deine Lokale, offene Aufträge, neue Kontakte, deine
-Läufer, Streifen, Roberto — plus einen Rahmen für das, was gerade im Bild ist. Das ist
-die Antwort auf „das ganze Spielfeld sehen, ohne dass alles zu klein wird": das Feld
-bleibt groß, die Übersicht ist klein, und weil sie nur Punkte zeichnet, bleibt sie
-lesbar. Die Randpfeile weichen ihr aus.
+**Dazu ein Stadtplan neben dem Steuerkreuz**, Tag wie Nacht. Er zeigt die ganze Stadt
+als Punkte — Lager, Bunker, Wachen, Verstecke, deine Lokale, offene Aufträge, neue
+Kontakte, deine Läufer, Streifen, Roberto — plus einen Rahmen für das, was gerade im
+Bild ist. Das ist die Antwort auf „das ganze Spielfeld sehen, ohne dass alles zu klein
+wird": das Feld bleibt groß, der Plan ist klein, und weil er nur Punkte zeichnet, bleibt
+er lesbar.
+
+Zuerst lag er als Kachel **in** der Spielfläche, unten rechts. Das verdeckte Blöcke und
+störte. Jetzt ist es eine eigene kleine Fläche unter dem Feld, links vom Steuerkreuz —
+sie nimmt dem Spiel nichts mehr weg.
 
 Das **Versteck jedes Viertels ist Robertos Zuhause**. Wer hineingeht, kühlt die Fahndung
 und kann mit der Leertaste **Feierabend machen** — die Nacht endet dann sofort, mit
@@ -564,6 +568,26 @@ Haft ist eine eigene Szene mit Strichliste an der Wand. Jeder Tag würfelt ein E
 Hofgang bringt einen Kontakt, Ärger im Trakt einen Tag mehr, ein Anwaltsbesuch einen
 weniger.
 
+## Pause und Zwischenstand
+
+**P, Escape oder der Knopf rechts vom Steuerkreuz** hält die Nacht an: Uhr, Streifen,
+Anrufe, Läufer, alles steht. Der Stand wird dabei gesichert.
+
+Wichtiger noch: **eine laufende Schicht überlebt jetzt das Schließen des Tabs.** Der
+Spielstand enthält den kompletten Nachtzustand — Position, getragene Ware, Bargeld,
+Fahndung, Restzeit, jede Streife, jeder Auftrag mit Restfrist, jeder Läufer samt Ziel,
+der laufende Anruf, das Versteck. Beim nächsten Aufruf geht es **angehalten** genau dort
+weiter, damit man nicht direkt in eine Streife hineinstartet. Gespeichert wird alle zwei
+Sekunden, beim Pausieren und sobald der Tab in den Hintergrund geht — der Wechsel hält
+die Schicht selbst an.
+
+Gemessen über einen Reload mitten in der Nacht: Restzeit 80,6 s, Position, 2 Pack, 2,21
+Sterne, zwei Streifen, beide Läufer mit ihrer Ladung, Lager und Bunker — alles identisch.
+
+Das behebt den Punkt, der lange unter „Offen" stand. Der Fortschritt liegt im
+`localStorage` des Browsers, im Artefakt also pro Gerät und Browser; ein anderer Rechner
+fängt neu an.
+
 ## Tagesabschluss
 
 Nach jeder Nacht steht unter dem Feld eine **Plus-Minus-Rechnung**: das Nachtgeschäft,
@@ -690,7 +714,9 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `umschulden()` / `treue` / `zinsS()` | Straßenschuld ablösen, Zins durch Pünktlichkeit |
 | `kommMax()` / `kommNehmen()` | Ware auf Kommission als Netz nach dem Zugriff |
 | `pleitePruefen()` / `pleiteSzene()` | Insolvenz nach drei aussichtslosen Tagen |
-| `uebersicht()` | Stadtplan in der Ecke |
+| `uebersicht()` | Stadtplan neben dem Steuerkreuz |
+| `pause()` / `pausiert` | Nacht anhalten, Uhr und alles darin |
+| `nachtStand()` / `nachtLaden()` | laufende Schicht sichern und fortsetzen |
 | `lager` / `lagerSumme()` / `packW` | ein Fach je Ware, plus die Sorte, die Roberto trägt |
 | `chips()` | Statuszeile über dem Feld: Phase, Lager, Kosten, Steuer, Verfahren |
 | `passtext()` | verkleinert eine Meldung, bis sie in die Breite passt |
@@ -785,7 +811,9 @@ Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als Fehler. Mi
   Läufen im Zugriff, auch mit voller Ausrüstung. Der Testbot läuft allerdings in
   geraden Linien und nutzt weder Versteck noch Rückzug — ein Mensch hat Werkzeuge, die
   er nicht anfasst. Ungetestet bleibt es trotzdem.
-- **Kein Zwischenspeichern innerhalb einer Nacht.** Tab zu heißt laufende Schicht weg.
+- **Der Spielstand hängt am Browser.** `localStorage` je Gerät; wer den Rechner wechselt,
+  fängt von vorn an. Ein Stand, der dem Konto folgt, ginge über die Artefakt-Datenbank,
+  ist aber noch nicht gebaut.
 - **Die Pleitegrenze ist gesetzt, nicht gemessen.** Anderthalbfaches Vermögen, drei Tage,
   200 € im Bunker: plausibel, aber nicht an echten Verläufen geprüft. Ob man in der Praxis
   je hineinrutscht, ohne es kommen zu sehen, weiß ich nicht.
