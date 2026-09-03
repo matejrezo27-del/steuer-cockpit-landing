@@ -66,6 +66,11 @@ folgt die Kamera.
 Roberto läuft **auch tagsüber**, nur ohne Streifen, Aufträge und Uhr. So kommst du zu
 den Lokalen, die du anklicken willst.
 
+**Was außerhalb des Bildes liegt, zeigt ein Pfeil am Rand.** Neue Kontakte (blaues
+Fragezeichen) und offene Aufträge (rote Nadel mit der Stückzahl) kleben mit Richtung
+und Entfernung am Bildschirmrand, sobald sie aus dem Ausschnitt laufen. Vorher tauchte
+hinten in der Stadt jemand auf, und man erfuhr es nie.
+
 Das **Versteck jedes Viertels ist Robertos Zuhause**. Wer hineingeht, kühlt die Fahndung
 und kann mit der Leertaste **Feierabend machen** — die Nacht endet dann sofort, mit
 allem was bis dahin im Bunker liegt. Wer bis zum Morgen draußen bleibt, riskiert mehr.
@@ -137,6 +142,10 @@ Zwei Dinge mussten sich dafür ändern, beide gemessen:
 
 * **Erledigte Aufträge blieben ewig in der Liste**, weil ihr Zeitzähler erst nach dem
   `offen`-Test lief. Sie werden jetzt entfernt.
+* **Ein leeres Fach legte den ganzen Betrieb lahm.** Zeigte die Warenwahl auf eine
+  Sorte, von der nichts dalag, blieben Roberto und die Läufer vor vollem Lager stehen —
+  und nachts lässt sich die Wahl nicht umstellen. Jetzt wird nachgeladen, was da ist:
+  dieselbe Sorte weiter, sonst die gewählte, sonst die wertvollste verfügbare.
 * **Die Anrufrate hing an nichts.** Alle 10 bis 18 Sekunden ein Anruf, egal wie groß
   der Laden war — damit war die *Nachfrage* der Deckel, nicht das Personal. Im Test
   stand der zweite Läufer die halbe Nacht mit voller Tasche da, weil es keinen zweiten
@@ -153,6 +162,21 @@ steht still:
 
 Bei 120 € Lohn und rund 182 € Wareneinsatz bleiben so etwa **350 € je Nacht** übrig,
 bei Kokain ein Vielfaches. Vorher war es ein Minusgeschäft.
+
+#### Was Personal kostet, wenn es schiefgeht
+
+Ein aufgegriffener Läufer kostete anfangs nur Ware und eine Akte — zu billig für ein
+System, das so viel Geld verdient. Jetzt gilt:
+
+| | |
+|---|---|
+| **Seine Strafe, deine Rechnung** | 120 € + 1,2 × Grundpreis der Ware, also rund 170 € bei Cannabis und 370 € bei Kokain. Fällig am Tageswechsel. Deckt der Bunker sie nicht, gibt es stattdessen eine Akte. |
+| **Nur manchmal redet er** | In 30 % der Fälle kommt zusätzlich eine Akte auf deinen Namen. |
+| **Schwund** | Mit 12 % Wahrscheinlichkeit behält ein Läufer 30 bis 60 % einer Auszahlung für sich. Der Aufpasser halbiert das auf 6 %. |
+
+Der Aufpasser verdient damit sein Geld doppelt: er senkt das Aufgriffsrisiko von 0,75
+auf 0,35 je Sekunde in Reichweite **und** den Schwund. Die Ladung liegt bei zwei Packs,
+damit ein Läufer nicht mehr trägt als Roberto am Anfang.
 
 ### Laufende Kosten
 
@@ -309,6 +333,11 @@ noch am Mann hast, wandert in sein Fach zurück; verloren geht Ware nur beim Zug
 
 ## Fahndung
 
+**Ein Wagen je vollem Stern.** Bei einem Stern rückt eine Streife aus, bei zwei zwei,
+höchstens vier. Zwischen zwei Ausrückungen liegen **4 Sekunden** (mit Funkscanner 5,5).
+Vorher waren es bei einem Stern schon zwei Wagen im Abstand von 2,2 Sekunden — das kam
+als Schwarm heraus, nicht als Fahndung.
+
 **Fahndung entsteht nicht durch Lieferungen, sondern durchs Tragen.** Wer nachts mit
 Ware oder Bargeld durch die Stadt läuft, fällt jede Sekunde ein Stück weiter auf — mit
 `Hitze × 0,055` pro Sekunde, bei Cannabis also 0,022, bei Kokain 0,058. Dazu kommt der
@@ -317,7 +346,9 @@ Sprung pro Übergabe (Tabelle oben, an einer Wache × 1,3).
 Sauber wird man nur an zwei Orten: im **Bunker** (Geld abgeben senkt die Fahndung um
 einen ganzen Stern) und im **Versteck**. Solange etwas dabei ist, kühlt gar nichts ab.
 Ist man leer, beginnt nach **5 Sekunden** Ruhe (mit Funkscanner 3) das Abkühlen mit
-0,35 pro Sekunde, mit Sonnenbrille 0,46.
+**0,16 pro Sekunde**, mit Sonnenbrille 0,21. Ein Stern braucht damit rund sechs
+Sekunden statt drei: die Fahndung ist ein Zustand, kein Aufblitzen. Nach einem Zugriff
+bleibst du bei 0,6 Sternen stehen, damit nicht sofort der nächste Wagen kommt.
 
 Streifen rücken ab **0,8 Sternen** aus, kommen aus der **Wache des nächstgelegenen
 offenen Viertels** und fahren dorthin zurück. In gesperrte Viertel fahren sie nicht.
@@ -343,12 +374,33 @@ Vorsichtig spielen wird belohnt, gierig spielen kostet. Genau das war der Punkt.
 
 ### Das Versteck
 
-Es hat jetzt eine eigene Aufgabe, statt nur ein zweites Zuhause zu sein:
+Man geht wirklich hinein, statt nur in der Nähe zu stehen. **Halte die Richtung zum
+Block**, dann zieht es dich hinein — vorbeilaufen genügt nicht, und das ist Absicht:
+die Fahrspur liegt nur 45 px von der Blockmitte, ein reiner Näherungsradius hätte jeden
+erwischt, der vorbeikommt. Im Messlauf blieb der Testbot damit die halbe Nacht in
+fremden Verstecken hängen.
 
-* Ruhezeit sofort auf null, Abkühlen mit **1,6 pro Sekunde**, Streifen verlieren dich.
-* Nach 1,2 Sekunden drinnen bringt der Mann im Versteck dein **Bargeld weg — für 20 %**.
-  Der lange Weg zum Bunker bringt alles, wenn man ankommt. Das ist die Entscheidung.
-* **Leertaste** macht Feierabend und beendet die Nacht.
+Drinnen ist die Tür für **2 + 1,6 × Sterne Sekunden** zu. Bei drei Sternen sind das
+knapp sieben. Solange:
+
+* keine Bewegung, außen läuft ein Ring als Uhr;
+* Abkühlen mit **1,6 pro Sekunde**, Streifen verlieren dich sofort;
+* nach 1,2 Sekunden bringt der Mann im Versteck dein **Bargeld weg — für 20 %**. Der
+  lange Weg zum Bunker bringt alles, wenn man ankommt. Das ist die Entscheidung.
+
+Ist die Zeit um, trägt dich die **gehaltene Richtung wieder auf die Straße**. Danach
+greift der Sog erst wieder, wenn du den Block einmal verlassen hast — sonst würde der
+Ausgang, der ja auf der Fahrspur liegt, dich sofort zurücksaugen.
+
+### Feierabend
+
+**Den Hauptknopf drei Sekunden halten** beendet die Schicht, im Versteck genügt eine
+Sekunde. Der Knopf füllt sich dabei sichtbar. Die Leertaste tut dasselbe.
+
+Vorher ging Feierabend nur im Versteck und nur per Leertaste. Wer keine Ware mehr hatte,
+saß die Nacht ab. Ein kurzer Tastendruck darf die Schicht aber auch nicht aus Versehen
+beenden — daher das Halten. Dass ein Fehltipp auf die Texte darunter Buchstaben
+markierte, war derselbe Ärger: die Bedienleisten sind jetzt `user-select: none`.
 
 ## Gericht und Haft
 
@@ -579,6 +631,11 @@ Alles steckt in `index.html`. Wichtige Stellen im Script:
 | `kontakte` / `neuerKontakt()` | benannte Abnehmer, Vertrauen, neue Bekanntschaften |
 | `spawnCop()` / `moveCop()` | Ausrücken aus der nächsten Wache, Verfolgung, Rückfahrt |
 | `stepCrew()` / `gehZu()` / `auftragFuer()` | Läufer holen Ware und beliefern Aufträge |
+| `vsDrin` / `vsAusgang()` / `vsAus` | Versteck betreten, Tür zu, wieder heraus |
+| `febStart()` / `febTick()` | Schicht beenden durch Halten |
+| `randzeiger()` / `randPfeil()` | Wegweiser zu Zielen außerhalb des Bildes |
+| `betragZeile()` / `betragVon()` | Kredit mit eingebbarer Summe |
+| `besteWare()` | Fallback, wenn das gewählte Fach leer ist |
 | `lager` / `lagerSumme()` / `packW` | ein Fach je Ware, plus die Sorte, die Roberto trägt |
 | `chips()` | Statuszeile über dem Feld: Phase, Lager, Kosten, Steuer, Verfahren |
 | `passtext()` | verkleinert eine Meldung, bis sie in die Breite passt |
@@ -677,6 +734,10 @@ Komplexität ohne messbaren Gewinn, und genau das nennt der Skill als Fehler. Mi
 - **Läufer nehmen keine eigenen Kontakte auf.** Sie bedienen nur, was Roberto zugesagt
   hat, plus verfallene Anrufe. Ein eigener Kundenstamm je Mitarbeiter wäre der nächste
   Schritt.
+- **Die Fahndung ist nur gegen einen dummen Testbot gemessen.** Er läuft geradeaus,
+  nutzt weder Versteck noch Rückzug und kommt deshalb auf drei Zugriffe je Nacht. Wie
+  sich die langsamere Abkühlung für einen Menschen anfühlt, der die Werkzeuge benutzt,
+  ist ungetestet.
 - **Die Ökonomie bleibt inflationär**, siehe den eigenen Abschnitt. Von 5–9 auf 2,0
   gesenkt, gesund wären 1,0. Der Wegfall der Nachtsteuer nimmt im späten Spiel rund
   600 €/Tag Senke heraus; dagegen stehen die Zugriffe, die es vorher praktisch nicht

@@ -19,6 +19,8 @@ body{margin:0;min-height:100vh;background:var(--asphalt);color:var(--ink);font-f
  display:flex;justify-content:center;padding:16px;-webkit-font-smoothing:antialiased;
  transition:background-color .9s ease,color .9s ease}
 main{width:100%;max-width:390px}
+.hud,.rangbar,.chips,.acts,.bar,.hint,.tabs,footer,h1,.tagline,.shead{
+ -webkit-user-select:none;user-select:none}
 h1{font-size:23px;font-weight:500;letter-spacing:-0.01em;margin:0 0 2px}
 .tagline{font-size:13px;color:var(--muted);margin:0 0 14px}
 .hud{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-bottom:7px}
@@ -57,6 +59,7 @@ canvas{width:100%;display:block;border-radius:12px;background:var(--panel);
  background:var(--amber);color:#14161A;border:0}
 .acts button.ghost{background:transparent;color:var(--ink);border:1px solid var(--edge)}
 .acts button:active{filter:brightness(.9)}
+.acts button{background-repeat:no-repeat;transition:background-image .05s linear}
 .acts button[disabled]{background:transparent;color:var(--muted);border:1px solid var(--edge);cursor:default}
 .bar{display:flex;justify-content:center;gap:8px;margin:12px 0 0}
 .bar button{background:transparent;color:var(--muted);border:1px solid var(--edge);
@@ -83,6 +86,16 @@ h2{font-size:16px;font-weight:500;margin:0}
 .ware b,.lieflist b{display:block;font-size:13px;font-weight:500}
 .ware span,.lieflist span{font-size:11px;color:var(--muted)}
 .kaufbtn{display:flex;gap:6px}
+.geld{display:flex;gap:6px;align-items:center;margin:2px 0 6px}
+.geld input{flex:1;min-width:0;height:36px;padding:0 10px;font:inherit;font-size:14px;
+ border-radius:8px;border:1px solid var(--edge);background:transparent;color:var(--ink);
+ font-variant-numeric:tabular-nums}
+.geld button{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--edge);
+ background:transparent;color:var(--ink);font-size:13px;cursor:pointer;white-space:nowrap}
+.geld button[disabled]{opacity:.4;cursor:default}
+.schnell{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.schnell button{height:28px;padding:0 10px;border-radius:999px;font-size:11px;cursor:pointer;
+ border:1px solid var(--edge);background:transparent;color:var(--muted)}
 .kaufbtn button{min-width:46px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;margin:12px 0 0}
 .kv{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
@@ -197,7 +210,8 @@ footer{font-size:12px;color:var(--muted);margin:20px 0 8px;line-height:1.6}
 </div>
 
 <footer>Nachts: Pfeiltaste oder WASD <b>gedrückt halten</b>, Roberto läuft nur solange.
-Am Handy die Tasten halten oder den Finger auf dem Feld ziehen. M schaltet den Ton.<br>
+Am Handy die Tasten halten oder den Finger auf dem Feld ziehen. M schaltet den Ton.
+Den Knopf über den Reitern <b>3 Sekunden halten</b> beendet die Schicht, im Versteck genügt eine.<br>
 Der Shop hat nur tagsüber offen. Fortschritt bleibt im Browser gespeichert.</footer>
 </main>
 
@@ -264,6 +278,12 @@ var lieferant=0,ausland={};
    umsteigen, ohne dass billiges Gras beim Wechsel zu Koks wird. */
 var lager=[0,0,0];
 function lagerSumme(){var s=0,i;for(i=0;i<lager.length;i++)s+=lager[i];return s}
+function besteWare(){
+ /* Das wertvollste Fach, in dem etwas liegt. Fallback, wenn die im Telefon
+    gewählte Ware alle ist — sonst stünde man nachts vor vollem Lager. */
+ var b=-1,i;
+ for(i=0;i<WARE.length;i++)if(lager[i]>0&&rang()>=WARE[i].rang)b=i;
+ return b}
 function lagerText(){var t=[],i;
  for(i=0;i<WARE.length;i++)if(lager[i]>0)t.push(lager[i]+'× '+WARE[i].n);
  return t.length?t.join(' · '):'leer'}
@@ -284,7 +304,7 @@ var meine={};
 var ROLLEN=[
  {k:'laeufer',n:'Läufer',d:'Läuft nachts mit: holt Ware und beliefert Aufträge',lohn:60,ansehen:5,max:4},
  {k:'fahrer',n:'Fahrer',d:'+2 Ware pro Ladung',lohn:200,ansehen:15,max:1},
- {k:'aufpasser',n:'Aufpasser',d:'Streifen erkennen dich 15 % später, Läufer fliegen seltener auf',lohn:250,ansehen:30,max:1},
+ {k:'aufpasser',n:'Aufpasser',d:'Streifen erkennen dich 15 % später, Läufer fliegen seltener auf und unterschlagen weniger',lohn:250,ansehen:30,max:1},
  {k:'buchhalter',n:'Buchhalter',d:'Steuersatz 10 Punkte niedriger',lohn:300,ansehen:45,max:1}];
 var crew={};
 function nCrew(k){return crew[k]||0}
@@ -341,6 +361,29 @@ function tilgen(k,n){
  bunker-=n;
  if(k==='bank')schuldB-=n;else{schuldS-=n;if(schuldS<=0){ansehen+=3;pleiteS=0}}
  sBuy();save();ui();hud()}
+function betragZeile(k,frei2,schuld,zu){
+ /* Vorher zahlte der Knopf immer alles auf einmal. Jetzt steht eine Summe
+    drin, die man überschreiben kann, plus Schnellwahl. */
+ var h='<div class="geld">';
+ h+='<input type="number" min="0" step="100" id="bet'+k+'" value="'+
+  Math.max(0,Math.min(frei2>0?frei2:schuld,frei2>0?frei2:Math.min(schuld,bunker)))+
+  '" inputmode="numeric"'+(zu?' disabled':'')+'>';
+ h+='<button data-leih="'+k+'"'+(zu||frei2<=0?' disabled':'')+'>leihen</button>';
+ h+='<button data-tilg="'+k+'"'+(zu||schuld<=0||bunker<=0?' disabled':'')+'>tilgen</button>';
+ h+='</div><div class="schnell">';
+ if(frei2>0)h+='<button data-setz="'+k+':'+frei2+'">Rahmen '+frei2+' €</button>';
+ if(schuld>0){
+  var t=Math.min(schuld,bunker);
+  h+='<button data-setz="'+k+':'+Math.round(t/4/10)*10+'">25 %</button>'+
+   '<button data-setz="'+k+':'+Math.round(t/2/10)*10+'">50 %</button>'+
+   '<button data-setz="'+k+':'+t+'">alles ('+t+' €)</button>'}
+ h+='</div>';
+ return h}
+function betragVon(k){
+ var el=document.getElementById('bet'+k);
+ if(!el)return 0;
+ var n=Math.floor(+el.value);
+ return isFinite(n)&&n>0?n:0}
 function kreditTag(){
  var i;
  if(schuldB>0){
@@ -395,7 +438,7 @@ function apply(){
  CAP=3+lv('tasche')*2+(lv('auto')?3:0)+(nCrew('fahrer')?2:0);
  PAYM=lv('handy')?1.25:1;
  SICHT=(lv('kapuze')?0.75:1)*(lv('auto')?1.4:1)*(nCrew('aufpasser')?0.85:1);
- KUEHL=0.35*(lv('brille')?1.3:1);
+ KUEHL=0.16*(lv('brille')?1.3:1);
  RUHEZEIT=lv('scanner')?3:5;
  MAXAUF=2+Math.floor(rang()/3)+(lv('handy')?1:0)+nCrew('laeufer')}
 
@@ -445,7 +488,7 @@ var flugZiel=null,flugRest=0,gesprText='',gesprOk=null;
 var ST={naechte:0,drops:0,busts:0,best:0,prozesse:0,hafttage:0,kontakte:0,geplatzt:0,
         steuer:0,loehne:0,mieten:0,abgabe:0,zinsen:0};
 var NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,
-        grund:'',crew:0,crewPacks:0,crewAkte:false};
+        grund:'',crew:0,crewPacks:0,crewAkte:false,crewStrafe:0,crewErwischt:0,schwund:0};
 var NAMEN=['Kalle','Mesut','Sonja','Der Lange','Bine','Ratko','Frau Özdemir','Pit',
  'Jenny','Der Doktor','Ali','Schwester Marion','Uwe','Lucia','Bruno','Tanja',
  'Der Student','Miro','Hanne','Gino','Vera','Schrauber-Olli','Nuri','Elke','Toni',
@@ -604,7 +647,7 @@ function wipe(){
  schuldB=0;schuldS=0;pleiteB=0;pleiteS=0;antrittTag=0;bewaehrung=null;verteidiger=false;
  for(var k in ST)ST[k]=0;
  NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:0,erfuellt:0,geplatzt:0,
-     grund:'',crew:0,crewPacks:0,crewAkte:false};
+     grund:'',crew:0,crewPacks:0,crewAkte:false,crewStrafe:0,crewErwischt:0,schwund:0};
  for(var i=0;i<UP.length;i++)UP[i].lv=0;
  baueLief();apply();startKontakte();p=idleP();tagBeginn();ui();hud()}
 
@@ -657,7 +700,8 @@ function palette(){
 
 /* ---------- Kontakte und Aufträge ---------- */
 var p,packs,packW=0,cash,stars,cops,shiftT,jailT,jailPos,flash,flashT,leads,hold=null,
- pulse=0,prevStars=0,dispatchT=0,ruhe=0,leadT=0,hinweisT=0,versteckT=0;
+ pulse=0,prevStars=0,dispatchT=0,ruhe=0,leadT=0,hinweisT=0,versteckT=0,
+ vsDrin=0,vsRest=0,vsVoll=0,vsQ=0,vsSperre=0,vsAus=0;
 var cam={x:0,y:0};
 function idx(val,arr){for(var i=0;i<arr.length;i++)if(Math.abs(val-arr[i])<TOL)return i;return -1}
 function belegt(i,j){
@@ -747,8 +791,19 @@ function nextDay(){
    v:'+'+NI.crew+' €',gut:true});
  else if(nCrew('laeufer')>0&&ST.naechte>0)
   tagesBericht.push({t:'Läufer ohne Arbeit',v:'kein Nachschub im Lager',gut:false});
+ if(NI.schwund>0)
+  tagesBericht.push({t:'Schwund',v:'-'+NI.schwund+' €',gut:false});
+ if(NI.crewStrafe>0){
+  var cs=NI.crewStrafe;
+  if(bunker>=cs){bunker-=cs;
+   tagesBericht.push({t:NI.crewErwischt+'× Läufer aufgegriffen',
+    v:'-'+cs+' € Strafe',gut:false})}
+  else{
+   akten++;
+   tagesBericht.push({t:'Strafe für deine Läufer nicht bezahlt',
+    v:'eine Akte',gut:false})}}
  if(NI.crewAkte)
-  tagesBericht.push({t:'Läufer erwischt',v:'eine Akte',gut:false});
+  tagesBericht.push({t:'Ein Läufer hat geredet',v:'eine Akte',gut:false});
  /* Wer nicht ganz oben steht, gibt nach oben ab. Als Legende behältst du alles. */
  var roh=Math.max(0,NI.cash||0);
  if(roh>0&&rang()<RANG.length){
@@ -783,13 +838,18 @@ function addXP(n){
 
 /* ---------- Nacht ---------- */
 function idleP(){var k=bc(HAFEN.i,HAFEN.j);return{x:k.x,y:YS[HAFEN.j+1],dx:0,dy:0,face:1}}
+function vsAusgang(k){
+ /* Beim Rauslaufen landet man auf der nächsten Fahrspur, nicht im Block. */
+ var by=YS[0],i;
+ for(i=0;i<YS.length;i++)if(Math.abs(YS[i]-k.y)<Math.abs(by-k.y))by=YS[i];
+ return{x:k.x,y:by}}
 
 /* ---------- Läufer ---------- */
 /* Sie räumten vorher beim Morgengrauen pauschal Restware ab. Wer sauber
    spielt, hat morgens aber nichts liegen — also taten sie sichtbar nichts und
    kosteten nur Lohn. Jetzt laufen sie die Nacht über wirklich mit: Ware im
    Lager holen, an zugesagte Aufträge liefern, und sie können auffliegen. */
-var mitarbeiter=[],SPDL=2.3,CAPL=3;
+var mitarbeiter=[],SPDL=2.3,CAPL=2;
 function mkLaeufer(){
  var k=bc(HAFEN.i,HAFEN.j);
  return{x:k.x,y:YS[HAFEN.j+1],dx:0,dy:0,face:1,packs:0,w:0,
@@ -853,8 +913,13 @@ function stepCrew(){
    for(q=0;q<cops.length;q++){
     var o=cops[q],ddx=o.x-m.x,ddy=o.y-m.y;
     if(ddx*ddx+ddy*ddy<22*22&&Math.random()<(nCrew('aufpasser')?0.35:0.75)*DT){
-     akten++;NI.crewAkte=true;m.packs=0;m.ziel=null;m.raus=14;erwischt=true;
-     ftxt(m.x,m.y-20,'aufgegriffen','#F09595');fring(m.x,m.y,26,'#E2585A');
+     /* Sein Verfahren, deine Rechnung. Die Strafe fällt am Tageswechsel an.
+        Nur wenn er redet, landet auch eine Akte bei dir. */
+     var str=Math.round((120+WARE[m.w].preis*1.2)/10)*10;
+     NI.crewStrafe+=str;NI.crewErwischt++;
+     if(Math.random()<0.3){akten++;NI.crewAkte=true}
+     m.packs=0;m.ziel=null;m.raus=14;erwischt=true;
+     ftxt(m.x,m.y-20,'-'+str+' € Strafe','#F09595');fring(m.x,m.y,26,'#E2585A');
      break}}
    if(erwischt)continue}
   if(m.packs<=0){
@@ -862,9 +927,10 @@ function stepCrew(){
    m.ziel=null;
    var kl=bc(HAFEN.i,HAFEN.j);
    if(gehZu(m,kl.x,YS[HAFEN.j+1],SPDL)){
-    var nimm=Math.min(CAPL,lager[ware]);
+    var wl=lager[ware]>0?ware:besteWare();
+    var nimm=wl>=0?Math.min(CAPL,lager[wl]):0;
     if(nimm>0){
-     lager[ware]-=nimm;m.packs=nimm;m.w=ware;m.leer=0;
+     lager[wl]-=nimm;m.packs=nimm;m.w=wl;m.leer=0;
      ftxt(m.x,m.y-18,nimm+'x','#C8D8E8')}
     else if(m.leer<=0){m.leer=6;ftxt(m.x,m.y-18,'Lager leer','#8A9099')}
     else m.leer-=DT}
@@ -878,8 +944,14 @@ function stepCrew(){
    m.packs--;a.offen--;NI.drops++;NI.crewPacks++;
    /* Ohne Sternbonus und ohne Pünktlichkeit: der Läufer liefert nur ab. */
    var pay=Math.round(wr.preis*(1+a.v*0.08)*PAYM/5)*5;
+   /* Schwund: nicht jeder gibt alles ab. Der Aufpasser halbiert das. */
+   var weg=0;
+   if(Math.random()<(nCrew('aufpasser')?0.06:0.12)){
+    weg=Math.round(pay*(0.3+Math.random()*0.3)/5)*5;
+    pay-=weg;NI.schwund+=weg}
    bunker+=pay;NI.crew+=pay;
    ftxt(ka.x,ka.y-16,'+'+pay+' €','#9CE08A');fring(ka.x,ka.y,24,'#7BC96F');
+   if(weg>0)ftxt(ka.x,ka.y-34,'-'+weg+' € Schwund','#F0C070');
    addXP(Math.round(wr.xp*0.4));
    if(a.offen<=0){
     var kk=kontaktById(a.kid);
@@ -908,14 +980,15 @@ function nightStart(){
  p={x:s.x,y:YS[HAFEN.j+1],dx:0,dy:0,face:1};
  packs=0;packW=ware;cash=0;stars=0;prevStars=0;fx=[];cops=[];leads=[];
  dispatchT=0;ruhe=99;leadT=14;hinweisT=0;versteckT=0;
+ vsDrin=0;vsRest=0;vsVoll=0;vsSperre=0;vsAus=0;
  crewAufstellen();
  auftraege=[];anruf=null;anrufT=5;zuhauseT=0;
  shiftT=NIGHT;jailT=0;jailPos=null;flash=0;freeze=0;shake=0;redV=0;
  NI={cash:0,drops:0,busts:0,puenktlich:0,done:false,start:bunker,erfuellt:0,geplatzt:0,
-     grund:'',crew:0,crewPacks:0,crewAkte:false};
+     grund:'',crew:0,crewPacks:0,crewAkte:false,crewStrafe:0,crewErwischt:0,schwund:0};
  kamera(true);sNight();ui()}
 function nightEnd(grund){
- phase='tag';siren(0);hold=null;
+ phase='tag';siren(0);hold=null;vsDrin=0;
  if(grund==='knast')sHammer();else sDawn();
  NI.grund=grund||'feierabend';
  var q;
@@ -944,10 +1017,20 @@ function halt(dx,dy){
  if(phase==='nacht'&&jailT>0&&freeze<=0){
   jailT=Math.max(0,jailT-0.09);sTick();kick(0.8);return}
  hold={dx:dx,dy:dy}}
-function feierabend(){
- if(phase!=='nacht'||!zuhauseT)return;
- audioOK=true;ac();sDawn();
- nightEnd('zuhause')}
+var febT=0,febAn=false,FEBDAUER=3;
+function febDauer(){return vsDrin?1:FEBDAUER}
+function febStart(){
+ if(phase!=='nacht')return;
+ audioOK=true;ac();
+ febAn=true}
+function febStop(){febAn=false;febT=0;ui()}
+function febTick(){
+ if(!febAn||phase!=='nacht'){if(febT>0){febT=0;ui()}return}
+ febT+=DT;
+ if(febT>=febDauer()){
+  febAn=false;febT=0;
+  audioOK=true;ac();sDawn();
+  nightEnd(vsDrin?'zuhause':'feierabend')}}
 function los(dx,dy){
  if(hold&&hold.dx===dx&&hold.dy===dy)hold=null}
 function passierbar(nx,ny){
@@ -993,7 +1076,7 @@ function bust(){
  flashT='Zugriff: '+lost+' € und '+lostP+' Pack weg';flash=2.4;
  ftxt(p.x,p.y-20,'-'+lost+' €','#E2585A');fring(p.x,p.y,44,'#E2585A');
  packs=0;cash=0;
- stars=Math.min(stars,1.2);ruhe=99;hold=null;
+ stars=Math.min(stars,0.6);ruhe=99;hold=null;vsDrin=0;vsSperre=2;
  freeze=0.22;kick(14);redV=1;siren(0);sBust();
  for(var i=0;i<cops.length;i++)cops[i].heim=true;
  if(knast){haft+=knast;antrittTag=0;save();nightEnd('knast');return}
@@ -1050,8 +1133,9 @@ function step(){
     p.x=jailPos.x;p.y=jailPos.y;p.dx=0;p.dy=0;p.ldx=1;p.ldy=0;p.face=1;jailPos=null}
    kamera();return}
   if(jailT>0){jailT=Math.max(0,jailT-DT);kamera();return}}
- /* Bewegung nur solange gehalten wird. Gilt tags wie nachts. */
- if(hold){
+ /* Bewegung nur solange gehalten wird. Gilt tags wie nachts. Im Versteck
+    bleibt die Tür zu, bis die Zeit um ist. */
+ if(hold&&!vsDrin){
   var d=hold,r,c2;
   if(d.dx){r=idx(p.y,YS);
    if(r>=0){p.y=YS[r];p.dx=d.dx;p.dy=0;p.face=d.dx}}
@@ -1077,20 +1161,22 @@ function step(){
  var kl=bc(HAFEN.i,HAFEN.j),dxl=p.x-kl.x,dyl=p.y-kl.y,amLager=dxl*dxl+dyl*dyl<48*48;
  /* Geladen wird immer die Ware, die im Telefon ausgewaehlt ist. Wer schon
     etwas anderes traegt, muss das erst loswerden. */
- if(amLager&&packs<CAP&&lager[ware]>0&&(packs===0||packW===ware)){
-  var nimm=Math.min(CAP-packs,lager[ware]);
-  packs+=nimm;lager[ware]-=nimm;packW=ware;
-  sPick();fring(kl.x,kl.y,26,'#F0B84B');
-  ftxt(kl.x,kl.y-20,nimm+'x '+WARE[ware].n,'#F0C070')}
- else if(amLager&&packs>0&&packW!==ware&&hinweisT<=0){
-  hinweisT=4;sNope();
-  ftxt(kl.x,kl.y-20,'erst '+WARE[packW].n+' los','#F09595');
-  flashT='Du trägst noch '+WARE[packW].n+'. Erst ausliefern.';flash=2.4}
- else if(amLager&&lager[ware]<=0&&hinweisT<=0){
-  hinweisT=4;sNope();
-  ftxt(kl.x,kl.y-20,'kein '+WARE[ware].n,'#F09595');
-  flashT=lagerSumme()>0?'Von '+WARE[ware].n+' liegt nichts da. Ware im Telefon umstellen.'
-   :'Lager leer. Ware kaufst du tagsüber ein.';flash=2.6}
+ if(amLager&&packs<CAP){
+  /* Wer schon trägt, lädt dieselbe Sorte nach. Sonst die gewählte, und wenn
+     die alle ist, die wertvollste, die dalegt. Am Lager stehenzubleiben,
+     obwohl Ware da ist, war der Fehler. */
+  var wl=packs>0?packW:(lager[ware]>0?ware:besteWare());
+  if(wl>=0&&lager[wl]>0){
+   var nimm=Math.min(CAP-packs,lager[wl]);
+   packs+=nimm;lager[wl]-=nimm;packW=wl;
+   if(wl!==ware&&packs===nimm){ware=wl;save()}
+   sPick();fring(kl.x,kl.y,26,'#F0B84B');
+   ftxt(kl.x,kl.y-20,nimm+'x '+WARE[wl].n,'#F0C070')}
+  else if(hinweisT<=0){
+   hinweisT=4;sNope();
+   ftxt(kl.x,kl.y-20,'Lager leer','#F09595');
+   flashT=packs>0?'Von '+WARE[packW].n+' liegt nichts mehr da.'
+    :'Lager leer. Ware kaufst du tagsüber ein.';flash=2.6}}
  var kt=bc(BUNKER.i,BUNKER.j),dxt=p.x-kt.x,dyt=p.y-kt.y;
  if(cash>0&&dxt*dxt+dyt*dyt<48*48){
   bunker+=cash;if(bunker>high)high=bunker;
@@ -1098,30 +1184,59 @@ function step(){
   flashT='+'+cash+' € im Bunker';flash=1.4;
   kick(cash>=300?5:3);freeze=0.07;sBank();
   cash=0;stars=Math.max(0,stars-1);ruhe+=2;save()}
- var drin=false;
- for(i=0;i<4;i++){
+ /* Das Versteck zieht dich hinein, statt nur in der Nähe zu wirken. Wie lange
+    die Tür zubleibt, hängt an der Fahndung: je heißer, desto länger musst du
+    unten bleiben. Danach läufst du selbst wieder raus. */
+ if(vsSperre>0)vsSperre-=DT;
+ if(!vsDrin&&vsSperre<=0&&!vsAus)for(i=0;i<4;i++){
   if(!offen[i])continue;
   var vv=VIERTEL[i].versteck,kvv=bc(vv.i,vv.j),ddx=p.x-kvv.x,ddy=p.y-kvv.y;
-  if(ddx*ddx+ddy*ddy<48*48){drin=true;
-   ruhe=99;
-   if(stars>0){
-    stars=Math.max(0,stars-1.6*DT);
-    if(Math.random()<0.10)fring(kvv.x,kvv.y,20,'#7FB0F0');
-    if(hinweisT<=0){hinweisT=1.2;
-     ftxt(kvv.x,kvv.y-20,'untergetaucht','#9CC4F0')}}
-   /* Notausgang fuer Bargeld. Der Mann im Versteck bringt es weg, behaelt aber
-      ein Fuenftel. Der lange Weg zum Bunker bringt alles - wenn man ankommt. */
-   versteckT+=DT;
-   if(cash>0&&versteckT>1.2){
-    var netto=Math.round(cash*0.8),geb=cash-netto;
-    bunker+=netto;if(bunker>high)high=bunker;
-    ftxt(kvv.x,kvv.y-22,'+'+netto+' €',COL.cash);
-    ftxt(kvv.x,kvv.y-40,'-'+geb+' € Gebühr','#F0A0A0');
-    fring(kvv.x,kvv.y,30,'#B9B2FF');
-    flashT='Über das Versteck weggebracht · 20 % Gebühr';flash=2.0;
-    kick(2.5);sBank();cash=0;save()}
+  if(ddx*ddx+ddy*ddy<52*52){
+   var rein=hold&&((hold.dx>0&&kvv.x>p.x+4)||(hold.dx<0&&kvv.x<p.x-4)||
+                   (hold.dy>0&&kvv.y>p.y+4)||(hold.dy<0&&kvv.y<p.y-4));
+   if(!rein){
+    if(hinweisT<=0){hinweisT=2.6;
+     ftxt(kvv.x,kvv.y-18,'Richtung halten','#9CC4F0')}
+    break}
+   vsDrin=1;vsQ=i;vsRest=2+stars*1.6;vsVoll=vsRest;
+   p.x=kvv.x;p.y=kvv.y;p.dx=0;p.dy=0;p.ldx=0;p.ldy=0;
+   hold=null;freeze=0.18;kick(4);sPick();
+   for(var cq=0;cq<cops.length;cq++)cops[cq].ch=false;
+   flashT='Untergetaucht';flash=1.6;ui();
    break}}
- if(!drin)versteckT=0;
+ var drin=!!vsDrin;
+ if(drin){
+  var kvd=bc(VIERTEL[vsQ].versteck.i,VIERTEL[vsQ].versteck.j);
+  p.x=kvd.x;p.y=kvd.y;p.dx=0;p.dy=0;
+  ruhe=99;
+  vsRest-=DT;
+  if(stars>0){
+   stars=Math.max(0,stars-1.6*DT);
+   if(Math.random()<0.10)fring(kvd.x,kvd.y,20,'#7FB0F0')}
+  /* Notausgang für Bargeld. Der Mann im Versteck bringt es weg, behält aber
+     ein Fünftel. Der lange Weg zum Bunker bringt alles - wenn man ankommt. */
+  versteckT+=DT;
+  if(cash>0&&versteckT>1.2){
+   var netto=Math.round(cash*0.8),geb=cash-netto;
+   bunker+=netto;if(bunker>high)high=bunker;
+   ftxt(kvd.x,kvd.y-22,'+'+netto+' €',COL.cash);
+   ftxt(kvd.x,kvd.y-40,'-'+geb+' € Gebühr','#F0A0A0');
+   fring(kvd.x,kvd.y,30,'#B9B2FF');
+   flashT='Über das Versteck weggebracht · 20 % Gebühr';flash=2.0;
+   kick(2.5);sBank();cash=0;save()}
+  if(vsRest<=0&&hold){
+   /* Tür ist offen: die gehaltene Richtung trägt dich wieder auf die Straße. */
+   vsDrin=0;vsSperre=0.6;versteckT=0;vsAus=1;
+   var aus=vsAusgang(kvd);
+   p.x=aus.x;p.y=aus.y;p.ldx=hold.dx;p.ldy=hold.dy;
+   sDawn();fring(p.x,p.y,24,'#9CC4F0');ui()}}
+ else{
+  versteckT=0;
+  /* Der Sog greift erst wieder, wenn man den Block einmal verlassen hat. */
+  if(vsAus){
+   var kvq=bc(VIERTEL[vsQ].versteck.i,VIERTEL[vsQ].versteck.j),
+       adx2=p.x-kvq.x,ady2=p.y-kvq.y;
+   if(adx2*adx2+ady2*ady2>78*78)vsAus=0}}
  /* Erledigte Aufträge raus, sonst wächst die Liste die ganze Nacht und die
     Läufer suchen sich an Leichen dumm. */
  for(i=auftraege.length-1;i>=0;i--)if(auftraege[i].offen<=0)auftraege.splice(i,1);
@@ -1150,12 +1265,12 @@ function step(){
     NI.erfuellt++;addXP(8);ansehen++;
     ftxt(ka.x,ka.y-52,a.n+' zufrieden',COL.cash)}
    break}}
- /* Zuhause: im Versteck kann Roberto Feierabend machen. */
  if(drin){
   zuhauseT+=DT;
   if(zuhauseT>0.25&&hinweisT<=0){hinweisT=2.5;
-   flashT='Zuhause · Leertaste macht Feierabend';flash=2.5}}
+   flashT='Zuhause · Knopf halten macht Feierabend';flash=2.5}}
  else zuhauseT=0;
+ febTick();
  /* Anrufe */
  if(anruf){
   anruf.t-=DT;
@@ -1190,9 +1305,11 @@ function step(){
     flashT='Neuer Kontakt: '+neu.n;flash=1.8}}}
  if(Math.floor(stars)>prevStars){sStar();kick(1.5)}
  prevStars=Math.floor(stars);
- var soll=drin?0:((stars>=0.8||haftbefehl)?Math.min(4,1+Math.floor(stars)):0);
+ /* Ein Wagen je vollem Stern, nicht einer plus. Bei einem Stern ist das eine
+    Streife, nicht zwei. */
+ var soll=drin?0:((stars>=0.8||haftbefehl)?Math.max(1,Math.min(4,Math.floor(stars))):0);
  if(dispatchT>0)dispatchT-=DT;
- if(cops.length<soll&&dispatchT<=0){spawnCop();dispatchT=lv('scanner')?3.4:2.2}
+ if(cops.length<soll&&dispatchT<=0){spawnCop();dispatchT=lv('scanner')?5.5:4}
  var jagd=false,near=1e9;
  var rad=(70+stars*54)*SICHT*(packs>0||cash>0?1:0.4);
  for(i=cops.length-1;i>=0;i--){
@@ -1836,6 +1953,18 @@ function stadtSzene(){
   x.fillStyle='#8A9099';
   x.beginPath();x.roundRect(R.x+R.w/2-12,R.y+R.h/2-36,24,18,3);x.fill()}
  zaun();mauer();
+ if(phase==='nacht'&&vsDrin){
+  /* Drinnen: Roberto sitzt im Block, außen läuft die Uhr. */
+  var kvs=bc(VIERTEL[vsQ].versteck.i,VIERTEL[vsQ].versteck.j);
+  x.fillStyle='rgba(12,16,24,0.82)';
+  x.beginPath();x.arc(kvs.x,kvs.y,34,0,6.3);x.fill();
+  x.strokeStyle='#7FB0F0';x.lineWidth=3;
+  x.beginPath();
+  x.arc(kvs.x,kvs.y,30,-Math.PI/2,-Math.PI/2+6.283*Math.max(0,vsRest/vsVoll));
+  x.stroke();
+  x.textAlign='center';x.font='600 13px '+FONT;
+  x.fillStyle=vsRest>0?'#9CC4F0':COL.cash;
+  x.fillText(vsRest>0?Math.ceil(vsRest)+' s':'Tür offen',kvs.x,kvs.y+42)}
  if(phase==='nacht'){
   for(i=0;i<mitarbeiter.length;i++)laeuferFigur(mitarbeiter[i]);
   for(i=0;i<cops.length;i++)copcar(cops[i])}
@@ -1848,6 +1977,7 @@ function stadtSzene(){
   gr.addColorStop(1,'rgba(226,88,90,'+(redV*0.55).toFixed(3)+')');
   x.fillStyle=gr;x.fillRect(0,0,VW,VH)}
  if(phase==='nacht'){
+  randzeiger();
   for(var w=0;w<packs;w++)pouch(8+w*15,7,12);
   if(stars>=4){
    var wp=0.35+Math.sin(pulse*5)*0.25;
@@ -1891,6 +2021,41 @@ function stadtSzene(){
    x.font='400 13px '+FONT;x.fillStyle='#F0A8A8';
    x.fillText('Akte Nr. '+akten+' · das klärt der Richter',VW/2,VH/2+32)}}
  else tagKarte()}
+function randPfeil(wx,wy,farbe,zeichen){
+ /* Bildschirmposition des Ziels; liegt sie draußen, klebt der Pfeil am Rand. */
+ var sx=(wx-cam.x)*zoom,sy=(wy-cam.y)*zoom,R=17,M=R+6;
+ if(sx>=M&&sx<=VW-M&&sy>=M&&sy<=VH-M)return;
+ var cx=VW/2,cy=VH/2,dx=sx-cx,dy=sy-cy;
+ var t=1e9;
+ if(dx)t=Math.min(t,Math.max((M-cx)/dx,(VW-M-cx)/dx));
+ if(dy)t=Math.min(t,Math.max((M-cy)/dy,(VH-M-cy)/dy));
+ if(!isFinite(t))return;
+ var px2=cx+dx*t,py2=cy+dy*t,a=Math.atan2(dy,dx);
+ var m=Math.round(Math.sqrt((wx-p.x)*(wx-p.x)+(wy-p.y)*(wy-p.y))/9);
+ x.save();x.translate(px2,py2);
+ x.save();x.rotate(a);
+ x.fillStyle=farbe;x.strokeStyle='rgba(0,0,0,0.45)';x.lineWidth=1.2;
+ x.beginPath();x.moveTo(R+7,0);x.lineTo(R-2,-6);x.lineTo(R-2,6);x.closePath();
+ x.fill();x.stroke();x.restore();
+ x.fillStyle='rgba(10,12,18,0.85)';
+ x.beginPath();x.arc(0,0,R-2,0,6.3);x.fill();
+ x.strokeStyle=farbe;x.lineWidth=1.6;
+ x.beginPath();x.arc(0,0,R-2,0,6.3);x.stroke();
+ x.textAlign='center';x.fillStyle=farbe;x.font='600 12px '+FONT;
+ x.fillText(zeichen,0,4);
+ x.font='500 9px '+FONT;x.fillStyle='rgba(255,255,255,0.75)';
+ x.fillText(m+' m',0,R+9);
+ x.restore()}
+function randzeiger(){
+ var q;
+ for(q=0;q<leads.length;q++){
+  var L=leads[q],kL=bc(L.i,L.j);
+  randPfeil(kL.x,YS[L.j+1],'#7FB0F0','?')}
+ for(q=0;q<auftraege.length;q++){
+  var a=auftraege[q];
+  if(a.offen<=0||a.t<=0)continue;
+  var ka=bc(a.i,a.j);
+  randPfeil(ka.x,YS[a.j+1],a.t<10?'#F09595':COL.pin,String(a.offen))}}
 function tagKarte(){
  /* Schmales Band statt Karte im Weg: tagsüber will man die Stadt sehen. */
  var z1,z2;
@@ -2194,6 +2359,12 @@ function hud(){
  var nw=nacht?Math.round(Math.max(0,Math.min(1,shiftT/NIGHT))*100)+'%':'0%';
  if(CACHE.nw!==nw){CACHE.nw=nw;nb.firstChild.style.width=nw}
  nb.style.opacity=nacht?'1':'0.25';
+ /* Der Halteknopf zeigt, wie weit die drei Sekunden sind. */
+ var bm2=EL.bmain||(EL.bmain=document.getElementById('bmain'));
+ var fp=nacht&&febT>0?Math.round(Math.min(1,febT/febDauer())*100):0;
+ if(CACHE.feb!==fp){CACHE.feb=fp;
+  bm2.style.backgroundImage=fp?'linear-gradient(90deg,rgba(0,0,0,.28) '+fp+
+   '%,rgba(0,0,0,0) '+fp+'%)':''}
  chips(nacht);
  set('grang','Rang '+r+' · '+RANG[r-1].n);
  set('gansehen','Ansehen '+ansehen);
@@ -2255,7 +2426,10 @@ function ui(){
  document.getElementById('pad').className='pad'+(nacht||phase==='tag'?'':' off');
  var bm=document.getElementById('bmain'),ba=document.getElementById('balt');
  ba.style.display='none';
- if(nacht){bm.textContent='Schicht läuft';bm.disabled=true}
+ if(nacht){
+  bm.textContent=febAn?'Feierabend … halten'
+   :(vsDrin?'Feierabend · halten':'Schicht beenden · 3 s halten');
+  bm.disabled=false}
  else if(phase==='gericht'){
   var ph=prozessPhase();
   if(ph==='einlassung'||ph==='beweis'||ph==='zeugen'||ph==='plaedoyer'){
@@ -2291,8 +2465,8 @@ function ui(){
  document.getElementById('secszene').style.display=
   (szeneAn||ger||sitzt||wartet||bewaehrung||letztesUrteil||revision)&&!nacht?'':'none';
  document.getElementById('hint').textContent=nacht
-  ?'Halten zum Laufen · Enter sagt einem Anruf zu · im Versteck sinkt die Fahndung, '+
-   'das Bargeld geht mit 20 % Abzug weg, Leertaste macht Feierabend'
+  ?'Halten zum Laufen · Enter sagt einem Anruf zu · Versteck zieht dich rein und '+
+   'kühlt die Fahndung · Leertaste oder Knopf 3 Sekunden halten beendet die Schicht'
   :(phase==='gericht'?'Der Saal ist voll. Was du sagst, steht nachher im Urteil.'
    :(phase==='revision'?'Karlsruhe entscheidet nach Aktenlage, nicht im Saal.'
     :(phase==='zelle'?'Jeder Tag zählt. Manchmal passiert etwas.'
@@ -2663,10 +2837,8 @@ function imperium(){
      'dein billigstes Lokal.</p>':'')
    :'<p class="err">Ohne Bonität von mindestens 20 leiht dir keine Bank etwas. '+
     'Kauf ein Lokal und zahl deine Steuern.</p>')+
-  '</div><div class="kaufbtn">'+
-  (schuldB>0?'<button data-tb="1"'+(zu?' disabled':'')+'>tilgen</button>':'')+
-  '<button data-lb="1"'+(zu||lb-schuldB<=0?' disabled':'')+'>leihen</button>'+
-  '</div></div>';
+  '</div></div>'+
+  betragZeile('b',lb-schuldB,schuldB,zu);
  h+='<div class="row"><div><p class="name">'+geldgeber()+'</p>'+
   (ls>0
    ?'<p class="desc">12 % Zinsen am Tag · Rahmen '+ls+' € · offen <b>'+schuldS+
@@ -2677,10 +2849,8 @@ function imperium(){
      'zurückzahlt, bekommt Ansehen.</p>')
    :'<p class="err">Erst zwei Kontakte in offenen Vierteln, dann redet die '+
     'Straße mit dir.</p>')+
-  '</div><div class="kaufbtn">'+
-  (schuldS>0?'<button data-ts="1"'+(zu?' disabled':'')+'>tilgen</button>':'')+
-  '<button data-ls="1"'+(zu||ls-schuldS<=0?' disabled':'')+'>leihen</button>'+
-  '</div></div>';
+  '</div></div>'+
+  betragZeile('s',ls-schuldS,schuldS,zu);
  h+='<h3 class="telh">Finanzamt</h3>';
  h+='<div class="row"><div><p class="name">'+
   (steuerFaellig>0?'Steuerbescheid offen':'Nichts offen')+'</p>'+
@@ -2715,18 +2885,19 @@ function imperium(){
   entlassen(e.currentTarget.getAttribute('data-e'))});
  bs=el.querySelectorAll('button[data-st]');
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',steuernZahlen);
- bs=el.querySelectorAll('button[data-lb]');
- for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){
-  leihen('bank',limitB()-schuldB)});
- bs=el.querySelectorAll('button[data-ls]');
- for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){
-  leihen('strasse',limitS()-schuldS)});
- bs=el.querySelectorAll('button[data-tb]');
- for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){
-  tilgen('bank',Math.min(schuldB,bunker))});
- bs=el.querySelectorAll('button[data-ts]');
- for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(){
-  tilgen('strasse',Math.min(schuldS,bunker))})}
+ bs=el.querySelectorAll('button[data-leih]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
+  var k=e.currentTarget.getAttribute('data-leih');
+  leihen(k==='b'?'bank':'strasse',betragVon(k))});
+ bs=el.querySelectorAll('button[data-tilg]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
+  var k=e.currentTarget.getAttribute('data-tilg');
+  tilgen(k==='b'?'bank':'strasse',betragVon(k))});
+ bs=el.querySelectorAll('button[data-setz]');
+ for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
+  var p2=e.currentTarget.getAttribute('data-setz').split(':'),
+      inp=document.getElementById('bet'+p2[0]);
+  if(inp)inp.value=p2[1]})}
 function kit(){
  var rows=[
   ['Tempo',Math.round(SPD/2.5*100)+' %',lv('schuhe')>0||lv('auto')>0],
@@ -2808,12 +2979,13 @@ document.addEventListener('keydown',function(e){
  if(e.key==='m'||e.key==='M'){audioOK=true;ac();setMute(!mute)}
  if(phase==='nacht'){
   if(e.key==='Enter'){anrufAnnehmen();e.preventDefault();return}
-  if(e.key===' '){feierabend();e.preventDefault();return}
+  if(e.key===' '){febStart();e.preventDefault();return}
   return}
  if(e.key===' '||e.key==='Enter'){mainAction();e.preventDefault()}});
 document.addEventListener('keyup',function(e){
- var k=KEYS[e.key];if(k){los(k[0],k[1]);padAus()}});
-window.addEventListener('blur',function(){hold=null;padAus()});
+ var k=KEYS[e.key];if(k){los(k[0],k[1]);padAus()}
+ if(e.key===' ')febStop()});
+window.addEventListener('blur',function(){hold=null;padAus();febStop()});
 var PADS={bu:[0,-1],bd:[0,1],bl:[-1,0],br:[1,0]};
 function padAn(k){
  for(var id in PADS)
@@ -2832,7 +3004,19 @@ bind('bu');bind('bd');bind('bl');bind('br');
 (function(){var bs=document.getElementById('tabs').querySelectorAll('button'),i;
  for(i=0;i<bs.length;i++)bs[i].addEventListener('click',function(e){
   setTab(e.currentTarget.getAttribute('data-t'))})})();
-document.getElementById('bmain').addEventListener('click',mainAction);
+(function(){
+ /* Nachts ist der Hauptknopf ein Halteknopf: kurzes Antippen soll die Schicht
+    nicht aus Versehen beenden. Tags bleibt es ein normaler Klick. */
+ var bm=document.getElementById('bmain');
+ bm.addEventListener('click',function(){if(phase!=='nacht')mainAction()});
+ bm.addEventListener('pointerdown',function(e){
+  if(phase!=='nacht')return;
+  e.preventDefault();try{bm.setPointerCapture(e.pointerId)}catch(er){}
+  febStart()});
+ var auf=function(){if(phase==='nacht')febStop()};
+ bm.addEventListener('pointerup',auf);
+ bm.addEventListener('pointercancel',auf);
+ bm.addEventListener('lostpointercapture',auf)})();
 document.getElementById('balt').addEventListener('click',function(){
  if(phase!=='tag')return;
  if(gerichtHeute()){gerichtSchwaenzen();return}
