@@ -311,7 +311,18 @@ function fixSave(s){
   return s;
 }
 function load(){
-  try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&s.v&&!s.over)return fixSave(upgradeSave(s));}}catch(e){}
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s&&s.v&&!s.over){
+        const ok=[s.t,s.day,s.cash,s.rep,s.fuel].every(Number.isFinite)&&Array.isArray(s.buses)&&Array.isArray(s.lines);
+        if(!ok)return null;
+        const r=fixSave(upgradeSave(s));
+        return r;
+      }
+    }
+  }catch(e){console.error(e);}
   return null;
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -1548,8 +1559,10 @@ function render(){
     b.classList.toggle('on',t===ui.tab);
   });
   const el=$('#panel');
-  const f=document.activeElement;
-  if(ui.hold||(f&&el.contains(f)&&/SELECT|INPUT/.test(f.tagName)))return;
+  const f=document.activeElement,now=performance.now();
+  if(ui.hold&&now-(ui.holdT||0)<1500)return;
+  if(f&&f.tagName==='SELECT'&&el.contains(f)&&now-(ui.selT||0)<5000)return;
+  ui.hold=false;
   const top=el.scrollTop;
   el.innerHTML=({ov:tabOv,lines:tabLines,fleet:tabFleet,sites:tabSites,market:tabMarket,firm:tabFirm,wealth:tabWealth,nocomp:tabNoCompany}[ui.tab]||tabOv)();
   el.scrollTop=top;
@@ -1653,13 +1666,15 @@ panel.addEventListener('click',e=>{
 panel.addEventListener('input',e=>{
   const el=e.target;
   if(el.dataset.in==='rate'){
+    ui.holdT=performance.now();
     const L=lineById(+el.dataset.id);L.rate=+el.value;S.demT=-99;
     const v=$('#rateV');if(v)v.textContent=rateTxt(L);
     const fc=$('#fc');if(fc)fc.innerHTML=forecastHTML(L);
   }
 });
-panel.addEventListener('pointerdown',e=>{if(e.target.type==='range')ui.hold=true;});
-window.addEventListener('pointerup',()=>{if(ui.hold){ui.hold=false;render();}});
+panel.addEventListener('pointerdown',e=>{if(e.target.type==='range'){ui.hold=true;ui.holdT=performance.now();}});
+panel.addEventListener('focusin',e=>{if(e.target.tagName==='SELECT')ui.selT=performance.now();});
+['pointerup','pointercancel','touchend','touchcancel','mouseup','blur'].forEach(ev=>window.addEventListener(ev,()=>{if(ui.hold){ui.hold=false;render();}}));
 panel.addEventListener('change',e=>{
   const el=e.target,id=+el.dataset.id;
   if(el.dataset.in==='minload'){lineById(id).minLoad=+el.value;}
@@ -1923,6 +1938,15 @@ function siteClick(e){
 /* ===================== Hauptschleife ===================== */
 let last=performance.now(),acc=0;
 function frame(now){
+  requestAnimationFrame(frame);
+  try{frameBody(now);}catch(err){reportError(err);}
+}
+let errCount=0;
+function reportError(err){
+  console.error(err);
+  if(errCount++<3&&S)say('⚠ Fehler im Spiel: '+(err&&err.message||err)+' – Seite neu laden hilft meist.','bad');
+}
+function frameBody(now){
   const dt=Math.min(0.1,(now-last)/1000);last=now;
   if(S&&!ui.modalOpen&&!S.over&&S.speed>0){
     let h=dt*S.speed*24/DAY_REAL;
@@ -1933,7 +1957,6 @@ function frame(now){
     acc+=dt;
     if(acc>0.4){acc=0;updateHeader();render();}
   }
-  requestAnimationFrame(frame);
 }
 function start(){
   const s=load();
@@ -1947,6 +1970,8 @@ function start(){
   if(first){chooseHQ();showHelp();}
   requestAnimationFrame(frame);
 }
+window.addEventListener('error',e=>reportError(e.error||e.message));
+window.addEventListener('unhandledrejection',e=>reportError(e.reason));
 window.__bus={enterSite,leaveSite,upgradeAt,demolishAt,buyFund,sellFund,setStake,buyProp,sellProp,buyLux,sellLux,tabWealth,updateWorld,investWorth,landPrice,drawSite,expandTank,expandSite,autoFuel,repairAll,fixSave,get S(){return S;},step,createLine,buyBus,assign,lineById,dayEnd,build,buySite,acceptOffer,openSell,sellCompany,buyOffer,foundCompany,negotiate,lockFuel,buyFuel,forecast,optimalRate,ranking,tabOv,tabLines,tabFleet,tabSites,tabMarket,tabFirm,tabNoCompany,installCompany,freshCompany,upgradeSave,sellValue,partnerLevel,genPartnerOffers,licCost};
 start();
 </script>
