@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Disco Manager</title>
+<style>
+:root{--bg:#0b0618;--panel:#150c2b;--panel2:#1d1239;--line:#2e1f57;--txt:#efeaff;--dim:#9b8fc4;--pink:#ff2bd6;--cyan:#22e6ff;--yel:#ffe14d;--grn:#3dffa0;--red:#ff4d6d}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#2a0f55 0%,var(--bg) 60%);color:var(--txt);font:15px/1.4 system-ui,Segoe UI,Roboto,sans-serif;min-height:100vh}
+header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px 16px;background:#0e0820cc;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;backdrop-filter:blur(6px)}
+h1{margin:0;font-size:20px;letter-spacing:1px;background:linear-gradient(90deg,var(--pink),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat{display:flex;flex-direction:column;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.stat b{font-size:17px;color:var(--txt);text-transform:none;letter-spacing:0}
+.spacer{flex:1}
+main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;padding:14px;max-width:1300px;margin:0 auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+canvas{width:100%;height:auto;border-radius:10px;background:#07040f;display:block}
+button{font:inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:7px 12px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--cyan)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.pri{background:linear-gradient(90deg,var(--pink),#8a3dff);border:0;font-weight:700}
+button.on{border-color:var(--grn);color:var(--grn)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
+.bar{background:#0a0616;border-radius:8px;padding:6px 8px;font-size:12px;color:var(--dim)}
+.bar i{display:block;height:6px;border-radius:4px;background:#2a1d4d;margin-top:4px;overflow:hidden}
+.bar i u{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tabs button.act{background:var(--pink);border-color:var(--pink);font-weight:700}
+.item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border:0}
+.item small{color:var(--dim);display:block}
+#log{height:150px;overflow:auto;font-size:13px;color:var(--dim);margin-top:10px}
+#log div{padding:2px 0;border-bottom:1px dashed #241846}
+.good{color:var(--grn)}.bad{color:var(--red)}.warn{color:var(--yel)}
+#modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
+#modal .box{background:var(--panel);border:1px solid var(--pink);border-radius:16px;padding:20px;max-width:430px;width:100%;box-shadow:0 0 40px #ff2bd655}
+#modal h2{margin:0 0 10px}
+table{width:100%;border-collapse:collapse}td{padding:4px 0}td:last-child{text-align:right}
+.pm{display:flex;align-items:center;gap:8px}.pm b{min-width:56px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>🪩 DISCO MANAGER</h1>
+  <div class="stat">Geld<b id="hMoney"></b></div>
+  <div class="stat">Ruf<b id="hRuf"></b></div>
+  <div class="stat">Tag<b id="hDay"></b></div>
+  <div class="stat">Uhrzeit<b id="hTime"></b></div>
+  <div class="spacer"></div>
+  <div class="row">
+    <button id="bSound" title="Beat an/aus">🔇</button>
+    <button data-sp="1">1×</button><button data-sp="2">2×</button><button data-sp="4">4×</button>
+    <button class="pri" id="bGo">🌙 Club öffnen</button>
+  </div>
+</header>
+<main>
+  <section>
+    <div class="card">
+      <canvas id="cv" width="720" height="440"></canvas>
+      <div class="bars" id="bars"></div>
+      <div id="log"></div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="tabs" id="tabs"></div>
+    <div id="panel"></div>
+  </section>
+</main>
+<div id="modal"><div class="box" id="mbox"></div></div>
+
+<script>
+'use strict';
+const SAVE='discoManagerV1', TICKS=48, GOAL_MONEY=250000, GOAL_RUF=90;
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const eur=n=>(n<0?'-':'')+Math.abs(Math.round(n)).toLocaleString('de-DE')+' €';
+const GENRES={house:{n:'House',c:'#22e6ff',bpm:124},techno:{n:'Techno',c:'#8a3dff',bpm:140},hiphop:{n:'Hip-Hop',c:'#ffe14d',bpm:92},pop:{n:'Pop',c:'#ff2bd6',bpm:110},schlager:{n:'Schlager',c:'#3dffa0',bpm:118}};
+const DJS=[{n:'Playlist (kostenlos)',w:0,skill:0,ruf:0},{n:'Nachwuchs-DJ',w:120,skill:1,ruf:0},{n:'Resident-DJ',w:300,skill:2,ruf:20},{n:'Star-DJ',w:900,skill:3,ruf:45}];
+const UPG={
+  floor:{n:'Tanzfläche',d:'+40 Gäste Kapazität',base:900},
+  sound:{n:'Soundanlage',d:'Bessere Stimmung',base:700},
+  light:{n:'Lichtshow',d:'Bessere Stimmung & Optik',base:700},
+  bar:{n:'Bar-Ausbau',d:'Mehr Drinks pro Takt',base:600},
+  vip:{n:'VIP-Lounge',d:'Zahlungskräftige VIP-Gäste',base:1500},
+  coat:{n:'Garderobe',d:'+2 € pro Gast, mehr Komfort',base:500}
+};
+const STAFF={bar:{n:'Barkeeper',w:80,max:8,d:'Bedient Gäste'},sec:{n:'Security',w:90,max:6,d:'Verhindert Schlägereien, schneller Einlass'},clean:{n:'Reinigung',w:60,max:4,d:'Hält den Club sauber'}};
+const EVENTS=[
+  {id:null,n:'Kein Event',cost:0,d:'Normaler Betrieb',mult:1,ruf:0},
+  {id:'flyer',n:'Flyer-Werbung',cost:200,d:'+15 % Gäste',mult:1.15,ruf:0.3},
+  {id:'ladies',n:'Ladies Night',cost:400,d:'+30 % Gäste',mult:1.3,ruf:0.3},
+  {id:'motto',n:'Mottoparty',cost:800,d:'+45 % Gäste',mult:1.45,ruf:0.6},
+  {id:'live',n:'Live-Act',cost:1500,d:'+75 % Gäste, Ruf+',mult:1.75,ruf:1.5,minRuf:25}
+];
+const upCost=(k,l)=>Math.round(UPG[k].base*Math.pow(1.85,l));
+
+let S, speed=1, timer=null, soundOn=false, tab='music';
+function fresh(){return{money:5000,ruf:5,day:1,phase:'plan',t:0,genre:'house',event:null,mess:0,
+  lv:{floor:0,sound:0,light:0,bar:0,vip:0,coat:0},staff:{dj:0,bar:1,sec:1,clean:0},price:{entry:8,drink:5},
+  trend:{},guests:[],night:null,fights:0,bonus:0,boost:0,history:[],total:0,won:false}}
+function load(){try{const j=JSON.parse(localStorage.getItem(SAVE));if(j&&j.lv){j.phase='plan';j.guests=[];j.t=0;return j}}catch(e){}return fresh()}
+function save(){try{localStorage.setItem(SAVE,JSON.stringify(S))}catch(e){}}
+function rollTrend(){for(const g in GENRES)S.trend[g]=+rnd(.7,1.4).toFixed(2)}
+const cap=()=>60+40*S.lv.floor;
+const hourStr=t=>{const m=(22*60+t*10)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const stars=()=>'★'.repeat(Math.floor(S.ruf/20))+'☆'.repeat(5-Math.floor(S.ruf/20));
+const nightCosts=()=>300+DJS[S.staff.dj].w+S.staff.bar*STAFF.bar.w+S.staff.sec*STAFF.sec.w+S.staff.clean*STAFF.clean.w+Object.values(S.lv).reduce((a,b)=>a+b*25,0);
+
+function log(m,c=''){const d=document.createElement('div');d.className=c;d.textContent=hourStr(S.t)+'  '+m;const L=$('log');L.prepend(d);while(L.children.length>60)L.lastChild.remove()}
+
+function newGuest(){
+  const vip=S.lv.vip>0&&Math.random()<0.03*S.lv.vip+S.ruf/600;
+  const gs=Object.keys(GENRES);
+  // beliebte Genres ziehen mehr Gäste
+  let r=Math.random()*gs.reduce((a,g)=>a+S.trend[g],0),fav=gs[0];
+  for(const g of gs){r-=S.trend[g];if(r<=0){fav=g;break}}
+  return{fav,vip,mood:55,thirst:rnd(0,40),money:vip?rnd(150,400):rnd(20,80),x:rnd(40,680),y:rnd(150,400),ph:rnd(0,6)}
+}
+
+function startNight(){
+  if(S.phase!=='plan')return;
+  const ev=EVENTS.find(e=>e.id===S.event)||EVENTS[0];
+  if(ev.cost>S.money){log('Nicht genug Geld für das Event.','bad');S.event=null}
+  else S.money-=ev.cost;
+  S.phase='night';S.t=0;S.guests=[];S.fights=0;S.bonus=0;S.boost=0;S.mess=0;
+  S.night={entry:0,drinks:0,vip:0,coat:0,ev:ev.cost,guests:0,moodSum:0,moodN:0};
+  log('Der Club ist offen! '+(ev.id?ev.n+' läuft.':''),'good');
+  tab='music';run();renderAll();
+}
+function run(){clearInterval(timer);timer=setInterval(tick,1000/speed)}
+
+function tick(){
+  if(S.phase!=='night')return;
+  const ev=EVENTS.find(e=>e.id===S.event)||EVENTS[0];
+  const N=S.night, G=S.guests, C=cap();
+  // --- Zufallsereignisse
+  if(Math.random()<0.025){
+    const r=Math.random();
+    if(r<.3){S.boost=4;S.bonus+=1;log('⭐ Ein Promi ist im Club! Alle wollen rein.','good')}
+    else if(r<.55){if(S.staff.sec<2){const f=150;S.money-=f;N.ev+=f;log('🚔 Polizeikontrolle: zu wenig Security – '+eur(f)+' Strafe.','bad')}else log('🚔 Polizeikontrolle – alles sauber, du hast genug Security.','good')}
+    else if(r<.8){G.forEach(g=>g.mood-=10);log('⚡ Stromausfall! Die Stimmung leidet.','bad')}
+    else{S.mess+=20;log('🍾 Jemand hat Getränke verschüttet. Es wird dreckig.','warn')}
+  }
+  // --- Gäste kommen
+  const hourF=Math.exp(-Math.pow((S.t-20)/14,2))*.9+.1;
+  const priceF=Math.max(.15,1.5-S.price.entry/12);
+  const trendF=0.6+0.4*S.trend[S.genre];
+  const boost=S.boost>0?2:1; if(S.boost>0)S.boost--;
+  let want=4*(1+S.ruf/25)*priceF*hourF*ev.mult*trendF*boost*rnd(.8,1.2);
+  const door=8+S.staff.sec*5;
+  let arrive=Math.min(Math.round(want),door,C-G.length);
+  for(let i=0;i<arrive;i++){const g=newGuest();G.push(g);N.guests++;
+    N.entry+=S.price.entry;S.money+=S.price.entry;
+    if(S.lv.coat){const c=2*S.lv.coat;N.coat+=c;S.money+=c}}
+  // --- Stimmung
+  const dj=DJS[S.staff.dj];
+  S.mess=clamp(S.mess+G.length*0.05-(S.staff.clean*6+1),0,100);
+  const dens=G.length/C;
+  let fights=0;
+  for(const g of G){
+    let tgt=53+(g.fav===S.genre?25:-5)+S.lv.sound*3+S.lv.light*3+dj.skill*4+S.lv.coat*2;
+    if(dens>.85)tgt-=(dens-.85)*80;
+    if(S.price.drink>6)tgt-=(S.price.drink-6)*3;
+    if(S.price.entry>12)tgt-=(S.price.entry-12)*2;
+    tgt-=S.mess*.2;
+    if(g.thirst>70)tgt-=(g.thirst-70)*.3;
+    g.mood+=(tgt-g.mood)*.25;
+    g.thirst=Math.min(100,g.thirst+rnd(6,14));
+    if(g.mood<30&&fights<1&&Math.random()<.015){
+      if(Math.random()>Math.min(.9,S.staff.sec*.15)){fights++;S.fights++}
+      else log('🛡️ Security hat eine Schlägerei im Keim erstickt.','good')
+    }
+  }
+  if(fights){G.forEach(g=>{if(Math.random()<.15)g.mood-=12});S.ruf=clamp(S.ruf-.5,0,100);log('👊 Schlägerei! Ruf sinkt.','bad')}
+  // --- Bar
+  let slots=S.staff.bar*7+S.lv.bar*3+2;
+  const thirsty=G.filter(g=>g.thirst>=40).sort((a,b)=>b.thirst-a.thirst);
+  for(const g of thirsty){
+    if(slots<=0)break;
+    const p=g.vip?S.price.drink*4:S.price.drink;
+    if(g.money>=p){g.money-=p;g.thirst=rnd(0,15);S.money+=p-1.2;N.drinks+=p-1.2;if(g.vip)N.vip+=p-1.2;slots--}
+    else g.thirst=0;
+  }
+  // --- Gehen
+  const lateF=Math.max(0,S.t-30)*.01;
+  S.guests=G.filter(g=>{
+    N.moodSum+=g.mood;N.moodN++;
+    const leave=(g.mood<20&&Math.random()<.35)||Math.random()<.03+lateF;
+    return !leave;
+  });
+  S.t++;
+  if(S.t>=TICKS)endNight();
+  else{renderHeader();renderBars();if(['stats'].includes(tab))renderPanel()}
+}
+
+function endNight(){
+  clearInterval(timer);
+  const N=S.night, ev=EVENTS.find(e=>e.id===S.event)||EVENTS[0];
+  const avg=N.moodN?N.moodSum/N.moodN:50;
+  const costs=nightCosts();
+  const rev=N.entry+N.drinks+N.coat;
+  const profit=rev-costs-N.ev;
+  S.money-=costs;
+  const dRuf=(avg-55)/12+ev.ruf+S.bonus*.5-S.fights*.3+(N.guests>cap()?.3:0);
+  S.ruf=clamp(S.ruf+dRuf,0,100);
+  S.total+=profit;
+  S.history.unshift({day:S.day,guests:N.guests,profit:Math.round(profit),mood:Math.round(avg)});
+  S.history=S.history.slice(0,14);
+  S.phase='plan';S.guests=[];S.event=null;
+  const d=S.day;
+  S.day++;rollTrend();
+  const broke=S.money<-2000;
+  const win=!S.won&&S.money>=GOAL_MONEY&&S.ruf>=GOAL_RUF;
+  if(win)S.won=true;
+  save();renderAll();
+  showModal(`<h2>Nacht ${d} – Abrechnung</h2>
+   <table>
+   <tr><td>Gäste</td><td>${N.guests}</td></tr>
+   <tr><td>Ø Stimmung</td><td>${Math.round(avg)} %</td></tr>
+   <tr><td>Eintritt</td><td class="good">${eur(N.entry)}</td></tr>
+   <tr><td>Getränke (Gewinn)</td><td class="good">${eur(N.drinks)}</td></tr>
+   <tr><td>Garderobe</td><td class="good">${eur(N.coat)}</td></tr>
+   <tr><td>Personal & Betrieb</td><td class="bad">-${eur(costs)}</td></tr>
+   <tr><td>Event / Strafen</td><td class="bad">-${eur(N.ev)}</td></tr>
+   <tr><td><b>Ergebnis</b></td><td><b class="${profit>=0?'good':'bad'}">${eur(profit)}</b></td></tr>
+   <tr><td>Ruf</td><td>${dRuf>=0?'+':''}${dRuf.toFixed(1)}</td></tr></table>
+   ${win?'<p class="good"><b>🏆 Du bist der Disco-König! Ziel erreicht – spiel gern weiter.</b></p>':''}
+   ${broke?'<p class="bad"><b>💸 Insolvenz! Du bist zu tief im Minus.</b></p>':''}
+   <p><button class="pri" onclick="${broke?'resetGame()':'closeModal()'}">${broke?'Neu anfangen':'Weiter'}</button></p>`);
+}
+function showModal(h){$('mbox').innerHTML=h;$('modal').style.display='flex'}
+function closeModal(){$('modal').style.display='none'}
+function resetGame(){S=fresh();rollTrend();save();closeModal();$('log').innerHTML='';renderAll()}
+
+// ---------- Aktionen ----------
+function buy(kind,key){
+  if(kind==='up'){const c=upCost(key,S.lv[key]);if(S.lv[key]>=5||S.money<c)return;S.money-=c;S.lv[key]++;log(UPG[key].n+' auf Stufe '+S.lv[key]+' ausgebaut.','good')}
+  if(kind==='hire'){const st=STAFF[key];if(S.staff[key]>=st.max)return;S.staff[key]++;log(st.n+' eingestellt.')}
+  if(kind==='fire'){if(S.staff[key]>0){S.staff[key]--;log(STAFF[key].n+' entlassen.')}}
+  if(kind==='dj'){const d=DJS[key];if(S.ruf<d.ruf)return;S.staff.dj=+key;log('DJ: '+d.n)}
+  if(kind==='genre'){S.genre=key;log('Musik gewechselt: '+GENRES[key].n);if(soundOn)startBeat()}
+  if(kind==='event'){S.event=key==='null'?null:key}
+  if(kind==='entry'){S.price.entry=clamp(S.price.entry+(+key),0,25)}
+  if(kind==='drink'){S.price.drink=clamp(+(S.price.drink+(+key)).toFixed(1),1,15)}
+  if(S.phase==='plan')save();
+  renderAll();
+}
+
+// ---------- UI ----------
+const TABS=[['music','🎵 Musik'],['staff','👥 Personal'],['build','🏗️ Ausbau'],['price','💶 Preise'],['event','🎉 Events'],['stats','📊 Bilanz']];
+function renderHeader(){
+  $('hMoney').textContent=eur(S.money);$('hMoney').className=S.money<0?'bad':'';
+  $('hRuf').textContent=stars()+' '+Math.round(S.ruf);
+  $('hDay').textContent=S.day;
+  $('hTime').textContent=S.phase==='night'?hourStr(S.t):'Tagsüber';
+  $('bGo').style.display=S.phase==='plan'?'':'none';
+  document.querySelectorAll('[data-sp]').forEach(b=>b.classList.toggle('on',+b.dataset.sp===speed));
+}
+function renderBars(){
+  const n=S.guests.length,avg=n?S.guests.reduce((a,g)=>a+g.mood,0)/n:0;
+  const bar=(l,v,t)=>`<div class="bar">${l}: <b style="color:var(--txt)">${t}</b><i><u style="width:${clamp(v,0,100)}%"></u></i></div>`;
+  $('bars').innerHTML=bar('Gäste',n/cap()*100,n+' / '+cap())+bar('Stimmung',avg,Math.round(avg)+' %')+bar('Sauberkeit',100-S.mess,Math.round(100-S.mess)+' %')+
+    bar('Ziel Geld',S.money/GOAL_MONEY*100,eur(S.money)+' / '+eur(GOAL_MONEY))+bar('Ziel Ruf',S.ruf/GOAL_RUF*100,Math.round(S.ruf)+' / '+GOAL_RUF);
+}
+function renderTabs(){$('tabs').innerHTML=TABS.map(([k,l])=>`<button class="${tab===k?'act':''}" onclick="tab='${k}';renderTabs();renderPanel()">${l}</button>`).join('')}
+function item(t,d,btn){return`<div class="item"><div>${t}<small>${d}</small></div><div class="row">${btn}</div></div>`}
+function renderPanel(){
+  let h='';
+  if(tab==='music'){
+    h+='<p class="dim" style="color:var(--dim);margin-top:0">Jeden Tag ändern sich die Trends. Spiele, was deine Gäste lieben – auch während der Nacht!</p>';
+    for(const g in GENRES){const tr=S.trend[g];
+      h+=item(`<b style="color:${GENRES[g].c}">${GENRES[g].n}</b>`,`Trend: ${tr>=1.15?'🔥 heiß':tr>=.9?'normal':'❄️ kalt'} (${Math.round(tr*100)} %) · ${GENRES[g].bpm} BPM`,
+      `<button class="${S.genre===g?'on':''}" onclick="buy('genre','${g}')">${S.genre===g?'Läuft':'Spielen'}</button>`)}
+  }
+  if(tab==='staff'){
+    h+='<div style="color:var(--dim);margin-bottom:6px">Tageskosten gesamt: <b style="color:var(--txt)">'+eur(nightCosts())+'</b> (inkl. 300 € Miete)</div>';
+    h+='<b>DJ</b>';
+    DJS.forEach((d,i)=>{const lock=S.ruf<d.ruf;
+      h+=item(d.n,`${eur(d.w)}/Nacht · Skill ${d.skill}${d.ruf?' · ab Ruf '+d.ruf:''}`,`<button class="${S.staff.dj===i?'on':''}" ${lock?'disabled':''} onclick="buy('dj',${i})">${S.staff.dj===i?'Aktiv':lock?'🔒':'Buchen'}</button>`)});
+    h+='<br><b>Team</b>';
+    for(const k in STAFF){const st=STAFF[k];
+      h+=item(`${st.n} ×${S.staff[k]}`,`${st.d} · ${eur(st.w)}/Nacht`,`<button onclick="buy('fire','${k}')" ${S.staff[k]<1?'disabled':''}>−</button><button onclick="buy('hire','${k}')" ${S.staff[k]>=st.max?'disabled':''}>+</button>`)}
+  }
+  if(tab==='build'){
+    for(const k in UPG){const l=S.lv[k],c=upCost(k,l);
+      h+=item(`${UPG[k].n} <span style="color:var(--yel)">${'●'.repeat(l)}${'○'.repeat(5-l)}</span>`,UPG[k].d,
+      `<button ${l>=5||S.money<c?'disabled':''} onclick="buy('up','${k}')">${l>=5?'MAX':eur(c)}</button>`)}
+  }
+  if(tab==='price'){
+    h+=item('Eintritt','Zu teuer schreckt Gäste ab',`<div class="pm"><button onclick="buy('entry',-1)">−</button><b>${S.price.entry} €</b><button onclick="buy('entry',1)">+</button></div>`);
+    h+=item('Getränkepreis','Über 6 € sinkt die Stimmung (Einkauf: 1,20 €)',`<div class="pm"><button onclick="buy('drink',-.5)">−</button><b>${S.price.drink.toFixed(2).replace('.',',')} €</b><button onclick="buy('drink',.5)">+</button></div>`);
+  }
+  if(tab==='event'){
+    h+='<p style="color:var(--dim);margin-top:0">Wähle ein Event für die nächste Nacht'+(S.phase==='night'?' (nur tagsüber änderbar)':'')+'.</p>';
+    EVENTS.forEach(e=>{const lock=(e.minRuf&&S.ruf<e.minRuf)||S.phase==='night'||e.cost>S.money;
+      h+=item(e.n,`${e.d}${e.cost?' · '+eur(e.cost):''}${e.minRuf?' · ab Ruf '+e.minRuf:''}`,`<button class="${S.event===e.id?'on':''}" ${lock?'disabled':''} onclick="buy('event','${e.id}')">${S.event===e.id?'Gewählt':'Wählen'}</button>`)});
+  }
+  if(tab==='stats'){
+    const n=S.guests.length;
+    h+=`<table><tr><td>Gesamtgewinn</td><td>${eur(S.total)}</td></tr><tr><td>Gäste im Club</td><td>${n}</td></tr><tr><td>VIPs im Club</td><td>${S.guests.filter(g=>g.vip).length}</td></tr><tr><td>Schlägereien heute</td><td>${S.fights}</td></tr></table><br><b>Letzte Nächte</b><table>`;
+    h+=S.history.length?S.history.map(x=>`<tr><td>Tag ${x.day} · ${x.guests} Gäste · ${x.mood} % Stimmung</td><td class="${x.profit>=0?'good':'bad'}">${eur(x.profit)}</td></tr>`).join(''):'<tr><td>Noch keine Nacht gespielt.</td></tr>';
+    h+='</table><p><button onclick="if(confirm(\'Wirklich neu anfangen?\'))resetGame()">Neues Spiel</button></p>';
+  }
+  $('panel').innerHTML=h;
+}
+function renderAll(){renderHeader();renderBars();renderTabs();renderPanel()}
+
+// ---------- Canvas ----------
+const cv=$('cv'),cx=cv.getContext('2d');
+function draw(ts){
+  const W=cv.width,H=cv.height,col=GENRES[S.genre].c,open=S.phase==='night';
+  cx.fillStyle='#07040f';cx.fillRect(0,0,W,H);
+  // Tanzfläche: Lichtkacheln
+  const beat=ts/(60000/GENRES[S.genre].bpm);
+  const cols=12,rows=6,tw=W/cols,th=(H-150)/rows;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const v=open?(Math.sin(beat*Math.PI*2/ (1+ (r+c)%4) + c*.7+r*.9)+1)/2:.08;
+    const lit=open?(.15+v*(.35+S.lv.light*.12)):.05;
+    cx.globalAlpha=lit;cx.fillStyle=((r+c+Math.floor(beat))%3===0)?'#ff2bd6':col;
+    cx.fillRect(c*tw+2,140+r*th+2,tw-4,th-4)}
+  cx.globalAlpha=1;
+  // DJ-Pult
+  cx.fillStyle='#1d1239';cx.fillRect(W/2-90,14,180,70);cx.strokeStyle=col;cx.strokeRect(W/2-90,14,180,70);
+  cx.font='34px serif';cx.textAlign='center';
+  cx.fillText(S.staff.dj?'🎧':'💻',W/2,62);
+  cx.font='12px system-ui';cx.fillStyle='#9b8fc4';cx.fillText(DJS[S.staff.dj].n+' · '+GENRES[S.genre].n,W/2,100);
+  // Lautsprecher (pumpen im Beat)
+  const pump=open?Math.abs(Math.sin(beat*Math.PI))*6:0;
+  for(const x of[50,W-50]){cx.fillStyle='#120a26';cx.fillRect(x-28,20,56,90);cx.strokeStyle='#2e1f57';cx.strokeRect(x-28,20,56,90);
+    cx.fillStyle=col;cx.beginPath();cx.arc(x,75,14+pump+S.lv.sound,0,7);cx.globalAlpha=.7;cx.fill();cx.globalAlpha=1}
+  // Bar links
+  cx.fillStyle='#2a1d4d';cx.fillRect(0,H-26,W,26);cx.fillStyle='#9b8fc4';cx.font='11px system-ui';cx.textAlign='left';
+  cx.fillText('🍸 BAR – '+S.staff.bar+' Barkeeper · 🛡️ '+S.staff.sec+' Security'+(S.lv.vip?' · 👑 VIP':''),10,H-9);
+  // Gäste
+  for(const g of S.guests){
+    const bob=Math.sin(beat*Math.PI*2+g.ph)*(g.mood/30);
+    const mx=Math.cos(beat*.5+g.ph)*3;
+    cx.font=(g.vip?'20':'16')+'px serif';cx.textAlign='center';
+    cx.fillText(g.vip?'🤵':g.mood>65?'😄':g.mood>40?'🙂':g.mood>25?'😐':'😠',g.x+mx,g.y+bob)}
+  if(!open){cx.fillStyle='#ffffffaa';cx.font='bold 22px system-ui';cx.textAlign='center';cx.fillText('Der Club ist geschlossen – bereite die Nacht vor',W/2,H/2+10)}
+  requestAnimationFrame(draw);
+}
+
+// ---------- Beat (WebAudio) ----------
+let ac=null,beatTimer=null,step=0;
+function startBeat(){
+  stopBeat();if(!soundOn)return;
+  ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+  const ms=60000/GENRES[S.genre].bpm/2;
+  beatTimer=setInterval(()=>{
+    if(S.phase!=='night'){return}
+    const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+    if(step%2===0){o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(40,t+.15);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.2)}
+    else{o.type='square';o.frequency.value=S.genre==='techno'?880:660;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.05)}
+    o.connect(g).connect(ac.destination);o.start(t);o.stop(t+.25);step++;
+  },ms);
+}
+function stopBeat(){clearInterval(beatTimer);beatTimer=null}
+
+// ---------- Init ----------
+$('bGo').onclick=startNight;
+$('bSound').onclick=()=>{soundOn=!soundOn;$('bSound').textContent=soundOn?'🔊':'🔇';soundOn?startBeat():stopBeat()};
+document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{speed=+b.dataset.sp;if(S.phase==='night')run();renderHeader()});
+S=load();if(!Object.keys(S.trend).length)rollTrend();
+renderAll();log('Willkommen, Manager! Stelle Personal & Musik ein und öffne den Club.');
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
