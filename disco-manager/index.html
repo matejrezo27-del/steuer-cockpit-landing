@@ -11,7 +11,7 @@ body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#2a0f55 0%,var
 header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 16px;background:#0e0820ee;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 h1{margin:0;font-size:19px;letter-spacing:1px;background:linear-gradient(90deg,var(--pink),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
 .stat{display:flex;flex-direction:column;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-.stat b{font-size:16px;color:var(--txt);text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums}
+.stat b{font-size:15px;color:var(--txt);text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums}
 .spacer{flex:1}
 main{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;padding:14px 16px;max-width:1400px;margin:0 auto}
 @media(max-width:900px){main{grid-template-columns:minmax(0,1fr)}}
@@ -53,19 +53,25 @@ table{width:100%;border-collapse:collapse}td{padding:4px 0;vertical-align:top}td
 .pick button.on small{color:var(--grn)}
 .tool.sel button:first-child{border-color:var(--pink);background:#2d1250}
 .iq{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:#100824}
+.iq.whale{border-color:var(--gold);box-shadow:0 0 14px #f5c04a33}
 .iq h4{margin:0 0 2px;font-size:15px}
 .sels{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin:8px 0}
 .sels label{font-size:11px;color:var(--dim);display:flex;flex-direction:column;gap:2px;min-width:0}
 .sels select,.sels input{width:100%}
 .chip{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:20px;padding:1px 8px;color:var(--dim)}
 .meter{height:6px;border-radius:4px;background:#2a1d4d;margin:4px 0;overflow:hidden}.meter u{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--pink))}
+.mini{display:inline-block;width:90px;height:6px;border-radius:4px;background:#2a1d4d;overflow:hidden;vertical-align:middle}.mini u{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+.mini.me u{background:linear-gradient(90deg,var(--gold),var(--grn))}
 </style>
 </head>
 <body>
 <header>
   <h1>🪩 DISCO MANAGER</h1>
   <div class="stat">Geld<b id="hMoney"></b></div>
+  <div class="stat">Privat<b id="hPriv"></b></div>
   <div class="stat">Hype<b id="hHype"></b></div>
+  <div class="stat">Marktanteil<b id="hShare"></b></div>
+  <div class="stat">Ansehen<b id="hAns"></b></div>
   <div class="stat">Tag<b id="hDay"></b></div>
   <div class="stat">Uhrzeit<b id="hTime"></b></div>
   <div class="spacer"></div>
@@ -94,7 +100,7 @@ table{width:100%;border-collapse:collapse}td{padding:4px 0;vertical-align:top}td
 
 <script>
 'use strict';
-const SAVE='discoManagerV3', TICKS=48, GOAL_MONEY=500000, GOAL_HYPE=75, CW=720, HDR=34, MINW=8, MAXW=30, MINH=5, MAXH=18;
+const SAVE='discoManagerV4', TICKS=48, GOAL_WORTH=3000000, GOAL_ANS=75, CW=720, HDR=34, MINW=8, MAXW=30, MINH=5, MAXH=18;
 const $=id=>document.getElementById(id);
 const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1)), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -126,13 +132,30 @@ const ITEMS={
   neon:{n:'Neon-Schild',e:'✨',c:250,d:'Style +3'},
   ball:{n:'Discokugel',e:'🪩',c:500,d:'Style +4'}};
 const upKeys=Object.keys(ITEMS);
-const STAFF={bar:{n:'Barkeeper',w:80,d:'Bedienen Gäste (7 Drinks/Takt)'},sec:{n:'Security',w:90,d:'Einlass & Schlägereien'},clean:{n:'Reinigung',w:60,d:'Sauberkeit'},host:{n:'VIP-Host',w:150,d:'Betreut je 3 VIP-Tische, nötig für große Shows'}};
-const PKG={basic:{n:'Standard-Set',d:'2× Wodka, Softs',p:300,c:90,h:0},premium:{n:'Premium-Set',d:'3× Champagner',p:700,c:250,h:10},deluxe:{n:'Deluxe-Set',d:'Magnum + Prestige-Champagner',p:1600,c:600,h:28}};
-const SHOW={none:{n:'Keine Show',p:0,c:0,h:0,fx:0},spark:{n:'Sparkler-Parade',p:200,c:60,h:8,fx:.3},grand:{n:'Große Flaschenshow',p:500,c:180,h:20,fx:.8,host:1}};
+const STAFF={bar:{n:'Barkeeper',w:80,d:'Bedienen Gäste (7 Drinks/Takt)'},sec:{n:'Security',w:90,d:'Einlass & Schlägereien'},clean:{n:'Reinigung',w:60,d:'Sauberkeit'},host:{n:'VIP-Host',w:150,d:'Betreut je 3 VIP-Tische, handelt nachts Extras aus'}};
+// Flaschen- und Show-Katalog (einmal freischalten, Preise selbst festlegen)
+const BOT={
+  basic:{n:'Standard-Set',d:'2× Wodka, Softs',p:300,c:90,h:0,setup:0},
+  premium:{n:'Premium-Set',d:'3× Champagner',p:700,c:250,h:10,setup:0},
+  deluxe:{n:'Deluxe-Set',d:'Magnum und Prestige-Champagner',p:1600,c:600,h:28,setup:3000},
+  tower:{n:'Champagner-Turm',d:'Sechs Magnums, Wunderkerzen',p:5000,c:1700,h:40,setup:8000},
+  gold:{n:'Gold-Flasche (30 Liter)',d:'Wird von zwei Leuten getragen',p:14000,c:4500,h:55,setup:20000},
+  roth:{n:'Rothschild-Pyramide',d:'Hundert Gläser, eigene Zeremonie',p:40000,c:13000,h:70,setup:50000}};
+const SHW={
+  none:{n:'Keine Show',p:0,c:0,h:0,fx:0,setup:0},
+  spark:{n:'Sparkler-Parade',d:'Wunderkerzen zur Flasche',p:200,c:60,h:8,fx:.3,setup:0},
+  confetti:{n:'Konfetti-Kanonen',d:'Regen aus Konfetti',p:450,c:120,h:12,fx:.4,setup:1500},
+  pyro:{n:'Pyro-Show',d:'Fontänen und Funken',p:1200,c:400,h:25,fx:.8,host:1,setup:5000},
+  mc:{n:'MC-Show mit Tänzern',d:'Moderator, Tänzer, Spotlight',p:2500,c:900,h:35,fx:1,host:1,setup:12000},
+  drone:{n:'Drohnen-Lichtshow',d:'Hundert Drohnen unter der Decke',p:9000,c:3500,h:50,fx:1.4,host:1,setup:30000},
+  goldrain:{n:'Goldregen-Finale',d:'Der Club steht Kopf',p:25000,c:9000,h:65,fx:2,host:1,setup:60000}};
 const IQ=[
   {n:'Geburtstagsgruppe',size:[6,10],mult:1,minH:0},{n:'Firmenfeier',size:[5,8],mult:1.3,minH:0},
   {n:'Junggesellenabschied',size:[6,12],mult:.9,minH:0},{n:'Influencer-Crew',size:[3,6],mult:1.4,minH:12},
-  {n:'Fußballprofis',size:[4,7],mult:1.6,minH:22},{n:'Erbengruppe',size:[4,6],mult:2,minH:32}];
+  {n:'Fußballprofis',size:[4,7],mult:1.6,minH:22},{n:'Erbengruppe',size:[4,6],mult:2,minH:32},
+  {n:'Tech-Milliardär',size:[3,5],mult:12,minH:45,minAns:35,whale:1},
+  {n:'Scheich-Delegation',size:[6,10],mult:25,minH:58,minAns:50,whale:1},
+  {n:'Hollywood-Star mit Entourage',size:[5,8],mult:40,minH:68,minAns:62,whale:1}];
 const NAMES=['Müller','Schmidt','Weber','Wagner','Becker','Hoffmann','Schulz','Koch','Richter','Klein','Wolf','Neumann','Braun','Krüger'];
 const NEWS=[{n:'',arr:1},{n:'',arr:1},{n:'',arr:1},{n:'🌧️ Regenwetter: weniger Leute unterwegs.',arr:.85},{n:'🏁 Konkurrenz-Party um die Ecke.',arr:.8},
   {n:'🎪 Stadtfest! Die Stadt ist voll.',arr:1.25},{n:'🎉 Feiertag morgen: Alle wollen feiern.',arr:1.2},{n:'🎓 Semesterstart: Viele junge Gäste.',arr:1.3}];
@@ -164,26 +187,56 @@ const ACTS=[
   {id:'a6',n:'Pop-Sängerin',fee:3500,draw:2.6,h:30,g:'pop'},
   {id:'a7',n:'Headliner-DJ (international)',fee:7000,draw:3.2,h:42,g:'techno'},
   {id:'a8',n:'Superstar-Act',fee:20000,draw:4,h:60,g:'pop'}];
+// Standorte
+const LOC={
+  altstadt:{n:'Altstadt-Keller',t:'Kellergewölbe',gw:10,gh:6,price:40000,a:0,rent:1,dem:1,vip:1,cli:'szene',d:'Dein Anfang. Klein und fein.'},
+  uni:{n:'Uni-Viertel Kellerbar',t:'Studentenviertel',gw:12,gh:7,price:90000,a:5,rent:.8,dem:1.25,vip:.7,cli:'students',d:'Immer was los, aber wenig Geld.'},
+  hafen:{n:'Hafen-Lagerhalle',t:'Industriehalle',gw:18,gh:11,price:220000,a:15,rent:.8,dem:1.1,vip:1,cli:'party',d:'Viel Platz für die Massen.'},
+  roof:{n:'Skyline-Rooftop',t:'Rooftop',gw:14,gh:8,price:450000,a:35,rent:2,dem:.9,vip:1.5,cli:'business',d:'Aussicht und Champagner.'},
+  villa:{n:'Villa am See',t:'Exklusive Villa',gw:12,gh:7,price:400000,a:50,rent:1.6,dem:.6,vip:2.2,cli:'society',d:'Nur für die Allerreichsten.'},
+  beach:{n:'Strand-Club „Playa“',t:'Beach Club',gw:22,gh:12,price:700000,a:45,rent:1.4,dem:1.1,vip:1.4,cli:'party',season:1,d:'Im Sommer der Wahnsinn, im Winter leer.'},
+  berlin:{n:'Industriehalle Berlin',t:'Techno-Tempel',gw:24,gh:14,price:1200000,a:60,rent:1.2,dem:1.4,vip:1,cli:'szene',d:'Kultstatus und endlose Nächte.'},
+  ibiza:{n:'Superclub Ibiza',t:'Mega-Club',gw:28,gh:16,price:4000000,a:80,rent:2.2,dem:1.7,vip:1.8,cli:'party',season:.5,d:'Das Spielfeld der Weltstars.'}};
+const RIV=[{n:'Club Nox',ex:60,h:34},{n:'Velvet Lounge',ex:85,h:28},{n:'Warehouse 9',ex:35,h:40},{n:'Campus Keller',ex:25,h:30},{n:'Palais Royal',ex:75,h:22},{n:'Neon Tempel',ex:50,h:36}];
+const ASSETS=[
+  {id:'watch',n:'Luxusuhren-Sammlung',c:60000,a:3},{id:'car',n:'Sportwagen',c:120000,a:5},{id:'pent',n:'Penthouse in der City',c:250000,a:8},
+  {id:'art',n:'Kunstsammlung',c:300000,a:9},{id:'yacht',n:'Yacht',c:900000,a:16},{id:'jet',n:'Privatjet',c:2500000,a:22}];
+const GMW=[0,350,700,1500],GMS=[0,-3,0,3],GMN=['Kein Geschäftsführer','Junior-GF','Erfahrener GF','Top-GF'];
 const hypeLabel=h=>h<15?'Unbekannt':h<30?'Geheimtipp':h<50?'Im Gespräch':h<70?'Angesagt':h<85?'Szene-Liebling':'Kultclub';
+const CLUBF=['name','loc','gw','gh','limit','cli','door','grid','staff','price','vipWalk','hype','list','genre','events','camps','inq','book','mgr'];
 
-let S, L={}, speed=1, timer=null, soundOn=false, tab='concept', tool=null, UI={}, ef={type:'party',day:null,series:false};
+let S, L={}, speed=1, timer=null, soundOn=false, tab='concept', tool=null, UI={}, ef={type:'party',day:null,series:false}, HL=false;
 const maxCap=()=>Math.round(S.gw*S.gh*1.6);
 const cap=()=>Math.min(S.limit,maxCap());
-const vipBase=()=>CLI[S.cli].vip*(.6+exclusivity()/100);
-function exclusivity(){const ev=todayEvent();return clamp(105-21*Math.log2(cap()/50)+DOORS[S.door].ex+L.style*.5+(ev&&S.phase==='night'?(ETYPE[ev.type].exb||0):0),5,100)}
+const vipBase=()=>CLI[S.cli].vip*(.6+exclusivity()/100)*LOC[S.loc].vip;
+function exclusivity(){const ev=S.events&&todayEvent();return clamp(105-21*Math.log2(cap()/50)+DOORS[S.door].ex+(L.style||0)*.5+(ev&&S.phase==='night'?(ETYPE[ev.type].exb||0):0),5,100)}
 function fitOf(ex){return Math.exp(-Math.pow((ex-CLI[S.cli].ex)/28,2))}
 const fitLabel=f=>f>.85?['Perfekt','good']:f>.6?['Gut','good']:f>.35?['Mäßig','warn']:['Schlecht','bad'];
 const todayEvent=()=>S.events.find(e=>e.day===S.day);
 const hourStr=t=>{const m=(22*60+t*10)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const maxStaff=()=>3+Math.round(maxCap()/20);
-const rent=()=>Math.round(50+S.gw*S.gh*4.5);
+const rent=()=>Math.round((50+S.gw*S.gh*4.5)*LOC[S.loc].rent);
+const seasonF=()=>{const l=LOC[S.loc];return l.season?1+l.season*.7*Math.sin(2*Math.PI*(S.day-14)/56):1};
+const bp=k=>S.mp[k]||BOT[k].p, sp=k=>S.mp[k]||SHW[k].p;
 
 function emptyGrid(w,h){return Array.from({length:h},()=>Array(w).fill(null))}
-function fresh(){return{setup:false,money:10000,loan:0,hype:8,list:25,day:1,phase:'plan',t:0,genre:'house',mess:0,
-  gw:10,gh:6,limit:96,cli:'society',door:1,grid:emptyGrid(10,6),staff:{dj:0,bar:1,sec:2,clean:0,host:0},price:{entry:20,drink:12},vipWalk:300,
-  trend:{},news:NEWS[0],guests:[],groups:[],inq:[],book:[],events:[],camps:[],iqId:1,evId:1,cId:1,night:null,fights:0,bonus:0,boost:0,showFx:0,history:[],total:0,won:false}}
-function load(){try{const j=JSON.parse(localStorage.getItem(SAVE));if(j&&j.grid){j.phase='plan';j.guests=[];j.groups=[];j.t=0;return j}}catch(e){}return fresh()}
-function save(){try{localStorage.setItem(SAVE,JSON.stringify(S))}catch(e){}}
+function mkClub(loc,cli,gw,gh){
+  const l=LOC[loc];gw=gw||l.gw;gh=gh||l.gh;cli=cli||l.cli;
+  return{name:l.n,loc,gw,gh,limit:Math.round(gw*gh*1.6),cli,door:1,grid:emptyGrid(gw,gh),staff:{dj:0,bar:1,sec:2,clean:0,host:0},
+    price:{entry:CLI[cli].entry,drink:CLI[cli].drink},vipWalk:Math.round(CLI[cli].vip/50)*50,hype:6,list:20,genre:'house',events:[],camps:[],inq:[],book:[],mgr:0};
+}
+function fresh(){return Object.assign({setup:false,money:10000,loan:0,priv:0,assets:{},fame:0,day:1,phase:'plan',t:0,mess:0,own:{basic:1,premium:1,none:1,spark:1},mp:{},autoNeg:false,
+  trend:{},news:NEWS[0],guests:[],groups:[],reqs:[],rid:1,iqId:1,evId:1,cId:1,night:null,fights:0,bonus:0,boost:0,showFx:0,doorClosed:false,
+  history:[],total:0,won:false,clubs:[],ci:0,autoRes:[],rivals:RIV.map(r=>({n:r.n,ex:r.ex,h:r.h,t:r.h}))},mkClub('altstadt','society',10,6))}
+function stash(){const c=S.clubs[S.ci]||(S.clubs[S.ci]={});for(const f of CLUBF)c[f]=S[f];c.exc=exclusivity()}
+function unstash(i){S.ci=i;const c=S.clubs[i];for(const f of CLUBF)S[f]=c[f]}
+function withClub(i,fn){
+  if(i===S.ci)return fn();
+  stash();const old=S.ci;unstash(i);calcLayout();
+  try{return fn()}finally{stash();unstash(old);calcLayout()}
+}
+function load(){try{const j=JSON.parse(localStorage.getItem(SAVE));if(j&&j.grid&&j.clubs){j.phase='plan';j.guests=[];j.groups=[];j.reqs=[];j.t=0;j.autoRes=[];return j}}catch(e){}return fresh()}
+function save(){if(HL)return;try{stash();localStorage.setItem(SAVE,JSON.stringify(S))}catch(e){}}
 function rollTrend(){for(const g in GENRES)S.trend[g]=+rnd(.7,1.4).toFixed(2)}
 
 function calcLayout(){
@@ -195,13 +248,61 @@ function calcLayout(){
     soundF:clamp(cnt.speaker/(c/70),0,1),lightF:clamp(cnt.light/(c/90),0,1),floorF:clamp(cnt.floor/(c/8),0,1),
     toiletF:clamp(cnt.toilet/Math.ceil(c/50),0,1),sofaF:clamp(cnt.sofa/(c/30),0,1),coatF:clamp(cnt.coat/Math.max(1,c/80),0,1),
     style:Math.min(15,cnt.plant+cnt.neon*3+cnt.ball*4)});
-  cv.width=CW;cv.height=Math.round(CW/S.gw*S.gh)+HDR;
+  const h=Math.round(CW/S.gw*S.gh)+HDR;if(cv.width!==CW||cv.height!==h){cv.width=CW;cv.height=h}
 }
 const needs=()=>{const c=cap();return[['floor',Math.ceil(c/8)],['bar',Math.max(1,Math.ceil(c/60))],['toilet',Math.ceil(c/50)],['sofa',Math.ceil(c/30)],['speaker',Math.ceil(c/70)],['light',Math.ceil(c/90)],['dj',1],['vip',1]]};
 const campCost=()=>S.camps.reduce((a,c)=>a+CH[c.ch].c,0);
-const nightCosts=()=>rent()+DJS[S.staff.dj].w+Object.keys(STAFF).reduce((a,k)=>a+S.staff[k]*STAFF[k].w,0)+Math.round(S.loan*.01);
+const nightCosts=()=>rent()+DJS[S.staff.dj].w+Object.keys(STAFF).reduce((a,k)=>a+S.staff[k]*STAFF[k].w,0)+(HL?GMW[S.mgr]:0);
 
-function log(m,c=''){const d=document.createElement('div');d.className=c;d.textContent=(S.phase==='night'?hourStr(S.t):wd(S.day))+'  '+m;const Lg=$('log');Lg.prepend(d);while(Lg.children.length>60)Lg.lastChild.remove()}
+function log(m,c=''){
+  if(HL)return;
+  const d=document.createElement('div');d.className=c;
+  d.textContent=(S.phase==='night'?hourStr(S.t):wd(S.day))+'  '+(S.clubs.length>1?S.name.split(' ')[0]+': ':'')+m;
+  const Lg=$('log');Lg.prepend(d);while(Lg.children.length>60)Lg.lastChild.remove();
+}
+
+// ---------- Markt, Ansehen, Vermögen ----------
+function marketM(){
+  const ex=exclusivity(),Zc=.35+S.hype/32;let sw=0,sz=0,all=Zc;
+  const add=(h,e,k)=>{const z=(.35+h/32)*k,w=Math.exp(-Math.pow((e-ex)/35,2));sw+=w;sz+=w*z;all+=z};
+  S.rivals.forEach(r=>add(r.h,r.ex,.85));
+  S.clubs.forEach((c,i)=>{if(i!==S.ci)add(c.hype,c.exc||50,.5)});
+  return{m:Zc/(Zc+sz)*(1+sw)*1.1,share:Zc/all};
+}
+const clubHype=i=>i===S.ci?S.hype:S.clubs[i].hype;
+function ansehen(){
+  const avg=S.clubs.reduce((a,c,i)=>a+clubHype(i),0)/S.clubs.length;
+  const as=ASSETS.reduce((a,x)=>a+(S.assets[x.id]?x.a:0),0);
+  return clamp(as+S.fame+avg*.35+(S.clubs.length-1)*1.5+marketM().share*30,0,100);
+}
+function clubValue(i){
+  const c=i===S.ci?S:S.clubs[i],l=LOC[c.loc];
+  return Math.round(l.price*.6+gridCost(c.grid)*.5+c.hype*l.price*.01);
+}
+function worth(){
+  return Math.round(S.money-S.loan+S.priv+S.clubs.reduce((a,c,i)=>a+clubValue(i),0)+ASSETS.reduce((a,x)=>a+(S.assets[x.id]?x.c*.6:0),0));
+}
+function transfer(v){
+  if(v>0&&S.money>=v){S.money-=v;S.priv+=v}
+  else if(v<0&&S.priv>=-v){S.priv+=v;S.money-=v}
+  save();renderAll();
+}
+function buyAsset(id){
+  const a=ASSETS.find(x=>x.id===id);if(S.assets[id]||S.priv<a.c)return;
+  S.priv-=a.c;S.assets[id]=1;log(a.n+' gekauft. Ansehen steigt.','good');save();renderAll();
+}
+function gala(){
+  if(S.priv<30000)return;S.priv-=30000;S.fame=Math.min(25,S.fame+4);
+  log('Charity-Gala veranstaltet. Die Presse berichtet.','good');save();renderAll();
+}
+function rivalsDay(){
+  const mine=marketM().share;
+  for(const r of S.rivals){
+    r.h+=(r.t-r.h)*.08+rnd(-1.8,1.8);r.t=clamp(r.t+rnd(-.3,.45)+(mine>.25?.4:0),15,80);
+    if(Math.random()<.05){r.h+=ri(6,14);log('🏙️ '+r.n+' feiert eine große Party und wird gerade beliebter.','warn')}
+    r.h=clamp(r.h,3,95);
+  }
+}
 
 // ---------- Layout ----------
 function layoutPlan(gw,gh,c){
@@ -277,6 +378,7 @@ function resizeClub(dw,dh){
 }
 function setLimit(d){S.limit=clamp(Math.round((S.limit+d)/10)*10,20,maxCap());calcLayout();if(S.phase==='plan')save();renderAll()}
 function limitTo(f){S.limit=clamp(Math.round(maxCap()*f/10)*10,20,maxCap());calcLayout();if(S.phase==='plan')save();renderAll()}
+function toggleDoor(){S.doorClosed=!S.doorClosed;log(S.doorClosed?'🚪 Einlass gestoppt.':'🚪 Einlass wieder offen.');renderAll()}
 
 // ---------- Promo ----------
 const chFit=k=>CH[k].fit[S.cli];
@@ -345,12 +447,24 @@ function curGenre(){
   return S.genre;
 }
 
+// ---------- Menü ----------
+function unlockMenu(kind,k){
+  const d=kind==='b'?BOT[k]:SHW[k];
+  if(S.own[k]||S.hype<d.h||S.money<d.setup)return;
+  S.money-=d.setup;S.own[k]=1;log(d.n+' ins Angebot aufgenommen.','good');save();renderAll();
+}
+function menuPrice(kind,k,dir){
+  const d=kind==='b'?BOT[k]:SHW[k],cur=kind==='b'?bp(k):sp(k),step=Math.max(10,Math.round(d.p*.1/10)*10);
+  S.mp[k]=clamp(cur+dir*step,Math.round(d.c*1.1),d.p*3);save();renderAll();
+}
+
 // ---------- Tag / VIP-Anfragen ----------
 function genInquiries(){
-  const base=vipBase(),out=[];
+  const base=vipBase(),out=[],ans=ansehen();
   const mk=(day,buzz,evId)=>{
-    const ty=pick(IQ.filter(t=>t.minH<=S.hype+8)),size=ri(ty.size[0],ty.size[1]);
-    out.push({id:S.iqId++,day,ev:evId,name:ty.n+' '+pick(NAMES),size,genre:pick(Object.keys(GENRES)),budget:Math.max(250,Math.round(base*ty.mult*rnd(.8,1.8)*size/6*(1+buzz/60)/50)*50)});
+    const pool=IQ.filter(t=>t.minH<=S.hype+8&&(t.minAns||0)<=ans),whales=pool.filter(t=>t.whale),normal=pool.filter(t=>!t.whale);
+    const ty=(whales.length&&Math.random()<.22)?pick(whales):pick(normal),size=ri(ty.size[0],ty.size[1]);
+    out.push({id:S.iqId++,day,ev:evId,whale:!!ty.whale,name:ty.n+' '+pick(NAMES),size,genre:pick(Object.keys(GENRES)),budget:Math.max(250,Math.round(base*ty.mult*rnd(.8,1.8)*size/6*(1+buzz/60)/50)*50)});
   };
   const n=clamp(Math.round(rnd(0,2)+S.hype/30+CLI[S.cli].vipRate*1.5),0,6);
   for(let i=0;i<n;i++)mk(S.day,0,null);
@@ -360,28 +474,35 @@ function genInquiries(){
   }
   return out.slice(0,12);
 }
-function newDay(){
-  rollTrend();S.news=pick(NEWS);
+function newDayGlobal(){
+  rollTrend();S.news=pick(NEWS);S.fame*=.98;rivalsDay();
+  if(S.news.n)log(S.news.n,'warn');
+}
+function newDayClub(){
   S.hype=clamp(S.hype*.94,0,100);S.list=Math.round(S.list*.97);S.events.forEach(e=>e.buzz*=.97);
   for(const c of S.camps)processCamp(c);
   S.camps=S.camps.filter(c=>c.left>0);S.list=Math.round(S.list);
   S.inq=S.inq.filter(i=>i.day>=S.day&&S.book.every(b=>b.id!==i.id)).concat(genInquiries()).slice(0,16);UI={};
-  if(S.news.n)log(S.news.n,'warn');
   const e=todayEvent();if(e)log('Heute Abend: '+e.name+'!','gold');
+}
+function advanceDay(){
+  S.day++;S.money-=Math.round(S.loan*.01);
+  newDayGlobal();
+  for(let i=0;i<S.clubs.length;i++)withClub(i,newDayClub);
 }
 const tableKey=(x,y)=>x+','+y;
 const freeTables=day=>L.vipCells.filter(([x,y])=>!S.book.some(b=>b.day===day&&b.tx===x&&b.ty===y));
-function sel(id){return UI[id]=UI[id]||{t:'',pkg:'basic',show:'none',at:12}}
-function setSel(id,k,v){sel(id)[k]=k==='at'?+v:v}
+function sel(id){return UI[id]=UI[id]||{t:'',pkg:'basic',qty:1,show:'none',at:12}}
+function setSel(id,k,v){sel(id)[k]=(k==='at'||k==='qty')?+v:v}
 function acceptInq(id){
   const q=S.inq.find(i=>i.id===id);if(!q||S.phase!=='plan')return;
   const u=sel(id),tabs=freeTables(q.day),tk=u.t||(tabs[0]&&tableKey(...tabs[0]));
   if(!tk||!tabs.some(([x,y])=>tableKey(x,y)===tk)){log('Kein freier VIP-Tisch.','warn');return}
-  const[tx,ty]=tk.split(',').map(Number),pk=PKG[u.pkg],sh=SHOW[u.show],price=pk.p+sh.p;
+  const[tx,ty]=tk.split(',').map(Number),sh=SHW[u.show],price=bp(u.pkg)*u.qty+sp(u.show);
   if(price>q.budget){log(q.name+': Das Angebot ist zu teuer.','warn');return}
-  if(sh.host&&S.staff.host<1){log('Große Show braucht mindestens 1 VIP-Host.','warn');return}
+  if(sh.host&&S.staff.host<1){log('Diese Show braucht mindestens 1 VIP-Host.','warn');return}
   const dep=Math.round(price/2);S.money+=dep;
-  S.book.push({id:q.id,day:q.day,name:q.name,size:q.size,genre:q.genre,tx,ty,pkg:u.pkg,show:u.show,at:u.at,price,cost:pk.c+sh.c,dep,arrive:ri(4,10),state:'wait',mood:60,sum:0,n:0,showDone:false});
+  S.book.push({id:q.id,day:q.day,name:q.name,size:q.size,genre:q.genre,tx,ty,pkg:u.pkg,qty:u.qty,show:u.show,at:u.at,price,bud:q.budget,up:0,whale:q.whale,cost:BOT[u.pkg].c*u.qty+sh.c,dep,arrive:ri(4,10),state:'wait',mood:60,sum:0,n:0,showDone:false});
   S.inq=S.inq.filter(i=>i.id!==id);
   log(q.name+' hat Tisch gebucht, Anzahlung '+eur(dep)+'.','good');save();renderAll();
 }
@@ -392,21 +513,68 @@ function cancelBook(id){
   log('Reservierung '+b.name+' storniert (Anzahlung zurück, Hype −0,5).','warn');save();renderAll();
 }
 
+// ---------- Nächtliche Extra-Wünsche ----------
+function makeReq(g){
+  const head=g.bud-g.price-g.up;if(head<150)return;
+  let kind='bot',key,qty=1;
+  const shows=Object.keys(SHW).filter(k=>k!=='none'&&S.own[k]&&sp(k)<=head&&(!SHW[k].host||S.staff.host>0));
+  if(shows.length&&Math.random()<.35){kind='show';key=pick(shows)}
+  else{
+    const bots=Object.keys(BOT).filter(k=>S.own[k]&&bp(k)<=head);if(!bots.length)return;
+    key=Math.random()<.6?bots.sort((a,b)=>bp(b)-bp(a))[0]:pick(bots);
+    qty=ri(1,clamp(Math.floor(head/bp(key)),1,5));
+  }
+  const list=kind==='show'?sp(key):bp(key)*qty;
+  S.reqs.push({id:S.rid++,gid:g.id,kind,key,qty,list,exp:S.t+5});
+  if(!HL)log('🍾 '+g.name+' möchte '+(kind==='show'?SHW[key].n:qty+'× '+BOT[key].n)+'. Handle mit ihnen aus!','gold');
+}
+function reqAct(id,mode){
+  const r=S.reqs.find(x=>x.id===id);if(!r)return;
+  const g=S.groups.find(x=>x.id===r.gid);S.reqs=S.reqs.filter(x=>x.id!==id);if(!g)return;
+  const price=Math.round(r.list*(mode==='disc'?.85:mode==='up'?1.2:1)),base=mode==='disc'?.97:mode==='up'?.55:.85;
+  const p=clamp(base*(.55+g.mood/120),.05,.97),d=r.kind==='show'?SHW[r.key]:BOT[r.key];
+  if(Math.random()<p){
+    S.money+=price;S.night.up+=price;S.night.vipCost+=d.c*(r.kind==='show'?1:r.qty);g.up+=price;g.mood+=mode==='disc'?8:5;
+    if(r.kind==='show'){S.guests.forEach(x=>{x.mood+=8;x.thirst=Math.min(100,x.thirst+25)});S.bonus+=d.fx;S.showFx=3}
+    log('✅ '+g.name+': '+(r.kind==='show'?d.n:r.qty+'× '+d.n)+' für '+eur(price)+'.','gold');
+  }else{g.mood-=3;log('❌ '+g.name+' lehnt ab.','warn')}
+  if(!HL){renderTabs();renderPanel();renderHeader()}
+}
+
 // ---------- Nacht ----------
+function autoNight(i){
+  withClub(i,()=>{
+    if(!S.setup)return;
+    const e=todayEvent();
+    if(!S.mgr){S.money-=Math.round(rent()*.4);if(e){S.events=S.events.filter(x=>x.id!==e.id);S.camps=S.camps.filter(c=>c.target!==String(e.id))}return}
+    HL=true;
+    try{startNight(true);let g=0;while(S.phase==='night'&&g++<100)tick()}finally{HL=false}
+  });
+}
+function finishDay(){
+  S.autoRes=[];const act=S.ci;
+  for(let i=0;i<S.clubs.length;i++)if(i!==act)autoNight(i);
+  advanceDay();
+}
 function skipDay(){
   if(S.phase!=='plan'||!S.setup||todayEvent())return;
-  S.money-=Math.round(rent()*.4);S.day++;newDay();save();renderAll();log('Ruhetag. Miete läuft weiter, die Werbung auch.');
+  S.money-=Math.round(rent()*.4);finishDay();save();renderAll();log('Ruhetag. Miete läuft weiter, die Werbung auch.');
+  if(S.autoRes.length)showAuto('Ruhetag in „'+S.name+'“');
 }
-function startNight(){
+function showAuto(t){
+  showModal(`<h2>${t}</h2><p><b>Weitere Clubs (vom Geschäftsführer geleitet)</b></p><table>${S.autoRes.map(r=>`<tr><td>${r.n}</td><td>${r.g} Gäste · <span class="${r.p>=0?'good':'bad'}">${eur(r.p)}</span></td></tr>`).join('')}</table><p><button class="pri" onclick="closeModal()">Weiter</button></p>`);
+}
+function startNight(auto){
   if(S.phase!=='plan'||!S.setup)return;
   const e=todayEvent();
-  S.phase='night';S.t=0;S.guests=[];S.fights=0;S.bonus=0;S.boost=0;S.mess=0;S.showFx=0;
+  S.phase='night';S.t=0;S.guests=[];S.fights=0;S.bonus=0;S.boost=0;S.mess=0;S.showFx=0;S.reqs=[];S.doorClosed=false;
   S.groups=S.book.filter(b=>b.day===S.day).map(b=>Object.assign({},b));S.book=S.book.filter(b=>b.day!==S.day);S.inq=S.inq.filter(i=>i.day!==S.day);
   const ty=e?ETYPE[e.type]:null,fit=fitOf(exclusivity());
   const rate=clamp(.2*(1+(e?e.buzz/40:0))*(.5+.5*fit)*wdF(S.day)*(ty&&ty.money?2:1),0,.9);
   const w=[...Array(32).keys()].map(t=>Math.exp(-Math.pow((t-14)/9,2)));
-  S.night={entry:0,drinks:0,coat:0,vip:0,vipCost:0,guests:0,moodSum:0,moodN:0,peak:0,listIn:0,newNames:0,
+  S.night={entry:0,drinks:0,coat:0,vip:0,up:0,vipCost:0,guests:0,moodSum:0,moodN:0,peak:0,listIn:0,newNames:0,wanted:0,turned:0,queue:0,
     coming:Math.round(S.list*rate),w,wsum:w.reduce((a,b)=>a+b,0),pool:0};
+  if(auto)return;
   tool=null;tab='concept';log('Der Club ist offen!'+(e?' '+e.name+' läuft.':''),'good');
   if(S.night.coming)log(S.night.coming+' Leute von der Gästeliste haben zugesagt.');
   run();renderAll();
@@ -425,6 +593,10 @@ function newGuest(listed){
   placeGuest(g);return g;
 }
 const seated=()=>S.groups.filter(g=>g.state==='seated');
+function doShow(g,sh){
+  S.guests.forEach(x=>{x.mood+=8;x.thirst=Math.min(100,x.thirst+25)});S.bonus+=sh.fx;S.showFx=3;
+  log('🍾🎆 '+sh.n+' an Tisch von '+g.name+'! Der ganze Club feiert.','gold');
+}
 function tick(){
   if(S.phase!=='night')return;
   const C=CLI[S.cli],D=DOORS[S.door],e=todayEvent(),N=S.night,c=cap(),G=S.guests,gen=curGenre();
@@ -438,39 +610,44 @@ function tick(){
     else{S.mess+=20;log('🍾 Jemand hat Getränke verschüttet.','warn')}
   }
   const hostF=()=>{const o=seated().length;return o?clamp(S.staff.host*3/o,0,1):1};
+  const gm=HL?GMS[S.mgr]:0;
   for(const g of S.groups){
     if(g.state==='wait'&&S.t>=g.arrive){g.state='seated';log('👑 '+g.name+' ('+g.size+' Pers.) nimmt am VIP-Tisch Platz.','gold')}
     if(g.state==='seated'){
-      const tg=55+(g.genre===gen?18:0)+L.soundF*10+hostF()*14+L.sofaF*5+L.style*.5-S.mess*.3-(L.toiletF<1?5:0)-(G.length/c>.9?8:0);
+      const tg=55+(g.genre===gen?18:0)+L.soundF*10+hostF()*14+L.sofaF*5+(L.style||0)*.5-S.mess*.3-(L.toiletF<1?5:0)-(G.length/c>.9?8:0)+gm;
       g.mood+=(tg-g.mood)*.25;g.sum+=g.mood;g.n++;
-      if(!g.showDone&&g.show!=='none'&&S.t>=g.at){
-        g.showDone=true;const sh=SHOW[g.show];
-        G.forEach(x=>{x.mood+=8;x.thirst=Math.min(100,x.thirst+25)});S.bonus+=sh.fx;S.showFx=3;
-        log('🍾🎆 '+sh.n+' an Tisch von '+g.name+'! Der ganze Club feiert.','gold');
+      if(!g.showDone&&g.show!=='none'&&S.t>=g.at){g.showDone=true;doShow(g,SHW[g.show])}
+      if(S.staff.host>0&&S.t<36&&g.mood>55&&!S.reqs.some(r=>r.gid===g.id)&&Math.random()<.14*hostF()){
+        const before=S.reqs.length;makeReq(g);
+        if(HL||S.autoNeg){const r=S.reqs[S.reqs.length-1];if(S.reqs.length>before&&r)reqAct(r.id,'list')}
       }
       if(S.t>=40){g.state='left';log(g.name+' verlässt den VIP-Tisch.')}
     }
   }
+  for(const r of S.reqs.slice()){if(S.t>=r.exp){const g=S.groups.find(x=>x.id===r.gid);if(g){g.mood-=6;log(g.name+' fühlt sich ignoriert.','warn')}S.reqs=S.reqs.filter(x=>x.id!==r.id)}}
   if(S.t>=6&&S.t<=30&&L.vip){
     const ft=freeTables(S.day).filter(([x,y])=>!S.groups.some(g=>g.tx===x&&g.ty===y)),wf=clamp(1.3-S.vipWalk/vipBase(),.05,1.2);
     if(ft.length&&Math.random()<.05*C.vipRate*(1+S.hype/50)*wf*(.5+fit/2)){
       const t=pick(ft);
-      S.groups.push({id:'w'+S.t+t[0]+t[1],walk:true,name:'Spontane Gäste',size:ri(3,6),genre:pick(Object.keys(GENRES)),tx:t[0],ty:t[1],pkg:'basic',show:'none',at:99,price:S.vipWalk,cost:S.vipWalk*.3,dep:0,arrive:S.t,state:'seated',mood:60,sum:0,n:0,showDone:false});
+      S.groups.push({id:'w'+S.t+t[0]+t[1],walk:true,name:'Spontane Gäste',size:ri(3,6),genre:pick(Object.keys(GENRES)),tx:t[0],ty:t[1],pkg:'basic',qty:1,show:'none',at:99,price:S.vipWalk,bud:S.vipWalk*2.5,up:0,cost:S.vipWalk*.3,dep:0,arrive:S.t,state:'seated',mood:60,sum:0,n:0,showDone:false});
       log('👑 Spontane Gäste mieten einen VIP-Tisch ('+eur(S.vipWalk)+').','gold');
     }
   }
   const hourF=Math.exp(-Math.pow((S.t-20)/14,2))*.9+.1;
   const r=S.price.entry/C.entry,priceF=r<=1?1+(1-r)*.3:Math.max(.1,1-(r-1)*.7);
   const boost=S.boost>0?2:1;if(S.boost>0)S.boost--;
-  const want=c*.04*(.35+S.hype/32)*hourF*priceF*C.arr*(.3+.7*fit)*D.arr*evMult(e)*S.news.arr*(.6+.4*S.trend[gen])*boost*(L.dj?1:.8)*wdF(S.day)*rnd(.8,1.2);
+  const mk=marketM();
+  const want=c*.04*mk.m*LOC[S.loc].dem*seasonF()*hourF*priceF*C.arr*(.3+.7*fit)*D.arr*evMult(e)*S.news.arr*(.6+.4*S.trend[gen])*boost*(L.dj?1:.8)*wdF(S.day)*rnd(.8,1.2);
   const door=Math.floor(6+S.staff.sec*5+c/40);
   const people=G.length+seated().reduce((a,g)=>a+g.size,0);
-  const arrive=Math.max(0,Math.min(Math.round(want),door,c-people));
+  const w0=Math.round(want);
+  const arrive=S.doorClosed?0:Math.max(0,Math.min(w0,door,c-people));
+  N.wanted+=w0;N.turned+=Math.max(0,w0-arrive);N.queue=N.queue*.7+Math.max(0,w0-arrive);
   for(let i=0;i<arrive;i++){G.push(newGuest(false));N.guests++;N.entry+=S.price.entry;S.money+=S.price.entry;
     if(L.coat){const cc=2*L.coatF;N.coat+=cc;S.money+=cc}}
   if(S.t<32)N.pool+=N.coming*N.w[S.t]/N.wsum;
-  let la=Math.floor(N.pool);N.pool-=la;
-  la=Math.max(0,Math.min(la,door-arrive,c-people-arrive));
+  let la=Math.floor(N.pool);const lw=la;N.pool-=la;
+  la=S.doorClosed?0:Math.max(0,Math.min(la,door-arrive,c-people-arrive));N.turned+=Math.max(0,lw-la);
   for(let i=0;i<la;i++){G.push(newGuest(true));N.guests++;N.listIn++;const p=S.price.entry*.5;N.entry+=p;S.money+=p;
     if(L.coat){const cc=2*L.coatF;N.coat+=cc;S.money+=cc}}
   N.peak=Math.max(N.peak,G.length);
@@ -478,7 +655,7 @@ function tick(){
   S.mess=clamp(S.mess+G.length*.05*(80/c+.4)-(S.staff.clean*6+1),0,100);
   const dens=G.length/c;let fights=0;const dr=S.price.drink/C.drink;
   for(const g of G){
-    let tg=53+(C.genres.includes(g.fav)?4:0)+(g.fav===gen?20:-6)+L.soundF*14+L.lightF*10+djSkill*4+L.sofaF*6+L.style*.6-(1-L.floorF)*14-(1-L.toiletF)*10+D.mood+(fit-.6)*10+L.coatF*2+act+(g.list?4:0);
+    let tg=53+(C.genres.includes(g.fav)?4:0)+(g.fav===gen?20:-6)+L.soundF*14+L.lightF*10+djSkill*4+L.sofaF*6+(L.style||0)*.6-(1-L.floorF)*14-(1-L.toiletF)*10+D.mood+(fit-.6)*10+L.coatF*2+act+(g.list?4:0)+gm;
     if(dens>.85)tg-=(dens-.85)*80*(1+ex/100);
     if(dr>1.4)tg-=(dr-1.4)*10;
     if(r>1.5)tg-=(r-1.5)*6;
@@ -502,11 +679,10 @@ function tick(){
   if(S.showFx>0)S.showFx--;
   S.t++;
   if(S.t>=TICKS)endNight();
-  else{renderHeader();renderBars();if(tab==='stats'||tab==='vip')renderPanel()}
+  else if(!HL){renderHeader();renderBars();if(tab==='stats'||tab==='vip')renderPanel();renderTabs()}
 }
 
-function endNight(){
-  clearInterval(timer);
+function settle(){
   const N=S.night,e=todayEvent(),avg=N.moodN?N.moodSum/N.moodN:50,costs=nightCosts();
   let vipLines='',vH=0;
   for(const g of S.groups){
@@ -515,13 +691,18 @@ function endNight(){
     const total=Math.round(g.price*(g.walk?rnd(.8,1.4):1)*f*tip),pay=total-g.dep;
     S.money+=pay;N.vip+=total;N.vipCost+=g.cost;
     if(sat<45)vH-=1;else if(sat>78)vH+=.5;
-    vipLines+=`<tr><td>${g.name}</td><td>${sat<45?'<span class="bad">unzufrieden</span>':sat>78?'<span class="good">begeistert</span>':'zufrieden'} · ${eur(total)}</td></tr>`;
+    vipLines+=`<tr><td>${g.name}${g.up?' (+'+eur(g.up)+' Extras)':''}</td><td>${sat<45?'<span class="bad">unzufrieden</span>':sat>78?'<span class="good">begeistert</span>':'zufrieden'} · ${eur(total)}</td></tr>`;
   }
   S.money-=N.vipCost;
-  const rev=N.entry+N.drinks+N.coat+N.vip-N.vipCost,profit=rev-costs;
+  const vipNet=N.vip+N.up-N.vipCost,profit=N.entry+N.drinks+N.coat+vipNet-costs;
   S.money-=costs;
-  const fill=N.peak/cap();
+  const fill=N.peak/cap(),qIdx=N.turned/cap();
   let dH=(avg-65)/18*clamp(fill/.5,.3,1.2)+S.bonus*.4-S.fights*.5+vH+(DOORS[S.door].ex>=8?.1:0);
+  let qLine='';
+  if(fill>=.8&&qIdx>.15){
+    if(avg>=65){const q=Math.min(2.5,qIdx*3);dH+=q;qLine=`<tr><td>🚪 Schlange vor der Tür (${N.turned} abgewiesen)</td><td class="good">+${q.toFixed(1)} Hype</td></tr>`}
+    else if(avg<55){const q=Math.min(1.5,qIdx*2);dH-=q;qLine=`<tr><td>Wartende Gäste sind enttäuscht</td><td class="bad">−${q.toFixed(1)} Hype</td></tr>`}
+  }
   let evLine='';
   if(e){
     const a=e.acts.reduce((s,id)=>s+ACTS.find(x=>x.id===id).draw,0);
@@ -531,7 +712,7 @@ function endNight(){
   S.hype=clamp(S.hype+dH,0,100);
   S.list=Math.round(S.list*(avg<45?.93:1)+N.newNames*2+N.guests*.04*(avg>=65?1:.3));
   S.total+=profit;
-  S.history.unshift({day:S.day,guests:N.guests,profit:Math.round(profit),mood:Math.round(avg)});S.history=S.history.slice(0,14);
+  S.history.unshift({day:S.day,club:S.name,guests:N.guests,profit:Math.round(profit),mood:Math.round(avg)});S.history=S.history.slice(0,20);
   let seriesLine='';
   if(e){
     S.events=S.events.filter(x=>x.id!==e.id);S.camps=S.camps.filter(c=>c.target!==String(e.id));
@@ -542,26 +723,35 @@ function endNight(){
         seriesLine=`<p class="gold">🔁 Die Reihe „${e.name}“ geht weiter: nächste Ausgabe am ${wd(nd)} (Tag ${nd}), Stammpublikum Stufe ${e.lvl+1}.</p>`}
       else seriesLine='<p class="warn">Die Eventreihe konnte nicht verlängert werden (Geld oder Termin).</p>'}
   }
-  S.phase='plan';S.guests=[];S.groups=[];const d=S.day;S.day++;newDay();
-  const broke=S.money<-2000,win=!S.won&&S.money-S.loan>=GOAL_MONEY&&S.hype>=GOAL_HYPE;if(win)S.won=true;
+  S.phase='plan';S.guests=[];S.groups=[];S.reqs=[];
+  return{N,avg,costs,profit,dH,vipNet,vipLines,qLine,evLine,seriesLine,sday:S.day};
+}
+function endNight(){
+  clearInterval(timer);
+  const R=settle();
+  if(HL){S.autoRes.push({n:S.name,g:R.N.guests,p:Math.round(R.profit)});return}
+  finishDay();
+  const{N,avg,costs,profit,dH,vipNet,vipLines,qLine,evLine,seriesLine,sday}=R;
+  const broke=S.money<-2000,win=!S.won&&worth()>=GOAL_WORTH&&ansehen()>=GOAL_ANS;if(win)S.won=true;
   save();renderAll();
-  showModal(`<h2>Nacht ${d} (${wd(d)}) – Abrechnung</h2><table>
+  showModal(`<h2>${S.name}: Nacht ${sday} (${wd(sday)})</h2><table>
    <tr><td>Gäste (davon Gästeliste)</td><td>${N.guests} (${N.listIn})</td></tr><tr><td>Ø Stimmung</td><td>${Math.round(avg)} % ${'★'.repeat(clamp(Math.round(avg/20),1,5))}</td></tr>
    <tr><td>Eintritt</td><td class="good">${eur(N.entry)}</td></tr><tr><td>Getränke (Gewinn)</td><td class="good">${eur(N.drinks)}</td></tr>
-   <tr><td>Garderobe</td><td class="good">${eur(N.coat)}</td></tr><tr><td>VIP & Flaschen (Gewinn)</td><td class="good">${eur(N.vip-N.vipCost)}</td></tr>
-   <tr><td>Miete, Personal, Zinsen</td><td class="bad">-${eur(costs)}</td></tr>
+   <tr><td>Garderobe</td><td class="good">${eur(N.coat)}</td></tr><tr><td>VIP, Flaschen & Extras (Gewinn)</td><td class="good">${eur(vipNet)}</td></tr>
+   <tr><td>Miete & Personal</td><td class="bad">-${eur(costs)}</td></tr>
    <tr><td><b>Ergebnis</b></td><td><b class="${profit>=0?'good':'bad'}">${eur(profit)}</b></td></tr>
-   <tr><td>Hype heute Nacht</td><td>${dH>=0?'+':''}${dH.toFixed(1)}</td></tr>${evLine}
-   <tr><td>Gästeliste</td><td>${Math.round(S.list)} Namen</td></tr></table>
+   <tr><td>Hype heute Nacht</td><td>${dH>=0?'+':''}${dH.toFixed(1)}</td></tr>${qLine}${evLine}
+   <tr><td>Marktanteil</td><td>${Math.round(marketM().share*100)} %</td></tr></table>
    ${seriesLine}${vipLines?'<p><b>VIP-Tische</b></p><table>'+vipLines+'</table>':''}
-   <p class="dim">Über Nacht verliert der Club etwas Hype. Bleib dran: Events, Acts und Werbung halten ihn oben.</p>
-   ${win?'<p class="good"><b>🏆 Du bist der Disco-König!</b></p>':''}${broke?'<p class="bad"><b>💸 Insolvenz!</b></p>':''}
+   ${S.autoRes.length?'<p><b>Weitere Clubs</b></p><table>'+S.autoRes.map(r=>`<tr><td>${r.n}</td><td>${r.g} Gäste · <span class="${r.p>=0?'good':'bad'}">${eur(r.p)}</span></td></tr>`).join('')+'</table>':''}
+   <p class="dim">Über Nacht verliert jeder Club etwas Hype. Die Konkurrenz schläft auch nicht.</p>
+   ${win?'<p class="good"><b>🏆 Du bist der Nachtleben-König!</b></p>':''}${broke?'<p class="bad"><b>💸 Insolvenz!</b></p>':''}
    <p><button class="pri" onclick="${broke?'resetGame()':'closeModal()'}">${broke?'Neu anfangen':'Weiter'}</button></p>`);
 }
 function showModal(h){$('mbox').innerHTML=h;$('modal').style.display='flex'}
 function closeModal(){$('modal').style.display='none'}
 function askReset(){showModal('<h2>Neu anfangen?</h2><p>Dein Fortschritt geht verloren.</p><p><button class="pri" onclick="resetGame()">Ja, neu starten</button> <button onclick="closeModal()">Abbrechen</button></p>')}
-function resetGame(){S=fresh();rollTrend();$('log').innerHTML='';calcLayout();save();tab='concept';tool=null;renderAll();openSetup()}
+function resetGame(){S=fresh();rollTrend();$('log').innerHTML='';calcLayout();stash();save();tab='concept';tool=null;renderAll();openSetup()}
 
 // ---------- Setup ----------
 const SIZES=[{n:'Kleiner Keller',gw:10,gh:6,d:'60 Felder · ca. 96 Gäste'},{n:'Mittlerer Laden',gw:14,gh:8,d:'112 Felder · ca. 180 Gäste'},{n:'Große Halle',gw:18,gh:11,d:'198 Felder · ca. 320 Gäste'}];
@@ -570,18 +760,18 @@ function openSetup(){su={size:0,cli:S.cli};renderSetup()}
 function setupPick(k,v){su[k]=v;renderSetup()}
 function renderSetup(){
   const sz=SIZES[su.size],c=Math.round(sz.gw*sz.gh*1.6),ex=clamp(105-21*Math.log2(c/50)+8,5,100),f=Math.exp(-Math.pow((ex-CLI[su.cli].ex)/28,2)),[fl,fc]=fitLabel(f);
-  showModal(`<h2>🪩 Dein Club</h2><p class="dim">Je kleiner der Club, desto exklusiver. Größe, Gästelimit und Einrichtung kannst du später jederzeit ändern. Wähle jetzt, womit du startest.</p>
+  showModal(`<h2>🪩 Dein erster Club</h2><p class="dim">Je kleiner der Club, desto exklusiver. Größe, Gästelimit und Einrichtung kannst du später jederzeit ändern. Später kaufst du weitere Clubs an anderen Orten.</p>
    <b>Startgröße</b><div class="pick">${SIZES.map((t,i)=>`<button class="${su.size===i?'on':''}" onclick="setupPick('size',${i})">${t.n}<small>${t.d}</small></button>`).join('')}</div>
    <b>Klientel</b><div class="pick">${Object.entries(CLI).map(([k,c])=>`<button class="${su.cli===k?'on':''}" onclick="setupPick('cli','${k}')">${c.n}<small>${c.d}</small></button>`).join('')}</div>
    <p>Passung: <b class="${fc}">${fl}</b></p>
    <p><button class="pri" onclick="startConcept()">Club eröffnen</button></p>`);
 }
 function startConcept(){
-  const sz=SIZES[su.size];S.gw=sz.gw;S.gh=sz.gh;S.limit=maxCap();S.cli=su.cli;S.door=1;
-  S.price.entry=CLI[S.cli].entry;S.price.drink=CLI[S.cli].drink;S.vipWalk=Math.round(CLI[S.cli].vip/50)*50;
+  const sz=SIZES[su.size];
+  S.clubs=[mkClub('altstadt',su.cli,sz.gw,sz.gh)];unstash(0);
   S.grid=layoutPlan(S.gw,S.gh,cap());calcLayout();
   S.staff.sec=Math.max(2,Math.round(cap()/80));S.staff.bar=Math.max(1,Math.ceil(cap()/60));
-  S.setup=true;newDay();save();closeModal();log('Willkommen, Manager! Du bist noch unbekannt. Hype musst du dir erarbeiten.');renderAll();
+  S.setup=true;newDayGlobal();newDayClub();save();closeModal();log('Willkommen, Manager! Du bist noch unbekannt. Hype musst du dir erarbeiten.');renderAll();
 }
 function setCli(k){
   if(S.phase!=='plan'||k===S.cli)return;
@@ -591,6 +781,37 @@ function setCli(k){
 }
 function setDoor(i){S.door=i;if(S.phase==='plan')save();renderAll()}
 
+// ---------- Stadt: Clubs kaufen, verkaufen, wechseln ----------
+function switchClub(i){
+  if(S.phase!=='plan'||i===S.ci)return;
+  stash();unstash(i);calcLayout();UI={};tool=null;save();renderAll();log('Du bist jetzt im '+S.name+'.');
+}
+function buyLoc(id){
+  const l=LOC[id];
+  if(S.phase!=='plan'||S.money<l.price||ansehen()<l.a||S.clubs.some(c=>c.loc===id))return;
+  S.money-=l.price;stash();
+  const c=mkClub(id);c.hype=Math.round(4+ansehen()*.15);S.clubs.push(c);unstash(S.clubs.length-1);calcLayout();
+  S.inq=genInquiries();tab='build';save();renderAll();
+  log('Neuer Club gekauft: '+l.n+'. Richte ihn ein und stelle einen Geschäftsführer ein.','good');
+}
+function setMgr(i,d){
+  const cur=i===S.ci?S.mgr:S.clubs[i].mgr,v=clamp(cur+d,0,3);
+  if(i===S.ci)S.mgr=v;else S.clubs[i].mgr=v;
+  save();renderAll();
+}
+function askSell(i){
+  const nm=i===S.ci?S.name:S.clubs[i].name,v=clubValue(i);
+  showModal(`<h2>„${nm}“ verkaufen?</h2><p>Du bekommst ${eur(v)}. Reservierungen verfallen, die Anzahlungen gehen zurück.</p><p><button class="pri" onclick="sellClub(${i})">Verkaufen</button> <button onclick="closeModal()">Abbrechen</button></p>`);
+}
+function sellClub(i){
+  closeModal();
+  if(S.phase!=='plan'||S.clubs.length<2)return;
+  const v=clubValue(i),c=i===S.ci?S:S.clubs[i],dep=c.book.reduce((a,b)=>a+b.dep,0),nm=c.name;
+  stash();S.money+=v-dep;S.clubs.splice(i,1);
+  const ni=Math.min(i===S.ci?0:(S.ci>i?S.ci-1:S.ci),S.clubs.length-1);unstash(ni);calcLayout();
+  S.ansDirty=1;save();renderAll();log(nm+' verkauft für '+eur(v)+'.','warn');
+}
+
 function act(kind,key){
   if(kind==='hire'){if(S.staff[key]<maxStaff())S.staff[key]++}
   if(kind==='fire'){if(S.staff[key]>0)S.staff[key]--}
@@ -598,17 +819,21 @@ function act(kind,key){
   if(kind==='genre'){S.genre=key;log('Musik: '+GENRES[key].n);if(soundOn)startBeat()}
   if(kind==='entry')S.price.entry=clamp(S.price.entry+(+key),0,150);
   if(kind==='drink')S.price.drink=clamp(+(S.price.drink+(+key)).toFixed(1),1,40);
-  if(kind==='walk')S.vipWalk=clamp(S.vipWalk+(+key),50,5000);
-  if(kind==='loan'){const v=+key;if(v>0&&S.loan+v<=50000){S.loan+=v;S.money+=v}else if(v<0&&S.money>=-v&&S.loan>=-v){S.loan+=v;S.money+=v}}
+  if(kind==='walk')S.vipWalk=clamp(S.vipWalk+(+key),50,50000);
+  if(kind==='auto')S.autoNeg=!S.autoNeg;
+  if(kind==='loan'){const v=+key;if(v>0&&S.loan+v<=500000){S.loan+=v;S.money+=v}else if(v<0&&S.money>=-v&&S.loan>=-v){S.loan+=v;S.money+=v}}
   if(S.phase==='plan')save();
   renderAll();
 }
 
 // ---------- UI ----------
-const TABS=[['concept','🏷️ Konzept'],['build','🛠️ Einrichten'],['promo','📣 Promo'],['events','🎤 Events'],['vip','👑 VIP'],['music','🎵 Musik'],['staff','👥 Personal'],['price','💶 Preise'],['stats','📊 Bilanz']];
+function tabList(){return[['concept','🏷️ Konzept'],['build','🛠️ Einrichten'],['promo','📣 Promo'],['events','🎤 Events'],['vip','👑 VIP'+(S.reqs&&S.reqs.length?' ❗'+S.reqs.length:'')],['menu','🍾 Menü'],['music','🎵 Musik'],['staff','👥 Personal'],['price','💶 Preise'],['city','🏙️ Stadt'],['wealth','💎 Vermögen'],['stats','📊 Bilanz']]}
 function renderHeader(){
   $('hMoney').textContent=eur(S.money);$('hMoney').className=S.money<0?'bad':'';
+  $('hPriv').textContent=eur(S.priv);
   $('hHype').textContent='🔥 '+Math.round(S.hype)+' · '+hypeLabel(S.hype);
+  $('hShare').textContent=Math.round(marketM().share*100)+' %';
+  $('hAns').textContent=Math.round(ansehen());
   $('hDay').textContent=S.day+' · '+wd(S.day);
   $('hTime').textContent=S.phase==='night'?hourStr(S.t):'Tagsüber';
   $('bGo').style.display=S.phase==='plan'?'':'none';
@@ -619,26 +844,28 @@ function renderHeader(){
 }
 function renderBars(){
   const n=S.guests.length,avg=n?S.guests.reduce((a,g)=>a+g.mood,0)/n:0,ex=exclusivity(),f=fitOf(ex),[fl]=fitLabel(f);
-  const occ=seated().length+S.book.filter(b=>b.day===S.day).length,tb=L.vip||0;
+  const occ=seated().length+S.book.filter(b=>b.day===S.day).length,tb=L.vip||0,mk=marketM();
   const bar=(l,v,t)=>`<div class="bar">${l}: <b style="color:var(--txt)">${t}</b><i><u style="width:${clamp(v,0,100)}%"></u></i></div>`;
   $('bars').innerHTML=bar('Gäste',n/cap()*100,n+' / '+cap())+bar('Stimmung',avg,Math.round(avg)+' %')+bar('Sauberkeit',100-S.mess,Math.round(100-S.mess)+' %')+
    bar('Exklusivität',ex,Math.round(ex))+bar('Passung',f*100,fl)+bar('VIP-Tische',tb?occ/tb*100:0,occ+' / '+tb)+
-   bar('Hype',S.hype/GOAL_HYPE*100,Math.round(S.hype)+' / '+GOAL_HYPE)+bar('Gästeliste',S.list/maxCap()*100,Math.round(S.list)+' Namen')+
-   bar('Ziel Geld',(S.money-S.loan)/GOAL_MONEY*100,eur(S.money-S.loan));
+   bar('Hype',S.hype,Math.round(S.hype))+bar('Marktanteil',mk.share*100*3,Math.round(mk.share*100)+' %')+bar('Gästeliste',S.list/maxCap()*100,Math.round(S.list)+' Namen')+
+   bar('Ansehen',ansehen()/GOAL_ANS*100,Math.round(ansehen())+' / '+GOAL_ANS)+bar('Vermögen',worth()/GOAL_WORTH*100,eur(worth()));
 }
-function renderTabs(){$('tabs').innerHTML=TABS.map(([k,l])=>`<button class="${tab===k?'act':''}" onclick="tab='${k}';renderTabs();renderPanel()">${l}</button>`).join('')}
+function renderTabs(){$('tabs').innerHTML=tabList().map(([k,l])=>`<button class="${tab===k?'act':''}" onclick="tab='${k}';renderTabs();renderPanel()">${l}</button>`).join('')}
 const item=(t,d,btn)=>`<div class="item"><div>${t}<small>${d}</small></div><div class="row">${btn}</div></div>`;
 function renderPanelSoft(){if(tab==='build')renderPanel()}
 const dayOpts=sel0=>{let o='';for(let d=S.day;d<=S.day+20;d++){const taken=S.events.some(e=>e.day===d);o+=`<option value="${d}" ${+sel0===d?'selected':''} ${taken?'disabled':''}>${wd(d)}, Tag ${d}${d===S.day?' (heute)':''}${taken?' – belegt':''}</option>`}return o};
+const opt=(v,cur,txt,dis)=>`<option value="${v}" ${String(cur)===String(v)?'selected':''} ${dis?'disabled':''}>${txt}</option>`;
 function renderPanel(){
   let h='';const C=CLI[S.cli],plan=S.phase==='plan';
   if(tab==='concept'){
-    const ex=exclusivity(),f=fitOf(ex),[fl,fc]=fitLabel(f),mc=maxCap(),tiles=S.gw*S.gh;
-    h+=`<div class="note">Dein Publikum erwartet Exklusivität um <b>${C.ex}</b>. Du hast <b>${Math.round(ex)}</b>. Passung: <b class="${fc}">${fl}</b>. Je weniger Gäste du hereinlässt, desto exklusiver wirkst du. Schlechte Passung bedeutet weniger Gäste und schlechtere Stimmung.</div>`;
+    const ex=exclusivity(),f=fitOf(ex),[fl,fc]=fitLabel(f),mc=maxCap(),tiles=S.gw*S.gh,l=LOC[S.loc];
+    h+=`<div class="note"><b>${S.name}</b> · ${l.t}${l.season?' · Saison '+Math.round(seasonF()*100)+' %':''}. Dein Publikum erwartet Exklusivität um <b>${C.ex}</b>, du hast <b>${Math.round(ex)}</b>. Passung: <b class="${fc}">${fl}</b>. Je weniger Gäste du hereinlässt, desto exklusiver und begehrter wirkst du. Ist der Club voll und die Party gut, bildet sich eine Schlange und der Hype steigt.</div>`;
+    if(!plan)h+=`<div class="row" style="margin-bottom:10px"><button class="${S.doorClosed?'on':''}" onclick="toggleDoor()">${S.doorClosed?'🚪 Einlass gestoppt (wieder öffnen)':'🚪 Einlass stoppen'}</button><span class="dim">Draußen warten ca. ${Math.round(S.night.queue)} Gäste.</span></div>`;
     h+='<b>Clubgröße</b>'+(plan?'':'<span class="dim"> (nur tagsüber änderbar)</span>');
     h+=item(`Breite: ${S.gw} Felder`,'Anbau kostet 150 € je neuem Feld. Rückbau bringt 30 € je Feld plus 50 % der Einrichtung.',`<div class="pm"><button ${plan&&S.gw>MINW?'':'disabled'} onclick="resizeClub(-1,0)">−</button><b>${S.gw}</b><button ${plan&&S.gw<MAXW?'':'disabled'} onclick="resizeClub(1,0)">+</button></div>`);
     h+=item(`Tiefe: ${S.gh} Felder`,`${tiles} Felder · Miete ${eur(rent())}/Nacht · Brandschutz max. ${mc} Gäste`,`<div class="pm"><button ${plan&&S.gh>MINH?'':'disabled'} onclick="resizeClub(0,-1)">−</button><b>${S.gh}</b><button ${plan&&S.gh<MAXH?'':'disabled'} onclick="resizeClub(0,1)">+</button></div>`);
-    h+=item(`Gästelimit: ${cap()} von ${mc}`,'Ein niedrigeres Limit macht den Club exklusiver und senkt den Bedarf an Einrichtung.',`<div class="pm"><button onclick="setLimit(-10)" ${cap()<=20?'disabled':''}>−</button><b>${cap()}</b><button onclick="setLimit(10)" ${cap()>=mc?'disabled':''}>+</button></div>`);
+    h+=item(`Gästelimit: ${cap()} von ${mc}`,'Auch während der Nacht änderbar. Niedriger heißt exklusiver.',`<div class="pm"><button onclick="setLimit(-10)" ${cap()<=20?'disabled':''}>−</button><b>${cap()}</b><button onclick="setLimit(10)" ${cap()>=mc?'disabled':''}>+</button></div>`);
     h+='<div class="row" style="margin:6px 0 10px"><button onclick="limitTo(.4)">Intim</button><button onclick="limitTo(.7)">Gemütlich</button><button onclick="limitTo(1)">Voll</button></div>';
     h+='<b>Klientel</b>';
     for(const k in CLI){const c=CLI[k];h+=item(c.n,`${c.d} Erwartet Ex ${c.ex}, Eintritt ~${eur(c.entry)}, Drinks ~${eur(c.drink)}`,
@@ -654,7 +881,7 @@ function renderPanel(){
       h+=`<div class="item tool ${tool===k?'sel':''}"><div style="flex:1 1 160px"><b>${it.e||'▦'} ${it.n}</b> <span class="chip">${L[k]}${it.max?' / '+it.max:''}</span><small>${it.d}</small></div><button ${plan?'':'disabled'} class="${tool===k?'on':''}" onclick="setTool('${k}')">${tool===k?'Gewählt':eur(it.c)}</button></div>`}
   }
   if(tab==='promo'){
-    h+=`<div class="note"><b>Hype ${Math.round(S.hype)}</b> (${hypeLabel(S.hype)}). Hype ist, wie angesagt dein Club gerade ist. Er sinkt jeden Tag um 6 % und steigt nur durch gute Nächte, Events, Acts und Werbung. Je höher er ist, desto schwerer wird jeder weitere Punkt. Die <b>Gästeliste</b> (${Math.round(S.list)} Namen) bringt dir verlässliche Stammgäste, auch wenn der Hype mal sinkt. Werbung wirkt besser, wenn sie zu deiner Klientel (${C.n}) passt.</div>`;
+    h+=`<div class="note"><b>Hype ${Math.round(S.hype)}</b> (${hypeLabel(S.hype)}). Hype ist, wie angesagt dieser Club gerade ist. Er sinkt jeden Tag um 6 % und steigt nur durch gute Nächte, Events, Acts, Werbung und Schlangen vor der Tür. Die Konkurrenz in der Stadt arbeitet auch an ihrem Hype, dein Marktanteil hängt am Verhältnis. Die <b>Gästeliste</b> (${Math.round(S.list)} Namen) bringt verlässliche Stammgäste. Werbung wirkt besser, wenn sie zu deiner Klientel (${C.n}) passt.</div>`;
     h+=`<b>Laufende Kampagnen</b> <span class="dim">(${eur(campCost())}/Tag)</span>`;
     if(!S.camps.length)h+='<p class="dim">Keine Kampagne aktiv.</p>';
     S.camps.forEach(c=>{const tg=c.target==='club'?'Club allgemein':(S.events.find(e=>e.id===+c.target)||{name:'?'}).name;
@@ -669,7 +896,7 @@ function renderPanel(){
   if(tab==='events'){
     h+='<div class="note">Plane Events im Voraus und mache sie mit Werbung bekannt. Jedes Event hat einen <b>Buzz</b>. Er wächst durch Werbung für das Event, gebuchte Acts und Eventreihen und bestimmt, wie viele Gäste kommen und wie viele VIP-Tische angefragt werden. Wochenenden ziehen deutlich mehr als Wochentage. Eine Eventreihe wiederholt sich wöchentlich und baut Stammpublikum auf.</div>';
     h+='<b>Event planen</b><div class="sels">';
-    h+=`<label>Art<select onchange="ef.type=this.value;renderPanel()">${Object.entries(ETYPE).map(([k,v])=>`<option value="${k}" ${ef.type===k?'selected':''}>${v.n} · ${eur(v.c)}</option>`).join('')}</select></label>`;
+    h+=`<label>Art<select onchange="ef.type=this.value;renderPanel()">${Object.entries(ETYPE).map(([k,v])=>opt(k,ef.type,v.n+' · '+eur(v.c))).join('')}</select></label>`;
     h+=`<label>Termin<select onchange="ef.day=this.value">${dayOpts(ef.day||S.day)}</select></label>`;
     h+=`<label>Name<input type="text" id="evName" maxlength="28" placeholder="${ETYPE[ef.type].n}"></label></div>`;
     h+=`<div class="row"><label><input type="checkbox" ${ef.series?'checked':''} onchange="ef.series=this.checked"> Eventreihe (jede Woche)</label><div class="spacer"></div><button class="pri" ${plan?'':'disabled'} onclick="planEvent()">Planen</button></div>`;
@@ -680,31 +907,52 @@ function renderPanel(){
       h+=`<div class="iq"><h4>${e.name} ${e.series?'<span class="chip gold">Reihe #'+(e.lvl+1)+'</span>':''}</h4><div class="dim">${ty.n} · ${wd(e.day)}, Tag ${e.day}${e.day===S.day?' (heute Abend)':' (in '+(e.day-S.day)+' Tagen)'} · Gäste ×${evMult(e).toFixed(2)}</div>
        <div class="meter"><u style="width:${e.buzz}%"></u></div><div class="dim" style="font-size:12px">Buzz ${Math.round(e.buzz)} / 100</div>
        <div>${acts.length?acts.map(a=>`<span class="chip">${a.n} ${plan?`<a href="#" onclick="event.preventDefault();removeAct(${e.id},'${a.id}')" title="Entfernen">✕</a>`:''}</span>`).join(' '):'<span class="dim">Noch kein Act gebucht.</span>'}</div>
-       ${plan&&acts.length<3?`<div class="sels"><label>Act buchen<select onchange="UI['act${e.id}']=this.value">${avail.map(a=>`<option value="${a.id}" ${UI['act'+e.id]===a.id?'selected':''} ${S.hype<a.h?'disabled':''}>${a.n} ${eur(a.fee)}${S.hype<a.h?' (Hype '+a.h+')':''}${a.g?' · '+GENRES[a.g].n:''}</option>`).join('')}</select></label></div>`:''}
+       ${plan&&acts.length<3?`<div class="sels"><label>Act buchen<select onchange="UI['act${e.id}']=this.value">${avail.map(a=>opt(a.id,UI['act'+e.id],a.n+' '+eur(a.fee)+(S.hype<a.h?' (Hype '+a.h+')':'')+(a.g?' · '+GENRES[a.g].n:''),S.hype<a.h)).join('')}</select></label></div>`:''}
        <div class="row">${plan&&acts.length<3?`<button onclick="bookAct(${e.id})">Act buchen</button>`:''}<button onclick="tab='promo';renderTabs();renderPanel()">Werben</button><div class="spacer"></div>${plan?`<button onclick="cancelEvent(${e.id})">Absagen</button>`:''}</div></div>`});
     h+='<div class="note">Ohne Bühne wirken Acts nur zu 70 %. Gäste mögen Acts, deren Genre zur Klientel passt. Große Acts verlangen Hype.</div>';
   }
   if(tab==='vip'){
     const B=S.book.slice().sort((a,b)=>a.day-b.day);
-    h+=`<div class="note">VIP-Tische: <b>${L.vip}</b> gebaut. VIP-Hosts: ${S.staff.host}. Reservierungen bringen 50 % Anzahlung sofort. Den Rest zahlen die Gäste nach der Nacht, je nach Zufriedenheit. Für Events kommen schon Tage vorher Anfragen, je größer der Buzz, desto mehr.</div>`;
+    h+=`<div class="note">VIP-Tische: <b>${L.vip}</b> gebaut. VIP-Hosts: ${S.staff.host}. Reservierungen bringen 50 % Anzahlung sofort, den Rest zahlen die Gäste nach der Nacht, je nach Zufriedenheit. Mit einem VIP-Host am Tisch fragen die Gäste nachts nach weiteren Flaschen und Shows. Dann verhandelst du den Preis. Sehr reiche Gäste (Stargäste) geben sechsstellige Summen aus, brauchen aber hohen Hype, hohes Ansehen und ein passendes Menü.</div>`;
+    if(!plan||S.reqs.length){
+      h+='<b>Wünsche am Tisch</b>'+(S.staff.host?'':' <span class="warn">(ohne VIP-Host fragt niemand nach)</span>');
+      h+=`<div class="row" style="margin:6px 0"><button class="${S.autoNeg?'on':''}" onclick="act('auto')">${S.autoNeg?'Host verhandelt automatisch (Listenpreis)':'Host verhandelt automatisch: aus'}</button></div>`;
+      if(!S.reqs.length)h+='<p class="dim">Gerade keine Wünsche.</p>';
+      S.reqs.forEach(r=>{const g=S.groups.find(x=>x.id===r.gid)||{name:'?',mood:0},d=r.kind==='show'?SHW[r.key]:BOT[r.key];
+        h+=`<div class="iq ${g.whale?'whale':''}"><h4>${g.name}: ${r.kind==='show'?d.n:r.qty+'× '+d.n}</h4><div class="dim">Stimmung ${Math.round(g.mood)} % · läuft in ${Math.max(0,r.exp-S.t)} Takten ab · Listenpreis ${eur(r.list)}</div>
+         <div class="row" style="margin-top:6px"><button class="pri" onclick="reqAct(${r.id},'list')">Listenpreis ${eur(r.list)}</button><button onclick="reqAct(${r.id},'disc')">−15 % · ${eur(r.list*.85)}</button><button onclick="reqAct(${r.id},'up')">+20 % · ${eur(r.list*1.2)}</button></div></div>`});
+      h+='<br>';
+    }
     h+=item('Mindestverzehr Walk-in-Tische','Spontane Gäste mieten freie Tische. Zu teuer verscheucht sie. Passend: ca. '+eur(vipBase()),`<div class="pm"><button onclick="act('walk',-50)">−</button><b>${eur(S.vipWalk)}</b><button onclick="act('walk',50)">+</button></div>`);
     h+='<br><b>Reservierungen</b>';
     if(!B.length&&!S.groups.length)h+='<p class="dim">Noch nichts reserviert.</p>';
-    B.forEach(b=>{h+=item(b.name+' ('+b.size+' Pers.) · '+wd(b.day)+' Tag '+b.day,`${PKG[b.pkg].n} + ${SHOW[b.show].n}${b.show!=='none'?' um '+hourStr(b.at):''} · Preis ${eur(b.price)}, Anzahlung ${eur(b.dep)}`,plan?`<button onclick="cancelBook(${b.id})">Stornieren</button>`:'')});
-    S.groups.forEach(g=>{h+=item('👑 '+g.name+' ('+g.size+' Pers.)',`${g.state==='wait'?'kommt gleich':g.state==='seated'?'am Tisch':'gegangen'} · Stimmung ${Math.round(g.mood)} % ${g.showDone?'· Show erledigt':''}`,'')});
+    B.forEach(b=>{h+=item((b.whale?'⭐ ':'')+b.name+' ('+b.size+' Pers.) · '+wd(b.day)+' Tag '+b.day,`${b.qty}× ${BOT[b.pkg].n} + ${SHW[b.show].n}${b.show!=='none'?' um '+hourStr(b.at):''} · Preis ${eur(b.price)}, Anzahlung ${eur(b.dep)} · Budget ${eur(b.bud)}`,plan?`<button onclick="cancelBook(${b.id})">Stornieren</button>`:'')});
+    S.groups.forEach(g=>{h+=item('👑 '+g.name+' ('+g.size+' Pers.)',`${g.state==='wait'?'kommt gleich':g.state==='seated'?'am Tisch':'gegangen'} · Stimmung ${Math.round(g.mood)} % ${g.showDone?'· Show erledigt':''}${g.up?' · Extras '+eur(g.up):''}`,'')});
     h+='<br><b>Anfragen</b>';
     if(plan&&!L.vip)h+='<p class="warn">Baue zuerst VIP-Tische im Tab „Einrichten“.</p>';
     if(!S.inq.length||!plan)h+='<p class="dim">'+(plan?'Keine offenen Anfragen.':'Neue Anfragen kommen morgen.')+'</p>';
     if(plan)S.inq.slice().sort((a,b)=>a.day-b.day).forEach(q=>{
       const ft=freeTables(q.day),u=sel(q.id);if((!u.t||!ft.some(([x,y])=>tableKey(x,y)===u.t))&&ft.length)u.t=tableKey(...ft[0]);
-      const price=PKG[u.pkg].p+SHOW[u.show].p,ok=price<=q.budget&&ft.length,evn=q.ev?(S.events.find(e=>e.id===q.ev)||{}).name:'';
-      h+=`<div class="iq"><h4>${q.name}</h4><div class="dim">${wd(q.day)}, Tag ${q.day}${q.day===S.day?' (heute)':''}${evn?' · für '+evn:''} · ${q.size} Pers. · mögen ${GENRES[q.genre].n} · Budget bis <b class="gold">${eur(q.budget)}</b></div>
-       <div class="sels"><label>Tisch<select onchange="setSel(${q.id},'t',this.value)">${ft.map(([x,y],i)=>`<option value="${tableKey(x,y)}" ${u.t===tableKey(x,y)?'selected':''}>Tisch ${i+1}</option>`).join('')}</select></label>
-       <label>Flaschen<select onchange="setSel(${q.id},'pkg',this.value);renderPanel()">${Object.entries(PKG).map(([k,p])=>`<option value="${k}" ${u.pkg===k?'selected':''} ${S.hype<p.h?'disabled':''}>${p.n} ${eur(p.p)}${S.hype<p.h?' (Hype '+p.h+')':''}</option>`).join('')}</select></label>
-       <label>Show<select onchange="setSel(${q.id},'show',this.value);renderPanel()">${Object.entries(SHOW).map(([k,p])=>`<option value="${k}" ${u.show===k?'selected':''} ${S.hype<p.h?'disabled':''}>${p.n}${p.p?' +'+eur(p.p):''}${S.hype<p.h?' (Hype '+p.h+')':''}</option>`).join('')}</select></label>
-       <label>Showzeit<select onchange="setSel(${q.id},'at',this.value)">${SHOWTIMES.map(t=>`<option value="${t}" ${u.at===t?'selected':''}>${hourStr(t)}</option>`).join('')}</select></label></div>
-       <div class="row"><span>Angebot: <b class="${price<=q.budget?'good':'bad'}">${eur(price)}</b> <span class="dim">(Kosten ${eur(PKG[u.pkg].c+SHOW[u.show].c)})</span></span><div class="spacer"></div>
+      if(!S.own[u.pkg])u.pkg='basic';if(!S.own[u.show])u.show='none';
+      const price=bp(u.pkg)*u.qty+sp(u.show),ok=price<=q.budget&&ft.length&&(!SHW[u.show].host||S.staff.host>0),evn=q.ev?(S.events.find(e=>e.id===q.ev)||{}).name:'';
+      h+=`<div class="iq ${q.whale?'whale':''}"><h4>${q.whale?'⭐ ':''}${q.name}</h4><div class="dim">${wd(q.day)}, Tag ${q.day}${q.day===S.day?' (heute)':''}${evn?' · für '+evn:''} · ${q.size} Pers. · mögen ${GENRES[q.genre].n} · Budget bis <b class="gold">${eur(q.budget)}</b></div>
+       <div class="sels"><label>Tisch<select onchange="setSel(${q.id},'t',this.value)">${ft.map(([x,y],i)=>opt(tableKey(x,y),u.t,'Tisch '+(i+1))).join('')}</select></label>
+       <label>Flaschen<select onchange="setSel(${q.id},'pkg',this.value);renderPanel()">${Object.keys(BOT).filter(k=>S.own[k]).map(k=>opt(k,u.pkg,BOT[k].n+' '+eur(bp(k)))).join('')}</select></label>
+       <label>Anzahl<select onchange="setSel(${q.id},'qty',this.value);renderPanel()">${[1,2,3,5,8,12,20].map(n=>opt(n,u.qty,n+'×')).join('')}</select></label>
+       <label>Show<select onchange="setSel(${q.id},'show',this.value);renderPanel()">${Object.keys(SHW).filter(k=>S.own[k]).map(k=>opt(k,u.show,SHW[k].n+(sp(k)?' +'+eur(sp(k)):''))).join('')}</select></label>
+       <label>Showzeit<select onchange="setSel(${q.id},'at',this.value)">${SHOWTIMES.map(t=>opt(t,u.at,hourStr(t))).join('')}</select></label></div>
+       <div class="row"><span>Angebot: <b class="${price<=q.budget?'good':'bad'}">${eur(price)}</b> <span class="dim">(Kosten ${eur(BOT[u.pkg].c*u.qty+SHW[u.show].c)})</span></span><div class="spacer"></div>
        <button class="pri" ${ok?'':'disabled'} onclick="acceptInq(${q.id})">Zusagen</button><button onclick="declineInq(${q.id})">Ablehnen</button></div></div>`});
+  }
+  if(tab==='menu'){
+    h+='<div class="note">Lege hier fest, was du anbietest und was es kostet. Neue Flaschen und Shows schaltest du einmal frei (Hype nötig), dann stehen sie bei Reservierungen und für nächtliche Extras zur Verfügung. Den Preis legst du selbst fest. Zu teuer mindert die Zufriedenheit nicht, aber Gäste mit kleinem Budget können sich weniger leisten.</div><b>Flaschen</b>';
+    for(const k in BOT){const d=BOT[k],own=S.own[k],lock=S.hype<d.h;
+      h+=item(d.n,`${d.d} · Einkauf ${eur(d.c)}${own?' · Gewinn '+eur(bp(k)-d.c):''}${!own?' · Freischaltung '+eur(d.setup)+(d.h?' · ab Hype '+d.h:''):''}`,
+       own?`<div class="pm"><button onclick="menuPrice('b','${k}',-1)">−</button><b>${eur(bp(k))}</b><button onclick="menuPrice('b','${k}',1)">+</button></div>`:`<button ${lock||S.money<d.setup?'disabled':''} onclick="unlockMenu('b','${k}')">${lock?'🔒':'Freischalten'}</button>`)}
+    h+='<br><b>Shows</b>';
+    for(const k in SHW){if(k==='none')continue;const d=SHW[k],own=S.own[k],lock=S.hype<d.h;
+      h+=item(d.n,`${d.d} · Kosten ${eur(d.c)}${d.host?' · braucht VIP-Host':''}${own?' · Gewinn '+eur(sp(k)-d.c):''}${!own?' · Freischaltung '+eur(d.setup)+(d.h?' · ab Hype '+d.h:''):''}`,
+       own?`<div class="pm"><button onclick="menuPrice('s','${k}',-1)">−</button><b>${eur(sp(k))}</b><button onclick="menuPrice('s','${k}',1)">+</button></div>`:`<button ${lock||S.money<d.setup?'disabled':''} onclick="unlockMenu('s','${k}')">${lock?'🔒':'Freischalten'}</button>`)}
   }
   if(tab==='music'){
     h+='<div class="note">Jeden Tag ändern sich die Trends. Deine Klientel ('+C.n+') mag: '+C.genres.map(g=>GENRES[g].n).join(', ')+'. Bei Events spielt der gebuchte Act zur Hauptzeit sein Genre.</div>';
@@ -722,11 +970,36 @@ function renderPanel(){
     h+=item('Eintritt','Zu teuer: weniger Gäste',`<div class="pm"><button onclick="act('entry',-1)">−</button><b>${eur(S.price.entry)}</b><button onclick="act('entry',1)">+</button></div>`);
     h+=item('Getränkepreis','Über dem 1,4-fachen sinkt die Stimmung',`<div class="pm"><button onclick="act('drink',-.5)">−</button><b>${S.price.drink.toFixed(2).replace('.',',')} €</b><button onclick="act('drink',.5)">+</button></div>`);
   }
+  if(tab==='city'){
+    const mk=marketM(),ex=exclusivity();
+    const rows=S.rivals.map(r=>({n:r.n,h:r.h,own:0,z:(.35+r.h/32)*.85})).concat(S.clubs.map((c,i)=>({n:c.name,h:clubHype(i),own:1,z:(.35+clubHype(i)/32)*(i===S.ci?1:.5),act:i===S.ci})));
+    const tot=rows.reduce((a,r)=>a+r.z,0);rows.sort((a,b)=>b.z-a.z);
+    h+=`<div class="note">In der Stadt gehen nur so viele Leute aus, wie sie verteilen können. Dein Marktanteil richtet sich nach dem Hype im Vergleich zur Konkurrenz mit ähnlicher Klientel. „${S.name}“ hat <b>${Math.round(mk.share*100)} %</b>. Ab 25 % reagieren die Rivalen mit mehr Werbung.</div><b>Marktanteil</b><table>`;
+    h+=rows.map((r,i)=>`<tr><td>${i+1}. ${r.own?'<b class="gold">'+r.n+'</b>':r.n}</td><td><span class="mini ${r.own?'me':''}"><u style="width:${r.h}%"></u></span> 🔥${Math.round(r.h)} · ${Math.round(r.z/tot*100)} %</td></tr>`).join('')+'</table><br><b>Meine Clubs</b>';
+    S.clubs.forEach((c0,i)=>{const c=i===S.ci?S:c0;
+      h+=item((i===S.ci?'▶ ':'')+c.name,`${LOC[c.loc].t} · ${c.gw}×${c.gh} · ${CLI[c.cli].n} · Hype ${Math.round(clubHype(i))} · Wert ${eur(clubValue(i))}<br>${GMN[c.mgr]}${c.mgr?' ('+eur(GMW[c.mgr])+'/Nacht, leitet den Club wenn du woanders bist)':': Club bleibt zu, wenn du nicht selbst da bist'}`,
+       `<button ${plan&&i!==S.ci?'':'disabled'} onclick="switchClub(${i})">${i===S.ci?'Aktiv':'Wechseln'}</button><button ${c.mgr>0?'':'disabled'} onclick="setMgr(${i},-1)">GF −</button><button ${c.mgr<3?'':'disabled'} onclick="setMgr(${i},1)">GF +</button><button ${plan&&S.clubs.length>1?'':'disabled'} onclick="askSell(${i})">Verkaufen</button>`)});
+    h+='<br><b>Standorte</b>';
+    const ans=ansehen();
+    for(const id in LOC){const l=LOC[id];if(S.clubs.some(c=>c.loc===id))continue;const ok=plan&&S.money>=l.price&&ans>=l.a;
+      h+=item(l.n,`${l.t} · ${l.gw}×${l.gh} Felder · Nachfrage ×${l.dem} · Miete ×${l.rent} · VIP ×${l.vip}${l.season?' · saisonabhängig':''}<br>${l.d} Empfohlene Klientel: ${CLI[l.cli].n}.`,
+       `<span class="chip ${ans>=l.a?'good':'bad'}">Ansehen ${l.a}</span><button ${ok?'':'disabled'} onclick="buyLoc('${id}')">${eur(l.price)}</button>`)}
+  }
+  if(tab==='wealth'){
+    const ans=ansehen(),as=ASSETS.reduce((a,x)=>a+(S.assets[x.id]?x.a:0),0),avg=S.clubs.reduce((a,c,i)=>a+clubHype(i),0)/S.clubs.length;
+    h+=`<div class="note"><b>Ansehen ${Math.round(ans)}</b> setzt sich zusammen aus Besitztümern (${as}), Ruf in der Presse (${Math.round(S.fame)}), dem Hype deiner Clubs (${Math.round(avg*.35)}), der Anzahl deiner Clubs (${(S.clubs.length-1)*1.5}) und deinem Marktanteil (${Math.round(marketM().share*30)}). Mit hohem Ansehen schaltest du bessere Standorte und Stargäste frei. Dein Privatvermögen ist von der Firma getrennt.</div>`;
+    h+=`<table><tr><td>Firmenkonto</td><td>${eur(S.money)}</td></tr><tr><td>Privatvermögen</td><td>${eur(S.priv)}</td></tr><tr><td>Kredit</td><td>${eur(S.loan)}</td></tr><tr><td>Gesamtvermögen inkl. Clubs</td><td><b>${eur(worth())}</b></td></tr></table>`;
+    h+=`<div class="row" style="margin:8px 0"><span class="dim">Entnahme:</span><button onclick="transfer(10000)">10 T €</button><button onclick="transfer(100000)">100 T €</button><span class="dim">Einlage:</span><button onclick="transfer(-10000)">10 T €</button><button onclick="transfer(-100000)">100 T €</button></div>`;
+    h+='<b>Besitztümer</b>';
+    ASSETS.forEach(a=>{h+=item(a.n,`Ansehen +${a.a} · ${eur(a.c)} aus dem Privatvermögen`,S.assets[a.id]?'<span class="chip good">Im Besitz</span>':`<button ${S.priv>=a.c?'':'disabled'} onclick="buyAsset('${a.id}')">Kaufen</button>`)});
+    h+=item('Charity-Gala','30.000 € privat, +4 Presse-Ansehen. Wirkt nur eine Weile (Ruf in der Presse ${Math.round(S.fame)}).',`<button ${S.priv>=30000?'':'disabled'} onclick="gala()">Veranstalten</button>`);
+    h+=`<p class="dim" style="font-size:13px">Ziel: Gesamtvermögen ${eur(GOAL_WORTH)} und Ansehen ${GOAL_ANS}.</p>`;
+  }
   if(tab==='stats'){
-    h+=`<table><tr><td>Gesamtgewinn</td><td>${eur(S.total)}</td></tr><tr><td>Kredit</td><td>${eur(S.loan)} (1 % Zinsen/Nacht)</td></tr><tr><td>Gäste im Club</td><td>${S.guests.length}</td></tr><tr><td>Schlägereien heute</td><td>${S.fights}</td></tr><tr><td>Werbekosten pro Tag</td><td>${eur(campCost())}</td></tr></table>
-    <div class="row" style="margin:8px 0"><button onclick="act('loan',5000)" ${S.loan>=50000?'disabled':''}>+5.000 € Kredit</button><button onclick="act('loan',-5000)" ${S.loan<5000||S.money<5000?'disabled':''}>5.000 € tilgen</button></div>
+    h+=`<table><tr><td>Gesamtgewinn</td><td>${eur(S.total)}</td></tr><tr><td>Kredit</td><td>${eur(S.loan)} (1 % Zinsen/Tag)</td></tr><tr><td>Gäste im Club</td><td>${S.guests.length}</td></tr><tr><td>Schlägereien heute</td><td>${S.fights}</td></tr><tr><td>Werbekosten pro Tag</td><td>${eur(campCost())}</td></tr></table>
+    <div class="row" style="margin:8px 0"><button onclick="act('loan',50000)" ${S.loan>=500000?'disabled':''}>+50.000 € Kredit</button><button onclick="act('loan',-50000)" ${S.loan<50000||S.money<50000?'disabled':''}>50.000 € tilgen</button></div>
     <b>Letzte Nächte</b><table>`;
-    h+=S.history.length?S.history.map(x=>`<tr><td>Tag ${x.day} (${wd(x.day)}) · ${x.guests} Gäste · ${x.mood} %</td><td class="${x.profit>=0?'good':'bad'}">${eur(x.profit)}</td></tr>`).join(''):'<tr><td>Noch keine Nacht gespielt.</td></tr>';
+    h+=S.history.length?S.history.map(x=>`<tr><td>Tag ${x.day} (${wd(x.day)}) · ${x.club||''} · ${x.guests} Gäste · ${x.mood} %</td><td class="${x.profit>=0?'good':'bad'}">${eur(x.profit)}</td></tr>`).join(''):'<tr><td>Noch keine Nacht gespielt.</td></tr>';
     h+='</table><p><button onclick="askReset()">Neues Spiel</button></p>';
   }
   $('panel').innerHTML=h;
@@ -740,7 +1013,7 @@ function draw(ts){
   const beat=ts/(60000/bpm),W=cv.width,H=cv.height,e=todayEvent();
   cx.fillStyle='#07040f';cx.fillRect(0,0,W,H);
   cx.fillStyle='#9b8fc4';cx.font='12px system-ui';cx.textAlign='left';
-  cx.fillText(S.gw+'×'+S.gh+' · '+CLI[S.cli].n+' · '+GENRES[gen].n+(e?' · 🎉 '+e.name:''),8,21);
+  cx.fillText(S.name+' · '+S.gw+'×'+S.gh+' · '+GENRES[gen].n+(e?' · 🎉 '+e.name:''),8,21);
   for(let y=0;y<S.gh;y++)for(let x=0;x<S.gw;x++){
     const px=x*cs,py=HDR+y*cs,t=S.grid[y]&&S.grid[y][x];
     cx.fillStyle=(x+y)%2?'#0d0820':'#0a061a';cx.fillRect(px,py,cs,cs);
@@ -755,14 +1028,16 @@ function draw(ts){
     }
   }
   for(const g of S.groups){const px=g.tx*cs,py=HDR+g.ty*cs;
-    if(g.state==='seated'){cx.fillStyle='#f5c04a55';cx.fillRect(px,py,cs,cs);cx.fillStyle='#fff';cx.font='bold '+Math.round(cs*.32)+'px system-ui';cx.textAlign='center';cx.fillText('🥂'+g.size,px+cs/2,py+cs-3);
+    if(g.state==='seated'){cx.fillStyle=g.whale?'#ffd70088':'#f5c04a55';cx.fillRect(px,py,cs,cs);cx.fillStyle='#fff';cx.font='bold '+Math.round(cs*.32)+'px system-ui';cx.textAlign='center';cx.fillText((S.reqs.some(r=>r.gid===g.id)?'❗':'🥂')+g.size,px+cs/2,py+cs-3);
       if(S.showFx>0&&g.showDone){cx.font=Math.round(cs*.7)+'px serif';cx.fillText('🎆',px+cs/2,py-2+Math.sin(beat*6)*3)}}}
   for(const b of S.book){if(b.day!==S.day)continue;const px=b.tx*cs,py=HDR+b.ty*cs;cx.strokeStyle='#22e6ff';cx.lineWidth=2;cx.strokeRect(px+2,py+2,cs-4,cs-4);cx.lineWidth=1}
   const gs=Math.max(11,Math.round(cs*.42));cx.textAlign='center';
   for(const g of S.guests){
     const bob=Math.sin(beat*Math.PI*2+g.ph)*(g.mood/30)*cs/30,mx=Math.cos(beat*.5+g.ph)*cs*.12;
     cx.font=gs+'px serif';cx.fillText(g.mood>65?'😄':g.mood>40?'🙂':g.mood>25?'😐':'😠',(g.cx+.5)*cs+mx,HDR+(g.cy+.65)*cs+bob)}
-  if(!open&&S.setup){cx.fillStyle='#ffffffb0';cx.font='bold 12px system-ui';cx.textAlign='right';cx.fillText(tool?(tool==='erase'?'Zum Löschen anklicken':'Aufs Raster klicken'):'Club geschlossen',W-8,21)}
+  cx.textAlign='right';cx.font='bold 12px system-ui';
+  if(open&&S.night){cx.fillStyle=S.doorClosed?'#ff4d6d':'#ffe14d';cx.fillText(S.doorClosed?'🚪 Einlass gestoppt':'🚪 Schlange: '+Math.round(S.night.queue),W-8,21)}
+  else if(S.setup){cx.fillStyle='#ffffffb0';cx.fillText(tool?(tool==='erase'?'Zum Löschen anklicken':'Aufs Raster klicken'):'Club geschlossen',W-8,21)}
   requestAnimationFrame(draw);
 }
 let painting=false;
@@ -789,11 +1064,11 @@ function startBeat(){
 function stopBeat(){clearInterval(beatTimer);beatTimer=null}
 
 // ---------- Init ----------
-$('bGo').onclick=startNight;$('bSkip').onclick=skipDay;
+$('bGo').onclick=()=>startNight();$('bSkip').onclick=skipDay;
 $('bSound').onclick=()=>{soundOn=!soundOn;$('bSound').textContent=soundOn?'🔊':'🔇';soundOn?startBeat():stopBeat()};
 document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{speed=+b.dataset.sp;if(S.phase==='night')run();renderHeader()});
 S=load();if(!Object.keys(S.trend).length)rollTrend();
-calcLayout();renderAll();
+calcLayout();if(!S.clubs.length)stash();renderAll();
 if(!S.setup)openSetup();else{if(!S.inq.length&&!S.book.length)S.inq=genInquiries();log('Willkommen zurück, Manager!')}
 requestAnimationFrame(draw);
 </script>
