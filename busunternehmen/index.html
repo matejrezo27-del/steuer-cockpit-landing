@@ -97,7 +97,7 @@ hr{border:0;border-top:1px solid var(--line);margin:8px 0}
 </head>
 <body>
 <header>
-  <h1>🚌 Bus-Imperium</h1>
+  <h1>🚌 Bus-Imperium <small style="font-weight:400;color:var(--mute);font-size:10px">v7</small></h1>
   <div class="stat"><small>Kasse</small><b id="hCash">–</b></div>
   <div class="stat"><small>Unternehmenswert</small><b id="hValue">–</b></div>
   <div class="stat"><small>Privatvermögen</small><b id="hWealth">–</b></div>
@@ -1374,7 +1374,7 @@ function tabSites(){
       }
     }
   }else{
-    h+=`<div class="mute small" style="margin-top:6px">Öffne die 3D-Ansicht, um Gebäude auf einzelnen Feldern zu platzieren und auszubauen. Du kannst auch auf der Karte doppelt auf eine Stadt mit Standort klicken.</div>`;
+    h+=`<div class="mute small" style="margin-top:6px">Öffne die 3D-Ansicht, um Gebäude auf einzelnen Feldern zu platzieren und auszubauen. Du kannst auch auf der Karte eine Stadt mit Standort antippen.</div>`;
   }
   h+=`<hr><div class="row"><span class="small">Gelände erweitern (+1 Reihe = 6 Felder, ohne Grenze)</span>
     <button class="btn sm pri" data-act="expand" data-id="${sel.id}" ${S.cash<expandCost(sel)?'disabled':''}>${eur(expandCost(sel))}</button></div>`;
@@ -1754,7 +1754,7 @@ cv.addEventListener('click',e=>{
     modal(`Lizenz für ${c.name}`,`Betriebslizenz kostet ${eur(cost)}. Du hast ${eur(S.cash)}.`,[
       {label:'Kaufen',cls:'pri',fn:()=>buyLicense(c.id)},{label:'Abbrechen',fn:()=>{}}]);
   }
-  else if(h.k==='city'){const st=S.sites.find(s=>s.city===h.o.id);if(st){ui.selSite=st.id;ui.tab='sites';render();}else offerSite(h.o);}
+  else if(h.k==='city'){const st=S.sites.find(s=>s.city===h.o.id);if(st){enterSite(st.id);updateHeader();render();}else offerSite(h.o);}
   else if(h.k==='line'){ui.selLine=h.o.id;ui.tab='lines';render();}
   else if(h.k==='bus'){ui.tab='fleet';render();}
 });
