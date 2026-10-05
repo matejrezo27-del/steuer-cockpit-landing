@@ -69,6 +69,17 @@ hr{border:0;border-top:1px solid var(--line);margin:8px 0}
 .slot small{font-size:10px;line-height:1.1;text-align:center}
 .slot.on{border-style:solid;background:#0b121b;color:var(--text)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--mute)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#1c1c1c;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.lrow,.brow{display:grid;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);margin-bottom:4px;cursor:pointer}
+.lrow{grid-template-columns:1fr auto auto auto}
+.brow{grid-template-columns:auto auto 1fr 46px auto}
+.lrow:hover,.brow:hover{border-color:var(--acc)}
+.lrow.sel,.brow.sel{border-color:var(--acc)}
+.lrow .n,.brow .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ghead{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--mute);margin:10px 0 4px}
+.detail{background:var(--panel2);border:1px solid var(--acc);border-radius:8px;padding:8px 10px;margin:-2px 0 6px}
 #modalbg{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
 #modal{background:var(--panel);border:1px solid var(--acc);border-radius:14px;padding:20px;max-width:480px;width:100%;max-height:90vh;overflow:auto}
 #modal h2{margin:0 0 8px;color:var(--acc)}
@@ -158,7 +169,7 @@ const BUILD={
  garage:{name:'Bushalle',icon:'🏠',short:'Halle',cost:30000,rent:40,max:99,desc:'+6 Busplätze.'},
  werkstatt:{name:'Werkstatt',icon:'🔧',short:'Werkstatt',cost:40000,rent:60,max:2,desc:'Reparaturen −35 %, 10 % weniger Pannen (je Werkstatt, max. 2).'},
  wash:{name:'Waschanlage',icon:'🚿',short:'Wäsche',cost:22000,rent:25,max:1,desc:'Saubere Busse: Ruf-Zielwert +4.'},
- tank:{name:'Eigene Tankstelle',icon:'⛽',short:'Tankst.',cost:55000,rent:50,max:2,desc:'Tanklager (20.000 l je Tankstelle), 8 % Rabatt auf Diesel, Vorratskauf bei niedrigen Preisen.'},
+ tank:{name:'Eigene Tankstelle',icon:'⛽',short:'Tankst.',cost:55000,rent:50,max:4,desc:'Tanklager (20.000 l je Tankstelle), 8 % Rabatt auf Diesel, Vorratskauf bei niedrigen Preisen.'},
  leit:{name:'Leitstelle',icon:'📡',short:'Leitstelle',cost:60000,rent:70,max:1,desc:'Routenoptimierung: 6 % weniger Spritverbrauch, +4 % Nachfrage.'},
  kantine:{name:'Fahrerkantine',icon:'🍽',short:'Kantine',cost:25000,rent:30,max:1,desc:'Zufriedene Fahrer: Löhne −8 %.'},
  center:{name:'Kundencenter',icon:'🎫',short:'Center',cost:35000,rent:40,max:1,desc:'+6 % Nachfrage auf allen Linien.'},
@@ -229,7 +240,7 @@ function freshCompany(home,name){
 }
 function installCompany(c){
   Object.assign(S,c,{owned:true,fx:{},today:zero(),week:[],hist:[],negDays:0,lostToday:0,
-    tank:{l:0,avg:0},litToday:0,litHist:[],fuelDeal:{bonus:0,bonusLeft:0,cool:0,lock:null},
+    tank:{l:0,avg:0},tankUp:0,autoFill:{on:true,below:0.3,to:0.9,maxPrice:0},litToday:0,litHist:[],fuelDeal:{bonus:0,bonusLeft:0,cool:0,lock:null},
     partner:{pts:0,offers:[],gen:-99},demT:-99,over:false});
   ui.selLine=null;ui.selSite=S.sites[0].id;ui.mode=null;ui.first=null;
 }
@@ -251,8 +262,14 @@ function upgradeSave(s){
   for(const L of s.lines){L.svc=0;L.fr=null;L.pd=0;L.ph=[];L.share=0;L.comps=genComps(L);L.rate=clamp(L.rate,0.04,0.30);}
   return s;
 }
+function fixSave(s){
+  s.tankUp=s.tankUp||0;
+  s.autoFill=s.autoFill||{on:true,below:0.3,to:0.9,maxPrice:0};
+  (s.sites||[]).forEach(x=>{x.ex=x.ex||0;x.exPaid=x.exPaid||0;});
+  return s;
+}
 function load(){
-  try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&s.v&&!s.over)return upgradeSave(s);}}catch(e){}
+  try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&s.v&&!s.over)return fixSave(upgradeSave(s));}}catch(e){}
   return null;
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -264,7 +281,8 @@ const busById=id=>S.buses.find(b=>b.id===id);
 const lname=L=>cityById(L.a).name+' – '+cityById(L.b).name;
 const bcount=k=>S.sites.reduce((n,s)=>n+s.b.filter(x=>x===k).length,0);
 const cap=()=>4+6*bcount('garage');
-const slotsOf=s=>s.hq?8:4;
+const slotsOf=s=>(s.hq?8:4)+4*(s.ex||0);
+const expandCost=s=>Math.round(30000*(1+(s.ex||0))/500)*500;
 const comfort=b=>TYPES[b.type].comfort+(S.up.wlan?1:0)-(b.cond<40?2:0);
 const eligible=b=>TYPES[b.type].seats>=40&&comfort(b)>=6;
 const wageDay=()=>150*(bcount('kantine')?0.92:1);
@@ -272,7 +290,7 @@ const fuelUse=()=>bcount('leit')?0.94:1;
 const repairF=()=>Math.pow(0.65,Math.min(2,bcount('werkstatt')));
 const breakF=()=>Math.pow(0.9,Math.min(2,bcount('werkstatt')));
 function rentDay(){return 120+S.sites.reduce((s,x)=>s+(x.hq?0:60)+x.b.reduce((t,k)=>t+BUILD[k].rent,0),0);}
-function siteVal(x){return x.cost+x.b.reduce((t,k)=>t+BUILD[k].cost,0);}
+function siteVal(x){return x.cost+(x.exPaid||0)+x.b.reduce((t,k)=>t+BUILD[k].cost,0);}
 function lineBuses(L){return S.buses.filter(b=>b.line===L.id);}
 function lineQ(L){const bs=lineBuses(L);return clamp((bs.length?avg(bs.map(comfort)):6)+(L.svc||0),1,12);}
 /* Markt */
@@ -306,7 +324,8 @@ const bonusDisc=()=>S.fuelDeal.bonusLeft>0?S.fuelDeal.bonus:0;
 const fuelDisc=()=>Math.min(0.25,volDisc()+stationDisc()+bonusDisc());
 function fuelBase(){const f=S.fuelDeal.lock;return f&&f.left>0?f.price:S.fuel*(S.fx.fuelM>0?1.4:1);}
 const fuelUnit=()=>fuelBase()*(1-fuelDisc());
-const tankCap=()=>20000*bcount('tank');
+const tankCap=()=>bcount('tank')?20000*(bcount('tank')+(S.tankUp||0)):0;
+const tankUpCost=()=>Math.round(20000*(1+(S.tankUp||0)*0.3)/500)*500;
 /* Wert */
 function busValue(b){const T=TYPES[b.type];return T.price*0.7*(0.5+b.cond/200)*Math.pow(0.9,b.age/365);}
 function repairCost(b){return (100-b.cond)*TYPES[b.type].price*0.0005*repairF();}
@@ -473,6 +492,7 @@ function dayEnd(){
   const fd=S.fuelDeal;
   if(fd.bonusLeft>0)fd.bonusLeft--;
   if(fd.cool>0)fd.cool--;
+  autoFuel();
   if(fd.lock){fd.lock.left--;if(fd.lock.left<=0){fd.lock=null;say('⛽ Dein Festpreis-Vertrag für Diesel ist ausgelaufen.');}}
   // Linien
   for(const L of S.lines){
@@ -716,9 +736,8 @@ function demolish(sid,idx){
   const s=S.sites.find(x=>x.id===sid);if(!s)return;
   const k=s.b[idx];if(!k)return;
   if(k==='garage'&&S.buses.length>cap()-6)return say('Erst Busse verkaufen – sonst fehlen Stellplätze.','bad');
-  if(k==='tank'&&S.tank.l>tankCap()-20000){S.tank.l=Math.min(S.tank.l,tankCap()-20000);}
   const refund=BUILD[k].cost*0.4;
-  S.cash+=refund;s.b.splice(idx,1);
+  S.cash+=refund;s.b.splice(idx,1);S.tank.l=Math.min(S.tank.l,tankCap());
   say(`${BUILD[k].name} abgerissen (Erlös ${eur(refund)}).`);
 }
 function buySite(cityId){
@@ -734,11 +753,45 @@ function sellSite(id){
   const s=S.sites.find(x=>x.id===id);if(!s||s.hq)return;
   const gar=s.b.filter(k=>k==='garage').length;
   if(S.buses.length>cap()-6*gar)return say('Erst Busse verkaufen – sonst fehlen Stellplätze.','bad');
-  const refund=0.6*s.cost+0.4*s.b.reduce((t,k)=>t+BUILD[k].cost,0);
+  const refund=0.6*s.cost+0.4*(s.exPaid||0)+0.4*s.b.reduce((t,k)=>t+BUILD[k].cost,0);
   S.cash+=refund;S.sites=S.sites.filter(x=>x!==s);
   if(S.tank.l>tankCap())S.tank.l=tankCap();
   ui.selSite=S.sites[0].id;
   say(`Betriebshof ${cityById(s.city).name} verkauft (${eur(refund)}).`);
+}
+function expandSite(id){
+  const s=S.sites.find(x=>x.id===id);if(!s)return;
+  if((s.ex||0)>=4)return say('Das Gelände ist voll ausgebaut.','bad');
+  const c=expandCost(s);
+  if(S.cash<c)return say('Nicht genug Geld für die Erweiterung.','bad');
+  S.cash-=c;s.ex=(s.ex||0)+1;s.exPaid=(s.exPaid||0)+c;
+  say(`Gelände in ${cityById(s.city).name} erweitert: ${slotsOf(s)} Bauplätze (${eur(c)}).`,'good');
+}
+function expandTank(){
+  if(!bcount('tank'))return say('Dafür brauchst du mindestens eine Tankstelle.','bad');
+  if((S.tankUp||0)>=20)return say('Das Zentrallager ist voll ausgebaut.','bad');
+  const c=tankUpCost();
+  if(S.cash<c)return say('Nicht genug Geld für den Tankausbau.','bad');
+  S.cash-=c;S.tankUp=(S.tankUp||0)+1;
+  say(`Zentrallager erweitert: ${num(tankCap())} l Fassungsvermögen (${eur(c)}).`,'good');
+}
+function autoFuel(){
+  const a=S.autoFill,capL=tankCap();
+  if(!a||!a.on||capL<=0||S.tank.l>=capL*a.below)return;
+  if(a.maxPrice>0&&fuelUnit()>a.maxPrice)return;
+  const afford=Math.floor(Math.max(0,S.cash-5000)/fuelUnit());
+  const l=Math.min(capL*a.to-S.tank.l,afford);
+  if(l>=500)buyFuel(l);
+}
+function repairAll(lim){
+  let n=0,tot=0;
+  for(const b of S.buses){
+    if(b.cond>=lim||b.state==='move')continue;
+    const c=repairCost(b);if(S.cash<c)break;
+    spend('repair',c,lineById(b.line));b.cond=100;if(b.state==='wait'){b.state='service';b.left=6;}
+    n++;tot+=c;
+  }
+  say(n?`${n} Bus(se) repariert (${eur(tot)}).`:'Kein Bus zu reparieren (oder unterwegs).',n?'':'bad');
 }
 /* Kraftstoff */
 function negotiate(){
@@ -878,7 +931,7 @@ function showHelp(){
     <li><b>Linie anlegen:</b> Reiter <i>Linien</i> → „Neue Linie“, dann zwei lizenzierte Städte anklicken. Weise der Linie einen Bus zu.</li>
     <li><b>Wettbewerb:</b> Auf jeder Linie fahren Konkurrenten. Dein Anteil hängt von Preis, Komfort, Takt und Ruf ab. Der Preisrechner zeigt dir den Gewinn je Preis.</li>
     <li><b>Gelände:</b> Auf deinem Firmengelände baust du Hallen, Werkstatt, Tankstelle und mehr. Weitere Betriebshöfe bringen Nachfrage in der Region.</li>
-    <li><b>Kraftstoff:</b> Viel Diesel kaufen bringt Rabatt. Du kannst verhandeln, Festpreise vereinbaren und mit eigener Tankstelle günstig einlagern.</li>
+    <li><b>Kraftstoff:</b> Viel Diesel kaufen bringt Rabatt. Du kannst verhandeln, Festpreise vereinbaren und mit eigener Tankstelle ein Zentrallager aufbauen, das sich automatisch füllt.</li>
     <li><b>Partner werden:</b> Fernflix vergibt Strecken, für die du pro gefahrenem km bezahlt wirst. Steige in den Partnerstufen auf.</li>
     <li><b>Rangliste:</b> Im Reiter <i>Markt</i> siehst du Marktanteile und deinen Platz unter den Unternehmen der Branche.</li>
     <li><b>Verkaufen:</b> Du kannst dein Unternehmen verkaufen und ein anderes kaufen oder neu gründen (Reiter <i>Firma</i>).</li>
@@ -1025,66 +1078,94 @@ function lineEditor(L){
    <div class="mute small" style="margin-top:6px">Fahrgäste gesamt ${num(L.pax)} · verloren (Woche) ${num(L.lost)}</div>
    <button class="btn sm danger" data-act="delline" data-id="${L.id}" style="margin-top:6px">Linie einstellen</button>`;
 }
+function chips(key,opts,cur){
+  return `<div class="chips">${opts.map(([v,t])=>`<button class="chip ${cur===v?'on':''}" data-act="setf" data-key="${key}" data-val="${v}">${t}</button>`).join('')}</div>`;
+}
 function tabLines(){
   const sel=lineById(ui.selLine);
-  let h=`<button class="btn pri" data-act="newline" style="width:100%;margin-bottom:10px">${ui.mode==='newline'?'✖ Abbrechen':'＋ Neue Linie (Städte auf der Karte anklicken)'}</button>`;
-  if(!S.lines.length)h+='<div class="mute">Noch keine Linien. Klicke auf „Neue Linie“ und dann nacheinander auf zwei lizenzierte Städte. Partnerlinien von Fernflix findest du im Reiter Markt.</div>';
-  for(const L of S.lines){
-    const n=lineBuses(L).length,p=L.h.length?avg(L.h):0;
-    const isSel=sel===L;
-    h+=`<div class="card ${isSel?'sel':''}"><div class="row" data-act="sel" data-id="${L.id}" style="cursor:pointer"><b>${lname(L)}</b><span>${L.fr?'<span class="tag">Fernflix</span> ':''}<span class="tag">${L.dist} km</span></span></div>
-     <div class="row"><span class="mute">${L.fr?'Partnerlinie':`Nachfrage ${num(L.D)}/Tag · Anteil ${pct(L.share)}`}</span><span>${n} 🚌</span></div>
-     <div class="row"><span class="mute">Gewinn/Tag (Ø)</span><b class="${p>=0?'good':'bad'}">${eur(p)}</b></div>`;
-    if(isSel)h+=lineEditor(L);
-    h+='</div>';
+  const flt=ui.lineFilter||'all',so=ui.lineSort||'profit';
+  const prof=L=>L.h.length?avg(L.h):0;
+  const loss=S.lines.filter(L=>L.h.length&&prof(L)<0).length,nobus=S.lines.filter(L=>!lineBuses(L).length).length;
+  let list=S.lines.filter(L=>flt==='all'||(flt==='loss'&&L.h.length&&prof(L)<0)||(flt==='nobus'&&!lineBuses(L).length)||(flt==='fr'&&L.fr));
+  list.sort(so==='name'?(a,b)=>lname(a).localeCompare(lname(b)):so==='dist'?(a,b)=>b.dist-a.dist:so==='buses'?(a,b)=>lineBuses(b).length-lineBuses(a).length:(a,b)=>prof(b)-prof(a));
+  let h=`<button class="btn pri" data-act="newline" style="width:100%;margin-bottom:8px">${ui.mode==='newline'?'✖ Abbrechen':'＋ Neue Linie (Städte auf der Karte anklicken)'}</button>`;
+  if(!S.lines.length)return h+'<div class="mute">Noch keine Linien. Klicke auf „Neue Linie“ und dann nacheinander auf zwei lizenzierte Städte. Partnerlinien von Fernflix findest du im Reiter Markt.</div>';
+  h+=`<div class="mute small" style="margin-bottom:6px">${S.lines.length} Linien · <span class="${loss?'bad':''}">${loss} mit Verlust</span> · ${nobus} ohne Bus · Gesamtgewinn ${eur(S.lines.reduce((t,L)=>t+prof(L),0))}/Tag</div>
+   <div class="toolbar">${chips('lineFilter',[['all','Alle'],['loss','Verlust'],['nobus','Ohne Bus'],['fr','Fernflix']],flt)}</div>
+   <div class="toolbar"><span class="mute small">Sortiert nach</span>${chips('lineSort',[['profit','Gewinn'],['name','Name'],['dist','Länge'],['buses','Busse']],so)}</div>`;
+  if(sel&&!list.includes(sel))list.unshift(sel);
+  if(!list.length)h+='<div class="mute small">Keine Linie passt zu diesem Filter.</div>';
+  for(const L of list){
+    const n=lineBuses(L).length,p=prof(L);
+    if(L===sel){
+      h+=`<div class="card sel"><div class="row" data-act="sel" data-id="${L.id}" style="cursor:pointer"><b>${lname(L)}</b><span>${L.fr?'<span class="tag">Fernflix</span> ':''}<span class="tag">${L.dist} km</span></span></div>
+       <div class="row"><span class="mute">${L.fr?'Partnerlinie':`Nachfrage ${num(L.D)}/Tag · Anteil ${pct(L.share)}`}</span><b class="${p>=0?'good':'bad'}">${eur(p)}/Tag</b></div>${lineEditor(L)}</div>`;
+    }else{
+      h+=`<div class="lrow" data-act="sel" data-id="${L.id}"><span class="n">${L.fr?'🤝 ':''}${lname(L)}</span><span class="mute small">${n} 🚌</span><span class="mute small">${L.fr?'':pct(L.share)}</span><b class="${p>=0?'good':'bad'}" style="min-width:64px;text-align:right">${eur(p)}</b></div>`;
+    }
   }
   return h;
 }
+const BST={depot:'🅿',wait:'⏸',move:'▶',broken:'🔧',service:'🛠',charter:'🧳'};
 function tabFleet(){
-  let h=`<div class="row"><b>Flotte ${S.buses.length}/${cap()}</b><span class="mute">Reiter Gelände: Hallen bauen</span></div><h2 class="s" style="margin-top:6px">Neue Busse</h2>`;
-  for(const [k,T] of Object.entries(TYPES)){
-    h+=`<div class="card"><div class="row"><b style="color:${T.color}">${T.name}</b><button class="btn sm pri" data-act="buy" data-type="${k}" ${S.cash<T.price||S.buses.length>=cap()?'disabled':''}>${eur(T.price)}</button></div>
-     <div class="mute small">${T.seats} Plätze · ${T.speed} km/h · Komfort ${T.comfort}/10 · ${num(T.cons*100)} l/100 km${T.seats>=40&&T.comfort+(S.up.wlan?1:0)>=6?' · <span class="good">Fernflix-tauglich</span>':''}</div></div>`;
+  const f=ui.fleetFilter||'all',so=ui.fleetSort||'line';
+  const weak=S.buses.filter(b=>b.cond<50).length;
+  const lnOf=b=>b.line?lname(lineById(b.line)):'';
+  const flt={all:()=>true,depot:b=>b.state==='depot',run:b=>b.state!=='depot',weak:b=>b.cond<50,broken:b=>b.state==='broken'||b.state==='service'}[f];
+  const list=S.buses.filter(flt);
+  list.sort(so==='cond'?(a,b)=>a.cond-b.cond:so==='id'?(a,b)=>a.id-b.id:so==='type'?(a,b)=>a.type.localeCompare(b.type)||a.id-b.id:(a,b)=>(a.line?0:1)-(b.line?0:1)||lnOf(a).localeCompare(lnOf(b))||a.id-b.id);
+  let h=`<div class="row"><b>Flotte ${S.buses.length} / ${cap()}</b><button class="btn sm" data-act="togglebuy">${ui.buyOpen?'Shop schließen':'＋ Bus kaufen'}</button></div>`;
+  if(ui.buyOpen){
+    for(const [k,T] of Object.entries(TYPES)){
+      h+=`<div class="card" style="padding:7px 10px;margin-bottom:6px"><div class="row" style="margin:0"><span><b style="color:${T.color}">${T.name}</b> <span class="mute small">${T.seats} Pl. · ${T.speed} km/h · Komfort ${T.comfort} · ${num(T.cons*100)} l/100 km${T.seats>=40&&T.comfort+(S.up.wlan?1:0)>=6?' · <span class="good">Fernflix</span>':''}</span></span>
+       <button class="btn sm pri" data-act="buy" data-type="${k}" ${S.cash<T.price||S.buses.length>=cap()?'disabled':''}>${eur(T.price)}</button></div></div>`;
+    }
   }
-  h+='<h2 class="s">Meine Busse</h2>';
-  if(!S.buses.length)h+='<div class="mute">Keine Busse.</div>';
+  h+=`<div class="toolbar" style="margin-top:8px">${chips('fleetFilter',[['all','Alle'],['run','Im Einsatz'],['depot','Im Depot'],['weak','Zustand &lt; 50 % ('+weak+')'],['broken','Panne/Werkstatt']],f)}</div>
+   <div class="toolbar"><span class="mute small">Sortiert nach</span>${chips('fleetSort',[['line','Linie'],['cond','Zustand'],['type','Typ'],['id','Nr.']],so)}</div>
+   <div class="toolbar"><button class="btn sm" data-act="repairall" data-lim="50" ${weak?'':'disabled'}>Alle unter 50 % reparieren</button><button class="btn sm" data-act="repairall" data-lim="80">Alle unter 80 % reparieren</button></div>`;
+  if(!list.length)h+='<div class="mute small">Keine Busse für diesen Filter.</div>';
   const opts=cur=>`<option value="">Depot</option>`+S.lines.map(L=>`<option value="${L.id}" ${cur===L.id?'selected':''}>${lname(L)}</option>`).join('');
-  for(const b of S.buses){
+  let lastG=null;
+  for(const b of list){
     const T=TYPES[b.type];
-    h+=`<div class="card"><div class="row"><b style="color:${T.color}">#${b.id} ${T.name}</b><span class="mute">${busStatus(b)}</span></div>
-     <div class="row"><span class="mute" style="width:70px">Zustand ${Math.round(b.cond)} %</span><div style="flex:1">${bar(b.cond,b.cond<35?'var(--bad)':b.cond<60?'var(--acc)':'')}</div></div>
-     <div class="row"><select data-in="assign" data-id="${b.id}" ${b.state==='charter'?'disabled':''}>${opts(b.line)}</select>
-      <span><button class="btn sm" data-act="repair" data-id="${b.id}" ${b.cond>=99||b.state==='move'?'disabled':''}>Reparatur ${eur(repairCost(b))}</button>
-      <button class="btn sm danger" data-act="sell" data-id="${b.id}" ${b.state==='charter'?'disabled':''}>Verkauf ${eur(busValue(b))}</button></span></div></div>`;
+    if(so==='line'){const g=b.line?lname(lineById(b.line)):'Im Depot';if(g!==lastG){lastG=g;const cnt=list.filter(x=>(x.line?lname(lineById(x.line)):'Im Depot')===g).length;h+=`<div class="ghead">${g} · ${cnt}</div>`;}}
+    h+=`<div class="brow ${ui.selBus===b.id?'sel':''}" data-act="selbus" data-id="${b.id}"><span style="color:${T.color}">●</span><b>#${b.id}</b><span class="n mute small">${T.name}${so==='line'?'':' · '+(b.line?lnOf(b):'Depot')}</span>
+      <span class="small ${b.cond<35?'bad':b.cond<60?'acc':'good'}">${Math.round(b.cond)} %</span><span title="${busStatus(b)}">${BST[b.state]}</span></div>`;
+    if(ui.selBus===b.id){
+      h+=`<div class="detail"><div class="small mute" style="margin-bottom:4px">${busStatus(b)} · Alter ${b.age} Tage</div>${bar(b.cond,b.cond<35?'var(--bad)':b.cond<60?'var(--acc)':'')}
+       <div class="row" style="margin-top:6px"><select data-in="assign" data-id="${b.id}" ${b.state==='charter'?'disabled':''}>${opts(b.line)}</select>
+       <span><button class="btn sm" data-act="repair" data-id="${b.id}" ${b.cond>=99||b.state==='move'?'disabled':''}>Reparatur ${eur(repairCost(b))}</button>
+       <button class="btn sm danger" data-act="sell" data-id="${b.id}" ${b.state==='charter'?'disabled':''}>Verkauf ${eur(busValue(b))}</button></span></div></div>`;
+    }
   }
   return h;
 }
 function tabSites(){
   const sel=S.sites.find(s=>s.id===ui.selSite)||S.sites[0];ui.selSite=sel.id;
-  let h=`<div class="row"><b>Stellplätze ${S.buses.length} / ${cap()}</b><span class="tag">Miete ${eur(rentDay())}/Tag</span></div>
-   <div class="mute small">Gebäude brauchen je einen Platz auf dem Gelände. Wähle ein Gelände, um zu bauen.</div>`;
-  for(const s of S.sites){
-    const isSel=s.id===sel.id;
-    h+=`<div class="card ${isSel?'sel':''}" style="margin-top:8px"><div class="row" data-act="selsite" data-id="${s.id}" style="cursor:pointer"><b>${s.hq?'★ Hauptstandort':'Betriebshof'} ${cityById(s.city).name}</b><span class="tag">+${s.hq?12:8} % Nachfrage in der Region</span></div>
-     <div class="slots">${Array.from({length:slotsOf(s)},(_,i)=>s.b[i]?`<div class="slot on" title="${BUILD[s.b[i]].name}">${BUILD[s.b[i]].icon}<small>${BUILD[s.b[i]].short}</small></div>`:'<div class="slot">＋</div>').join('')}</div>`;
-    if(isSel){
-      h+=`<hr><div class="small mute" style="margin-bottom:4px">Gebäude bauen (${s.b.length}/${slotsOf(s)} Plätze belegt)</div>`;
-      for(const [k,B] of Object.entries(BUILD)){
-        const why=canBuild(s,k);
-        h+=`<div class="row" style="align-items:flex-start"><div style="min-width:0"><b>${B.icon} ${B.name}</b> <span class="tag">${eur(B.rent)}/Tag</span><div class="mute small">${B.desc}</div></div>
-         <button class="btn sm pri" data-act="build" data-site="${s.id}" data-b="${k}" ${why?'disabled':''} title="${why}">${eur(B.cost)}</button></div>`;
-      }
-      if(s.b.length){
-        h+=`<hr><div class="small mute" style="margin-bottom:4px">Abreißen (40 % Erlös)</div><div class="chips">`;
-        s.b.forEach((k,i)=>{h+=`<button class="btn sm danger" data-act="demol" data-site="${s.id}" data-idx="${i}">${BUILD[k].icon} ${BUILD[k].name} ✕</button>`;});
-        h+='</div>';
-      }
-      if(!s.hq)h+=`<hr><button class="btn sm danger" data-act="sellsite" data-id="${s.id}">Betriebshof verkaufen (${eur(0.6*s.cost+0.4*s.b.reduce((t,k)=>t+BUILD[k].cost,0))})</button>`;
-    }
+  const gcap=x=>(x.hq?4:0)+6*x.b.filter(k=>k==='garage').length;
+  let h=`<div class="card"><div class="row"><b>Stellplätze ${S.buses.length} / ${cap()}</b><span class="tag">Miete ${eur(rentDay())}/Tag</span></div>
+   <table><tr><th>Standort</th><th>Bauplätze</th><th>Busplätze</th></tr>
+   ${S.sites.map(x=>`<tr class="${x.id===sel.id?'me':''}" data-act="selsite" data-id="${x.id}" style="cursor:pointer"><td>${x.hq?'★ ':''}${cityById(x.city).name}</td><td>${x.b.length} / ${slotsOf(x)}</td><td>${gcap(x)}</td></tr>`).join('')}
+   </table><div class="mute small" style="margin-top:4px">Tippe eine Zeile an, um das Gelände zu bearbeiten.</div></div>`;
+  h+=`<div class="card sel"><div class="row"><b>${sel.hq?'★ Hauptstandort':'Betriebshof'} ${cityById(sel.city).name}</b><span class="tag">+${sel.hq?12:8} % Nachfrage in der Region</span></div>
+   <div class="slots">${Array.from({length:slotsOf(sel)},(_,i)=>sel.b[i]?`<div class="slot on" title="${BUILD[sel.b[i]].name}">${BUILD[sel.b[i]].icon}<small>${BUILD[sel.b[i]].short}</small></div>`:'<div class="slot">＋</div>').join('')}</div>
+   <div class="row"><span class="small">Gelände erweitern (+4 Bauplätze, Stufe ${sel.ex||0} / 4)</span>
+    <button class="btn sm pri" data-act="expand" data-id="${sel.id}" ${(sel.ex||0)>=4||S.cash<expandCost(sel)?'disabled':''}>${(sel.ex||0)>=4?'Maximum':eur(expandCost(sel))}</button></div>
+   <hr><div class="small mute" style="margin-bottom:4px">Gebäude bauen</div>`;
+  for(const [k,B] of Object.entries(BUILD)){
+    const why=canBuild(sel,k),cnt=bcount(k);
+    h+=`<div class="row" style="align-items:flex-start"><div style="min-width:0"><b>${B.icon} ${B.name}</b> <span class="tag">${eur(B.rent)}/Tag</span> <span class="tag">${cnt}${B.max<99?' / '+B.max:''}</span><div class="mute small">${B.desc}</div></div>
+     <button class="btn sm pri" data-act="build" data-site="${sel.id}" data-b="${k}" ${why?'disabled':''} title="${why}">${eur(B.cost)}</button></div>`;
+  }
+  if(sel.b.length){
+    h+=`<hr><div class="small mute" style="margin-bottom:4px">Abreißen (40 % Erlös)</div><div class="chips">`;
+    sel.b.forEach((k,i)=>{h+=`<button class="btn sm danger" data-act="demol" data-site="${sel.id}" data-idx="${i}">${BUILD[k].icon} ${BUILD[k].name} ✕</button>`;});
     h+='</div>';
   }
-  h+='<h2 class="s">Neuer Betriebshof</h2><div class="mute small" style="margin-bottom:6px">Grundstück in einer lizenzierten Stadt: 4 Bauplätze und +8 % Nachfrage auf Linien dieser Stadt.</div>';
-  const free=S.lic.filter(id=>!S.sites.some(s=>s.city===id));
+  if(!sel.hq)h+=`<hr><button class="btn sm danger" data-act="sellsite" data-id="${sel.id}">Betriebshof verkaufen (${eur(0.6*sel.cost+0.4*(sel.exPaid||0)+0.4*sel.b.reduce((t,k)=>t+BUILD[k].cost,0))})</button>`;
+  h+='</div><h2 class="s">Neuer Betriebshof</h2><div class="mute small" style="margin-bottom:6px">Grundstück in einer lizenzierten Stadt: 4 Bauplätze und +8 % Nachfrage auf Linien dieser Stadt.</div>';
+  const free=S.lic.filter(id=>!S.sites.some(x=>x.city===id));
   if(!free.length)h+='<div class="mute">In allen lizenzierten Städten hast du schon ein Gelände.</div>';
   for(const id of free){
     const c=cityById(id);
@@ -1144,10 +1225,17 @@ function tabFirm(){
    </div>
    <div class="mute small" style="margin-top:4px">Je mehr du abnimmst und je besser dein Ruf, desto eher klappt die Verhandlung. Ein Festpreis schützt vor Preissprüngen, du verpasst aber sinkende Preise.</div>`;
   if(tankCap()>0){
-    h+=`<hr><div class="row"><span>Tanklager</span><b>${num(S.tank.l)} / ${num(tankCap())} l</b></div>${bar(S.tank.l/tankCap()*100)}
-     <div class="mute small">${S.tank.l>0?`Eingelagert zu Ø ${num(S.tank.avg,2)} €/l. `:''}Die Busse tanken zuerst aus dem eigenen Lager. Kaufe, wenn der Preis niedrig ist.</div>
-     <div class="chips" style="margin-top:6px">${[5000,10000,20000].map(l=>`<button class="btn sm" data-act="buyfuel" data-l="${l}" ${S.cash<l*fuelUnit()||S.tank.l>=tankCap()?'disabled':''}>+${num(l)} l (${eur(l*fuelUnit())})</button>`).join('')}</div>`;
-  }else h+=`<div class="mute small" style="margin-top:6px">Mit einer eigenen Tankstelle (Reiter Gelände) lagerst du Diesel günstig ein und bekommst 8 % Rabatt.</div>`;
+    const a=S.autoFill;
+    h+=`<hr><div class="row"><span><b>Zentrallager</b> <span class="mute small">(${bcount('tank')} Tankstelle(n) + ${S.tankUp||0} Ausbaustufen)</span></span><b>${num(S.tank.l)} / ${num(tankCap())} l</b></div>${bar(S.tank.l/tankCap()*100)}
+     <div class="mute small">${S.tank.l>0?`Eingelagert zu Ø ${num(S.tank.avg,2)} €/l. `:''}Die Busse tanken zuerst aus dem eigenen Lager, sonst an der Zapfsäule zum Tagespreis.</div>
+     <div class="row" style="margin-top:6px"><span class="small">Lager erweitern (+20.000 l)</span><button class="btn sm pri" data-act="tankup" ${(S.tankUp||0)>=20||S.cash<tankUpCost()?'disabled':''}>${(S.tankUp||0)>=20?'Maximum':eur(tankUpCost())}</button></div>
+     <div class="chips" style="margin-top:6px">${[5000,10000,20000].map(l=>`<button class="btn sm" data-act="buyfuel" data-l="${l}" ${S.cash<l*fuelUnit()||S.tank.l>=tankCap()?'disabled':''}>+${num(l)} l (${eur(l*fuelUnit())})</button>`).join('')}</div>
+     <hr><div class="row"><b>Automatisch nachfüllen</b><button class="btn sm ${a.on?'pri':''}" data-act="aftoggle">${a.on?'An':'Aus'}</button></div>
+     <div class="row small"><span class="mute">Wenn das Lager unter</span><select data-in="af-below">${[[.1,'10 %'],[.2,'20 %'],[.3,'30 %'],[.5,'50 %']].map(([v,t])=>`<option value="${v}" ${a.below===v?'selected':''}>${t}</option>`).join('')}</select></div>
+     <div class="row small"><span class="mute">fällt, auffüllen auf</span><select data-in="af-to">${[[.6,'60 %'],[.8,'80 %'],[.9,'90 %'],[1,'100 %']].map(([v,t])=>`<option value="${v}" ${a.to===v?'selected':''}>${t}</option>`).join('')}</select></div>
+     <div class="row small"><span class="mute">nur wenn dein Preis höchstens</span><select data-in="af-price">${[[0,'egal'],[1.4,'1,40 €/l'],[1.5,'1,50 €/l'],[1.6,'1,60 €/l'],[1.7,'1,70 €/l']].map(([v,t])=>`<option value="${v}" ${a.maxPrice===v?'selected':''}>${t}</option>`).join('')}</select></div>
+     <div class="mute small">Der Einkauf läuft einmal pro Tag und lässt immer 5.000 € Reserve in der Kasse.</div>`;
+  }else h+=`<div class="mute small" style="margin-top:6px">Mit einer eigenen Tankstelle (Reiter Gelände) lagerst du Diesel günstig ein und bekommst 8 % Rabatt. Du kannst das Lager danach beliebig erweitern und automatisch befüllen lassen.</div>`;
   h+='</div>';
   h+=`<h2 class="s">Marketing</h2><div class="card"><div class="row"><span>Werbekampagne (+20 % Nachfrage, 30 Tage)</span>
    <button class="btn sm pri" data-act="ad" ${S.cash<12000?'disabled':''}>${eur(12000)}</button></div>${S.fx.ad>0?`<div class="mute small">Läuft noch ${Math.ceil(S.fx.ad)} Tage</div>`:''}</div>
@@ -1249,6 +1337,13 @@ panel.addEventListener('click',e=>{
   }
   else if(a==='newline'){ui.mode=ui.mode==='newline'?null:'newline';ui.first=null;}
   else if(a==='sel'){ui.selLine=ui.selLine===id?null:id;}
+  else if(a==='setf'){ui[el.dataset.key]=el.dataset.val;}
+  else if(a==='selbus'){ui.selBus=ui.selBus===id?null:id;}
+  else if(a==='togglebuy'){ui.buyOpen=!ui.buyOpen;}
+  else if(a==='repairall')repairAll(+el.dataset.lim);
+  else if(a==='expand')expandSite(id);
+  else if(a==='tankup')expandTank();
+  else if(a==='aftoggle'){S.autoFill.on=!S.autoFill.on;}
   else if(a==='delline')deleteLine(id);
   else if(a==='addbus'){
     const L=lineById(id),free=S.buses.find(b=>!b.line&&b.state==='depot');
@@ -1296,6 +1391,9 @@ window.addEventListener('pointerup',()=>{if(ui.hold){ui.hold=false;render();}});
 panel.addEventListener('change',e=>{
   const el=e.target,id=+el.dataset.id;
   if(el.dataset.in==='minload'){lineById(id).minLoad=+el.value;}
+  else if(el.dataset.in==='af-below'){S.autoFill.below=+el.value;}
+  else if(el.dataset.in==='af-to'){S.autoFill.to=+el.value;}
+  else if(el.dataset.in==='af-price'){S.autoFill.maxPrice=+el.value;}
   else if(el.dataset.in==='svc'){lineById(id).svc=+el.value;S.demT=-99;}
   else if(el.dataset.in==='assign'){
     const b=busById(id);
@@ -1463,7 +1561,7 @@ function start(){
   if(first){chooseHQ();showHelp();}
   requestAnimationFrame(frame);
 }
-window.__bus={get S(){return S;},step,createLine,buyBus,assign,lineById,dayEnd,build,buySite,acceptOffer,openSell,sellCompany,buyOffer,foundCompany,negotiate,lockFuel,buyFuel,forecast,optimalRate,ranking,tabOv,tabLines,tabFleet,tabSites,tabMarket,tabFirm,tabNoCompany,installCompany,freshCompany,upgradeSave,sellValue,partnerLevel,genPartnerOffers,licCost};
+window.__bus={expandTank,expandSite,autoFuel,repairAll,fixSave,get S(){return S;},step,createLine,buyBus,assign,lineById,dayEnd,build,buySite,acceptOffer,openSell,sellCompany,buyOffer,foundCompany,negotiate,lockFuel,buyFuel,forecast,optimalRate,ranking,tabOv,tabLines,tabFleet,tabSites,tabMarket,tabFirm,tabNoCompany,installCompany,freshCompany,upgradeSave,sellValue,partnerLevel,genPartnerOffers,licCost};
 start();
 </script>
 </body>
