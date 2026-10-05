@@ -788,24 +788,16 @@ function endNight(){
 function showModal(h){$('mbox').innerHTML=h;$('modal').style.display='flex'}
 function closeModal(){$('modal').style.display='none'}
 function askReset(){showModal('<h2>Neu anfangen?</h2><p>Dein Fortschritt geht verloren.</p><p><button class="pri" onclick="resetGame()">Ja, neu starten</button> <button onclick="closeModal()">Abbrechen</button></p>')}
-function resetGame(){S=fresh();rollTrend();$('log').innerHTML='';calcLayout();stash();save();tab='concept';tool=null;renderAll();openSetup()}
+function resetGame(){S=fresh();rollTrend();$('log').innerHTML='';calcLayout();stash();save();tab='concept';tool=null;renderAll();startConcept()}
 
 // ---------- Setup ----------
-const STARTS=['altstadt','uni','bahnhof','hafen'];
-let su={loc:'altstadt'};
-function openSetup(){su={loc:'altstadt'};renderSetup()}
-function setupPick(k,v){su[k]=v;renderSetup()}
-function renderSetup(){
-  showModal(`<h2>🪩 Wo eröffnest du deinen ersten Club?</h2><p class="dim">Der Ort bestimmt, wer bei dir feiert. Dein Publikum entsteht dann aus Standort, Musik, Preisen, Einlass und Werbung. Größe, Gästelimit und Einrichtung änderst du später jederzeit, weitere Clubs kaufst du später.</p>
-   <div class="pick">${STARTS.map(id=>{const l=LOC[id];return`<button class="${su.loc===id?'on':''}" onclick="setupPick('loc','${id}')"><b>${l.n}</b><small>${l.t} · ${l.gw}×${l.gh} Felder · ca. ${Math.round(l.gw*l.gh*1.6)} Gäste</small><small>Miete ca. ${eur((50+l.gw*l.gh*4.5)*l.rent)}/Nacht</small><small>${topSegs(l.mix,3)}</small><small>${l.d}</small></button>`}).join('')}</div>
-   <p><button class="pri" onclick="startConcept()">Club eröffnen</button></p>`);
-}
 function startConcept(){
-  S.clubs=[mkClub(su.loc,false)];unstash(0);
-  S.grid=layoutPlan(S.gw,S.gh,cap());calcLayout();
+  S.clubs=[mkClub('altstadt',false)];unstash(0);S.limit=60;
+  S.grid=layoutPlan(S.gw,S.gh,60);calcLayout();
   S.staff.sec=Math.max(2,Math.round(cap()/80));S.staff.bar=Math.max(1,Math.ceil(cap()/60));
-  S.setup=true;newDayGlobal();newDayClub();save();closeModal();log('Willkommen, Manager! Du bist noch unbekannt. Hype musst du dir erarbeiten.');renderAll();
+  S.setup=true;newDayGlobal();newDayClub();save();closeModal();log('Willkommen, Manager! Das ist dein kleiner Keller. Baue ihn Stück für Stück aus, bis er dein Club ist.');renderAll();
 }
+function renameClub(){const v=$('clubName').value.trim().slice(0,28);if(v){S.name=v;save();renderAll()}}
 function setDoor(i){S.door=i;if(S.phase==='plan')save();renderAll()}
 
 // ---------- Stadt: Clubs kaufen, verkaufen, wechseln ----------
@@ -888,6 +880,7 @@ function renderPanel(){
   if(tab==='concept'){
     const ex=CR.ex,mc=maxCap(),tiles=S.gw*S.gh,l=LOC[S.loc];
     h+=`<div class="note"><b>${S.name}</b> · ${l.t}${l.season?' · Saison '+Math.round(seasonF()*100)+' %':''}. Wer bei dir feiert, ergibt sich aus Standort, Musik, Preisen, Einlass, Größe und Werbung. Je weniger Gäste du hereinlässt, desto exklusiver und begehrter wirkst du. Ist der Club voll und die Party gut, bildet sich eine Schlange und der Hype steigt.</div>`;
+    h+=`<div class="row" style="margin-bottom:10px"><input type="text" id="clubName" maxlength="28" value="${S.name.replace(/"/g,'')}" aria-label="Clubname"><button onclick="renameClub()">Umbenennen</button></div>`;
     h+='<b>Dein Publikum heute</b><div style="margin:6px 0 10px">'+GA.map(k=>{const m=CR.mix[k],sg=CLI[k],pE=S.price.entry/sg.entry,pD=S.price.drink/sg.drink;
       const hint=pE>1.5?'Eintritt zu teuer für sie':pD>1.5?'Drinks zu teuer für sie':Math.abs(CR.ex-sg.ex)>45?'passt nicht zur Exklusivität':GAFF[S.genre][k]<.7?'mag die Musik nicht':'';
       return`<div style="display:flex;gap:8px;align-items:center;margin:3px 0"><span style="flex:0 0 130px">${sg.n}</span><span class="mini" style="flex:1;width:auto"><u style="width:${Math.round(m*100)}%"></u></span><span style="flex:0 0 52px;white-space:nowrap;text-align:right">${Math.round(m*100)} %</span></div>${hint?'<div class="warn" style="font-size:12px;margin:-2px 0 2px 138px">'+hint+'</div>':''}`}).join('')+`<div class="dim" style="font-size:12px;margin-top:6px">Anziehung ${Math.round(CR.A*100)} % · typischer Eintritt ${eur(CR.entry)} · typischer Drink ${eur(CR.drink)} · Exklusivität ${Math.round(CR.ex)}</div></div>`;
@@ -1096,7 +1089,7 @@ $('bSound').onclick=()=>{soundOn=!soundOn;$('bSound').textContent=soundOn?'🔊'
 document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{speed=+b.dataset.sp;if(S.phase==='night')run();renderHeader()});
 S=load();if(!Object.keys(S.trend).length)rollTrend();
 calcLayout();if(!S.clubs.length)stash();renderAll();
-if(!S.setup)openSetup();else{if(!S.inq.length&&!S.book.length)S.inq=genInquiries();log('Willkommen zurück, Manager!')}
+if(!S.setup)startConcept();else{if(!S.inq.length&&!S.book.length)S.inq=genInquiries();log('Willkommen zurück, Manager!')}
 requestAnimationFrame(draw);
 </script>
 </body>
