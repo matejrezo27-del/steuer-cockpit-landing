@@ -1374,7 +1374,7 @@ function tabSites(){
       }
     }
   }else{
-    h+=`<div class="mute small" style="margin-top:6px">Öffne die 3D-Ansicht, um Gebäude auf einzelnen Feldern zu platzieren und auszubauen. Du kannst auch auf der Karte auf eine Stadt mit Standort klicken.</div>`;
+    h+=`<div class="mute small" style="margin-top:6px">Öffne die 3D-Ansicht, um Gebäude auf einzelnen Feldern zu platzieren und auszubauen. Du kannst auch auf der Karte doppelt auf eine Stadt mit Standort klicken.</div>`;
   }
   h+=`<hr><div class="row"><span class="small">Gelände erweitern (+1 Reihe = 6 Felder, ohne Grenze)</span>
     <button class="btn sm pri" data-act="expand" data-id="${sel.id}" ${S.cash<expandCost(sel)?'disabled':''}>${eur(expandCost(sel))}</button></div>`;
@@ -1551,6 +1551,7 @@ function tabNoCompany(){
 function render(){
   if(!S)return;
   const owned=S.owned;
+  if(ui.view==='site'&&(!owned||ui.tab!=='sites'))ui.view='map';
   if(!owned&&!['wealth','nocomp'].includes(ui.tab))ui.tab='nocomp';
   if(owned&&ui.tab==='nocomp')ui.tab='ov';
   document.querySelectorAll('#tabs button').forEach(b=>{
@@ -1591,7 +1592,7 @@ function updateHeader(){
 }
 
 /* ===================== Events (UI) ===================== */
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){ui.tab=b.dataset.tab;render();}});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){ui.tab=b.dataset.tab;if(ui.tab!=='sites')leaveSite();updateHeader();render();}});
 $('#speed').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b){S.speed=+b.dataset.s;updateHeader();}});
 $('#bHelp').onclick=showHelp;
 $('#bNew').onclick=()=>modal('Neues Spiel?','Der aktuelle Spielstand geht verloren.',[
@@ -1611,7 +1612,7 @@ panel.addEventListener('click',e=>{
     S.loan+=amt;S.cash+=amt;
     say(amt>0?`Kredit über ${eur(amt)} aufgenommen.`:`${eur(-amt)} Kredit getilgt.`);
   }
-  else if(a==='newline'){ui.mode=ui.mode==='newline'?null:'newline';ui.first=null;}
+  else if(a==='newline'){leaveSite();ui.mode=ui.mode==='newline'?null:'newline';ui.first=null;}
   else if(a==='sel'){ui.selLine=ui.selLine===id?null:id;}
   else if(a==='setf'){ui[el.dataset.key]=el.dataset.val;}
   else if(a==='selbus'){ui.selBus=ui.selBus===id?null:id;}
@@ -1753,11 +1754,16 @@ cv.addEventListener('click',e=>{
     modal(`Lizenz für ${c.name}`,`Betriebslizenz kostet ${eur(cost)}. Du hast ${eur(S.cash)}.`,[
       {label:'Kaufen',cls:'pri',fn:()=>buyLicense(c.id)},{label:'Abbrechen',fn:()=>{}}]);
   }
-  else if(h.k==='city'){const st=S.sites.find(s=>s.city===h.o.id);if(st){enterSite(st.id);updateHeader();render();}else offerSite(h.o);}
+  else if(h.k==='city'){const st=S.sites.find(s=>s.city===h.o.id);if(st){ui.selSite=st.id;ui.tab='sites';render();}else offerSite(h.o);}
   else if(h.k==='line'){ui.selLine=h.o.id;ui.tab='lines';render();}
   else if(h.k==='bus'){ui.tab='fleet';render();}
 });
 
+cv.addEventListener('dblclick',e=>{
+  if(!S.owned||ui.view==='site')return;
+  const h=hitTest(toMap(e));
+  if(h&&h.k==='city'){const st=S.sites.find(x=>x.city===h.o.id);if(st){enterSite(st.id);updateHeader();render();}}
+});
 function drawMap(){
   const W=cv.width/view.dpr,H=cv.height/view.dpr;
   ctx.setTransform(view.dpr,0,0,view.dpr,0,0);
