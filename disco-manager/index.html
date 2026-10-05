@@ -145,12 +145,12 @@ const PM=[
 // Konzepte (Clublook), werden komplett umgebaut. Ausbau bleibt erhalten.
 const CONC=[
   {id:'keller',n:'Kellerbar',e:'🕯️',cap:70,rent:100,price:0,ex:82,vipMax:2,entry:10,drink:6,col:'#ff9a3d',floor:'#3a2a1a',wall:'#2a1a10',mix:{students:.2,party:.3,szene:.35,business:.1,society:.05},d:'Gemütlich und klein. Die Szene liebt es.'},
-  {id:'neon',n:'Neon-Disco',e:'🌈',cap:150,rent:300,price:18000,ex:55,vipMax:4,entry:10,drink:6,col:'#ff2bd6',floor:'#2a0f3a',wall:'#1a0a2a',mix:{students:.25,party:.5,szene:.15,business:.05,society:.05},d:'Bunte Lichter, Pop und Party.'},
-  {id:'lounge',n:'Lounge & Bar',e:'🍷',cap:100,rent:350,price:25000,ex:78,vipMax:5,entry:15,drink:10,col:'#d4a35a',floor:'#2a1f14',wall:'#1a1410',mix:{business:.45,society:.25,szene:.15,party:.1,students:.05},d:'Samtsofas, Cocktails, Anzugpublikum.'},
-  {id:'techno',n:'Techno-Bunker',e:'⛓️',cap:300,rent:500,price:60000,ex:45,vipMax:4,entry:14,drink:6.5,col:'#8a3dff',floor:'#14141c',wall:'#0c0c12',mix:{szene:.6,party:.15,students:.15,business:.05,society:.05},d:'Beton, Nebel, Bass bis morgens.'},
-  {id:'beach',n:'Beach Club',e:'🌴',cap:400,rent:700,price:120000,ex:50,vipMax:8,entry:12,drink:8,col:'#22e6ff',floor:'#2a2a1a',wall:'#102a30',season:1,mix:{party:.4,szene:.2,business:.15,society:.15,students:.1},d:'Im Sommer der Wahnsinn, im Winter leer.'},
-  {id:'palace',n:'Gold Palace',e:'👑',cap:200,rent:1200,price:250000,ex:90,vipMax:10,entry:30,drink:18,col:'#f5c04a',floor:'#2a2210',wall:'#241a08',mix:{society:.5,business:.35,szene:.1,party:.05,students:0},d:'Marmor, Gold, Stars und Sternchen.'},
-  {id:'super',n:'Superclub',e:'🎆',cap:900,rent:2500,price:600000,ex:25,vipMax:14,entry:12,drink:6,col:'#3dffa0',floor:'#101a24',wall:'#0a1018',mix:{party:.35,szene:.25,students:.15,business:.15,society:.1},d:'Hallen, Lasershow, Tausende Gäste.'}];
+  {id:'neon',n:'Neon-Disco',e:'🌈',cap:150,rent:300,price:9000,ex:55,vipMax:4,entry:10,drink:6,col:'#ff2bd6',floor:'#2a0f3a',wall:'#1a0a2a',mix:{students:.25,party:.5,szene:.15,business:.05,society:.05},d:'Bunte Lichter, Pop und Party.'},
+  {id:'lounge',n:'Lounge & Bar',e:'🍷',cap:100,rent:350,price:12000,ex:78,vipMax:5,entry:15,drink:10,col:'#d4a35a',floor:'#2a1f14',wall:'#1a1410',mix:{business:.45,society:.25,szene:.15,party:.1,students:.05},d:'Samtsofas, Cocktails, Anzugpublikum.'},
+  {id:'techno',n:'Techno-Bunker',e:'⛓️',cap:300,rent:500,price:30000,ex:45,vipMax:4,entry:14,drink:6.5,col:'#8a3dff',floor:'#14141c',wall:'#0c0c12',mix:{szene:.6,party:.15,students:.15,business:.05,society:.05},d:'Beton, Nebel, Bass bis morgens.'},
+  {id:'beach',n:'Beach Club',e:'🌴',cap:400,rent:700,price:60000,ex:50,vipMax:8,entry:12,drink:8,col:'#22e6ff',floor:'#2a2a1a',wall:'#102a30',season:1,mix:{party:.4,szene:.2,business:.15,society:.15,students:.1},d:'Im Sommer der Wahnsinn, im Winter leer.'},
+  {id:'palace',n:'Gold Palace',e:'👑',cap:200,rent:1200,price:120000,ex:90,vipMax:10,entry:30,drink:18,col:'#f5c04a',floor:'#2a2210',wall:'#241a08',mix:{society:.5,business:.35,szene:.1,party:.05,students:0},d:'Marmor, Gold, Stars und Sternchen.'},
+  {id:'super',n:'Superclub',e:'🎆',cap:900,rent:2500,price:300000,ex:25,vipMax:14,entry:12,drink:6,col:'#3dffa0',floor:'#101a24',wall:'#0a1018',mix:{party:.35,szene:.25,students:.15,business:.15,society:.1},d:'Hallen, Lasershow, Tausende Gäste.'}];
 const conc=()=>CONC.find(c=>c.id===S.conc);
 // Ausbau (je 0 bis 4 Stufen)
 const MODS={
@@ -336,7 +336,6 @@ function buyConcept(id){
   if(S.phase!=='plan')return;
   const n=CONC.find(c=>c.id===id),cur=conc(),cost=Math.max(0,n.price-Math.round(cur.price*.5));
   if(S.money<cost||id===S.conc)return;
-  if(S.book.length){log('Erst die Reservierungen abarbeiten, dann umbauen.','warn');return}
   S.money-=cost;S.conc=id;S.hype=Math.max(0,S.hype-4);
   log('Umbau zum '+n.n+' abgeschlossen. Dein Ausbau bleibt erhalten.','good');save();renderAll();
 }
@@ -663,7 +662,7 @@ function renderPanel(){
       h+=`<div class="mod"><div class="ic">${m.e}</div><div><b>${m.n}</b> <span class="pips">${'●'.repeat(l)}${'○'.repeat(4-l)}</span><small>${m.d}${k==='dj'?' · aktuell: '+DJN[l]:''}${k==='vip'?' · '+vipTables()+' Tische':''}</small></div><button ${l>=4||S.money<cost||!plan?'disabled':''} onclick="buyMod('${k}')">${l>=4?'MAX':eur(cost)}</button></div>`}
     h+='<br><b>Konzepte</b><p class="dim" style="margin:4px 0 8px;font-size:13px">Ein neues Konzept baut den ganzen Club um. Dein Ausbau bleibt, die Hälfte des alten Konzeptpreises wird angerechnet.</p>';
     for(const n of CONC){const cost=Math.max(0,n.price-Math.round(c.price*.5)),cur=n.id===S.conc;
-      h+=item(`${n.e} <b>${n.n}</b>${cur?' <span class="chip good">aktuell</span>':''}`,`${n.d}<br>${n.cap} Gäste · Miete ${eur(n.rent)} · max. ${n.vipMax} VIP-Tische<br>Publikum: ${GA.filter(k=>n.mix[k]>.12).sort((a,b)=>n.mix[b]-n.mix[a]).map(k=>SEG[k].n).join(', ')}`,`<button ${cur||!plan||S.money<cost?'disabled':''} onclick="buyConcept('${n.id}')">${cur?'Aktiv':eur(cost)}</button>`)}
+      h+=item(`${n.e} <b>${n.n}</b>${cur?' <span class="chip good">aktuell</span>':''}`,`${n.d}<br>${n.cap} Gäste · Miete ${eur(n.rent)} · max. ${n.vipMax} VIP-Tische<br>Publikum: ${GA.filter(k=>n.mix[k]>.12).sort((a,b)=>n.mix[b]-n.mix[a]).map(k=>SEG[k].n).join(', ')}`,`<button ${cur||!plan||S.money<cost?'disabled':''} onclick="buyConcept('${n.id}')">${cur?'Aktiv':eur(cost)}</button>${!cur&&plan&&S.money<cost?'<small class="warn">Dir fehlen '+eur(cost-S.money)+'</small>':''}${!cur&&!plan?'<small class="dim">nur tagsüber</small>':''}`)}
   }
   if(tab==='ev'){
     h+='<div class="note">Plane Events im Voraus. Jedes hat einen Buzz, der bestimmt, wie voll es wird. Mit Werbung, einem Act und einer Eventreihe wird er größer. Event-Tage sind automatisch geöffnet.</div><b>Event planen</b><div class="sels">';
