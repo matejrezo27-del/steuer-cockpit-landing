@@ -9,7 +9,7 @@
 html,body{height:100%}
 body{background:var(--bg);color:var(--text);font:15px/1.45 var(--fb);overflow:hidden}
 button,select,input{font:inherit;color:inherit}
-#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;max-width:1120px;margin:0 auto;background:var(--bg)}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;max-width:1120px;margin:0 auto;background:var(--bg)}
 /* HUD */
 #hud{padding:10px 14px 8px;background:linear-gradient(var(--bg2),var(--bg));display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
 .h1{display:flex;align-items:center;gap:10px}
@@ -22,8 +22,6 @@ button,select,input{font:inherit;color:inherit}
 .ctrl button{min-width:40px;height:40px;border-radius:13px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-weight:700;font-size:15px}
 .ctrl button.play{background:var(--coin);color:#2a1d00;border-color:var(--coin);box-shadow:0 3px 0 var(--coin-d);min-width:56px}
 .ctrl button:active{transform:translateY(2px)}
-#ticker{padding:6px 14px;font-size:13px;color:var(--muted);background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-#ticker.good{color:var(--mint)}#ticker.bad{color:var(--bad)}#ticker.warn{color:var(--warn)}
 #main{overflow:auto;padding:14px 14px 18px;overscroll-behavior:contain}
 #tabs{display:flex;background:var(--bg2);border-top:1px solid var(--line);padding:4px 6px calc(4px + env(safe-area-inset-bottom,0px))}
 #tabs button{flex:1;background:none;border:0;border-radius:14px;padding:6px 2px 4px;cursor:pointer;color:var(--muted);display:grid;justify-items:center;gap:1px;font-size:11px;font-weight:700;position:relative;min-height:52px}
@@ -31,13 +29,13 @@ button,select,input{font:inherit;color:inherit}
 #tabs button.on{color:var(--coin);background:var(--panel)}
 #tabs .badge{position:absolute;top:2px;right:22%;background:var(--bad);color:#fff;border-radius:99px;font-size:10px;padding:0 6px;line-height:16px}
 @media(min-width:900px){
- #app{grid-template-columns:200px minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr)}
- #hud,#ticker{grid-column:1/3}
- #tabs{grid-row:3;grid-column:1;flex-direction:column;justify-content:flex-start;gap:4px;border-top:0;border-right:1px solid var(--line);padding:12px 10px}
+ #app{grid-template-columns:200px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+ #hud{grid-column:1/3}
+ #tabs{grid-row:2;grid-column:1;flex-direction:column;justify-content:flex-start;gap:4px;border-top:0;border-right:1px solid var(--line);padding:12px 10px}
  #tabs button{flex:none;grid-template-columns:34px 1fr;justify-items:start;align-items:center;font-size:14px;padding:10px 12px;min-height:48px}
  #tabs{align-content:start}
- .h2{justify-content:flex-start;gap:12px}.h2 .chip:last-child{margin-left:auto}
- #main{grid-row:3;grid-column:2;padding:18px 22px}
+ .h2{justify-content:flex-start;gap:12px}.h2 .ctrl{margin-left:auto}
+ #main{grid-row:2;grid-column:2;padding:18px 22px}
  .hud-in{max-width:1120px}
 }
 /* Bausteine */
@@ -92,6 +90,9 @@ details{background:var(--panel);border:1px solid var(--line);border-radius:var(-
 .fxi.coin{font-family:var(--fd);color:var(--coin);font-size:22px;text-shadow:0 2px 0 #0008}
 @keyframes rise{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1;transform:translateY(-12px) scale(1.1)}100%{transform:translateY(-120px) scale(1);opacity:0}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.office.night{filter:brightness(.7) saturate(.85)}.office{transition:filter 1.2s}
+.clock{position:relative;overflow:hidden;font-variant-numeric:tabular-nums}.clock i{position:absolute;left:0;bottom:0;height:3px;background:var(--coin);font-style:normal}
+.ctrl button{position:relative}.ctrl .bn{position:absolute;top:-4px;right:-4px;background:var(--bad);color:#fff;border-radius:99px;font-size:10px;min-width:17px;line-height:17px;padding:0 4px;font-weight:700}
 .coach{display:flex;gap:10px;align-items:flex-start;margin-top:12px}
 .coach .face{font-size:34px;flex:none}.bubble{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:6px 16px 16px 16px;padding:10px 13px;font-size:14px;flex:1;min-width:0}
 .shelf{display:flex;align-items:center;gap:10px;padding:5px 0}.shelf .nm{width:34%;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.boxes{display:flex;gap:3px;flex:1}.boxes i{flex:1;height:14px;border-radius:3px;background:var(--panel2)}.boxes i.f{background:var(--sky)}.boxes.low i.f{background:var(--bad)}.shelf b{width:58px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
@@ -112,9 +113,9 @@ details{background:var(--panel);border:1px solid var(--line);border-radius:var(-
 .sw{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}.sw button{width:38px;height:38px;border-radius:50%;border:3px solid transparent;cursor:pointer}.sw button.on{border-color:#fff}
 .emo{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.emo button{font-size:24px;background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:3px 9px;cursor:pointer;min-height:44px}.emo button.on{border-color:var(--coin)}
 .title{font-family:var(--fd);font-size:40px;line-height:1;text-align:center;color:var(--coin);text-shadow:0 3px 0 var(--coin-d);margin:4px 0 6px}
-#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:40;width:min(92vw,420px);pointer-events:none}
-.toast{background:var(--panel2);border:1px solid var(--coin);border-radius:14px;padding:10px 14px;box-shadow:0 10px 30px #000a;animation:up .25s;font-size:14px}
-@media(min-width:900px){#toasts{left:auto;right:20px;transform:none;bottom:20px}}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);top:calc(8px + env(safe-area-inset-top,0px));z-index:70;width:min(92vw,420px);pointer-events:none}
+.toast{background:var(--panel2);border:1px solid var(--coin);border-radius:14px;padding:9px 14px;box-shadow:0 10px 30px #000a;animation:down .22s;font-size:14px;text-align:center}
+@keyframes down{from{transform:translateY(-14px);opacity:0}}
 .confetti{position:fixed;left:50%;top:55%;pointer-events:none;z-index:90}.confetti span{position:absolute;animation:conf 1.7s cubic-bezier(.15,.8,.3,1) forwards}
 @keyframes conf{from{transform:translate(0,0) rotate(0);opacity:1}to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
 @media(prefers-reduced-motion:reduce){.seat .av{animation:none}.fxi,.confetti span{animation-duration:.01s}}
@@ -123,9 +124,8 @@ table{width:100%;border-collapse:collapse}td{padding:6px 0;border-bottom:1px sol
 <div id="app">
  <header id="hud">
   <div class="h1"><div class="logo" id="hlogo"></div><div class="hn"><b id="hname"></b><small id="hstage"></small></div><div class="cash"><small>CASH</small><b id="cashv">0 €</b></div></div>
-  <div class="h2"><span class="chip" id="hweek"></span><div class="ctrl"><button class="play" id="bplay" data-a="play" aria-label="Pause/Play">▶</button><button id="bspd" data-a="spd" aria-label="Tempo">1×</button><button id="bsnd" data-a="snd" aria-label="Ton">🔊</button></div><span class="chip" id="hval"></span></div>
+  <div class="h2"><span class="chip clock" id="hclock"></span><div class="ctrl"><button class="play" id="bplay" data-a="play" aria-label="Pause/Play">▶</button><button id="bspd" data-a="spd" aria-label="Tempo">1×</button><button id="bbell" data-a="log" aria-label="Verlauf">🔔</button><button id="bset" data-a="settings" aria-label="Einstellungen">⚙️</button></div></div>
  </header>
- <div id="ticker" data-a="log"></div>
  <main id="main"></main>
  <nav id="tabs"></nav>
 </div>
@@ -252,8 +252,7 @@ const UPS=[
  {k:'design',n:'Shop-Design Pro',e:'🎨',c:1200,d:'+15 % Conversion'},
  {k:'checkout',n:'1-Klick-Checkout',e:'⚡',c:800,d:'+10 % Conversion',req:'design'},
  {k:'trusted',n:'Trusted-Shops-Siegel',e:'🛡️',c:600,d:'+8 % Conversion, schützt vor Abmahnungen'},
- {k:'email',n:'E-Mail-Flows & Popup',e:'📧',c:1500,d:'Doppelt so viele Newsletter-Anmeldungen, mehr Wiederkäufe'},
- {k:'abo',n:'Abo-System',e:'🔁',c:2500,d:'Viel höhere Wiederkaufrate, weniger Kundenschwund'},
+ {k:'abo',hide:true,n:'Abo-System',e:'🔁',c:2500,d:'Viel höhere Wiederkaufrate, weniger Kundenschwund'},
  {k:'lab',n:'Laborzertifikat',e:'🔬',c:3000,d:'Schaltet Bio-Lab-Qualität frei, Rating +0,12'},
  {k:'seo',n:'SEO-Blog & Ratgeber',e:'📝',c:2000,d:'Dauerhaft mehr organische Besucher'},
  {k:'amazon',n:'Amazon-Store',e:'📦',c:1800,d:'Neuer Traffic-Kanal (15 % Gebühr)'},
@@ -285,18 +284,37 @@ const ACH=[
 ];
 
 
+const WD=['Mo','Di','Mi','Do','Fr','Sa','So'];
+const MAILF=[
+ {k:'lead',n:'Lead-Magnet',e:'🎁',c:600,d:'E-Book & 10-%-Code im Popup: doppelt so viele Newsletter-Anmeldungen.'},
+ {k:'welcome',n:'Willkommens-Flow',e:'👋',c:900,d:'3 automatische Mails an neue Abonnenten und die ersten Käufe kommen von allein.'},
+ {k:'cart',n:'Warenkorb-Abbruch-Flow',e:'🛒',c:1200,d:'Holt Käufer zurück, die im Checkout abgesprungen sind (ca. +5 % Käufe).'},
+ {k:'win',n:'Reaktivierungs-Flow',e:'💤',c:1000,d:'Weckt inaktive Kunden auf und sorgt für Wiederkäufe.'},
+ {k:'seg',n:'Segmentierung',e:'🎯',c:1800,d:'Zielgruppen-Mails: 50 % mehr Klicks, weniger Abmeldungen.'},
+];
+const CAMP=[
+ {k:'news',n:'Newsletter',e:'📰',cost:15,open:.28,click:.12,health:.12,d:'Neuigkeiten, Tipps und neue Produkte.'},
+ {k:'deal',n:'Rabatt-Mail',e:'🏷️',cost:15,open:.34,click:.18,health:.2,promo:.15,d:'−15 % für 2 Tage. Viel Umsatz, aber weniger Marge.'},
+ {k:'story',n:'Marken-Story',e:'💖',cost:15,open:.30,click:.08,health:.06,aw:.8,d:'Schont die Liste und baut Bindung und Bekanntheit auf.'},
+ {k:'abo',n:'Abo-Angebot',e:'🔁',cost:15,open:.30,click:.10,health:.12,subconv:.03,need:'abo',d:'Wandelt 3 % deiner Kunden in Abonnenten um.'},
+];
+const SUBF=[
+ {k:'pause',n:'Flexibel pausieren',e:'⏸️',c:1200,d:'Kunden setzen Lieferungen aus statt zu kündigen: Churn −2 Prozentpunkte.'},
+ {k:'gift',n:'Treue-Geschenk',e:'🎁',c:2000,d:'Gratis-Shaker nach 3 Monaten (0,80 € pro Abo und Monat): Churn −2 Prozentpunkte.'},
+ {k:'box',n:'Abo-Box',e:'📦',c:3000,d:'Kuratiertes Bundle: +30 % Abo-Abschlüsse, +15 % mehr Lieferungen.'},
+];
 /* ================= State ================= */
 let S=null;
-const ui={tab:'home',mtab:'social',plat:'tt',speed:0,sheet:null,modal:false,interacting:false,ev:null,week:false,sound:true,open:{},homeSig:'',cashShown:0,lastSpeed:1};
+const ui={tab:'home',mtab:'social',plat:'tt',speed:0,sheet:null,modal:false,interacting:false,ev:null,report:null,until:null,sound:true,open:{},homeSig:'',cashShown:0,lastSpeed:1};
 function newState(brand,emoji,arch,color,founder){
  const prod={};
  Object.keys(PRODUCTS).forEach(id=>prod[id]={unlocked:id==='whey',price:PRODUCTS[id].ref,stock:0,qsum:0,costSum:0,lastQ:1,oos:false,ema:0,ord:{tier:1,bi:1},auto:true});
- return {v:2,brand,emoji,arch,color:color||'#ff6a3d',founder:founder||'🧑‍💼',day:0,cash:8000,loan:0,owned:1,rounds:0,
+ return {v:3,hour:8,stopMode:'off',sub:{n:0,disc:.1,feat:{},hist:[],miss:0,churnM:.1,conv:0},mail:{health:1,feat:{},hist:[]},mailDeal:{pct:0,days:0},fracS:{},logN:0,logSeen:0,brand,emoji,arch,color:color||'#ff6a3d',founder:founder||'🧑‍💼',day:0,cash:8000,loan:0,owned:1,rounds:0,
   fol:{ig:120,tt:0,yt:0},email:0,awareness:2,rating:4.0,customers:0,
   totalOrders:0,totalRev:0,prod,batches:[],frac:{},fracR:{},
   cp:3,postScore:0,staff:{},cand:{},up:{},office:0,perks:{},eventCool:0,
   ads:{meta:{budget:0,fat:0,eff:.4},tt:{budget:0,fat:0,eff:.4},google:{budget:0,fat:0,eff:.4}},
-  plan:{ig:{n:0,f:'mix',acc:0},tt:{n:0,f:'mix',acc:0},yt:{n:0,f:'mix',acc:0}},feed:[],campHist:[],partners:[],weekStop:true,buyDays:14,
+  plan:{ig:{n:0,f:'mix',acc:0},tt:{n:0,f:'mix',acc:0},yt:{n:0,f:'mix',acc:0}},feed:[],campHist:[],partners:[],buyDays:14,
   infl:[],camps:[],bursts:[],promo:{pct:0,days:0,cool:0},mailCool:0,mkt:{ref:1,until:0},cogMod:{m:1,until:0},
   hist:[],log:[],ach:{},mis:{claimed:{},seen:{}},reviews:[],bill:null,
   stats:{ordered:0,posts:0,infl:0,mails:0,viral:0,mega:0,partnered:0},last:{},ch:{},lastSrc:[],
@@ -304,12 +322,14 @@ function newState(brand,emoji,arch,color,founder){
 }
 function migrate(s){
  const d=newState('x','x','hardcore');
- ['plan','feed','campHist','partners','weekStop','buyDays','inflHeat','cand','office','perks','mis','reviews','bill','color','founder'].forEach(k=>{if(s[k]===undefined)s[k]=d[k];});
+ ['plan','feed','campHist','partners','buyDays','inflHeat','cand','office','perks','mis','reviews','bill','color','founder','hour','stopMode','sub','mail','mailDeal','fracS','logN','logSeen'].forEach(k=>{if(s[k]===undefined)s[k]=d[k];});
+ if(s.up.email){s.mail.feat.lead=true;s.mail.feat.welcome=true;delete s.up.email;}
+ delete s.weekStop;
  s.stats=Object.assign({},d.stats,s.stats);
  Object.keys(PRODUCTS).forEach(id=>{const p=s.prod[id];if(!p.ord)p.ord={tier:1,bi:1};if(p.auto===undefined)p.auto=true;});
  for(const k in s.ads)if(s.ads[k].eff===undefined)s.ads[k].eff=1;
  for(const k of Object.keys(s.staff)){if(s.staff[k]===true){const R=ROLES.find(r=>r.k===k);s.staff[k]=mkCand(k,R&&R.base,s);s.staff[k].since=s.day;s.staff[k].promoAt=s.day+90;}else if(s.staff[k]===false)delete s.staff[k];}
- s.v=2;return s;
+ s.v=3;return s;
 }
 const A=()=>ARCH[S.arch];
 const unlockedIds=()=>Object.keys(PRODUCTS).filter(id=>S.prod[id].unlocked);
@@ -339,8 +359,8 @@ function updateStaff(){
  for(const k of Object.keys(S.staff)){const e=S.staff[k];
   e.mood=clamp(e.mood+(moodTarget(e)-e.mood)*.04,0,100);
   e.low=e.mood<20?(e.low||0)+1:0;
-  if(e.low>=14){delete S.staff[k];log(`🚪 ${e.name} (${ROLES.find(r=>r.k===k).n}) hat gekündigt – die Stimmung war am Boden.`,'bad');toast(`🚪 ${esc(e.name)} hat gekündigt`);continue;}
-  if(S.day>=e.promoAt&&e.lvl<3&&e.mood>=45){e.lvl++;e.sal=Math.round(e.sal*1.2/10)*10;e.promoAt=S.day+90*e.lvl;log(`🎖️ ${e.name} ist auf Level ${e.lvl} aufgestiegen (Gehalt ${fmt(e.sal)}).`,'good');toast(`🎖️ <b>${esc(e.name)}</b> ist jetzt Level ${e.lvl}!`);ui.celebrate=1;}
+  if(e.low>=14){delete S.staff[k];log(`🚪 ${e.name} (${ROLES.find(r=>r.k===k).n}) hat gekündigt – die Stimmung war am Boden.`,'bad',1);continue;}
+  if(S.day>=e.promoAt&&e.lvl<3&&e.mood>=45){e.lvl++;e.sal=Math.round(e.sal*1.2/10)*10;e.promoAt=S.day+90*e.lvl;log(`🎖️ ${e.name} ist auf Level ${e.lvl} aufgestiegen (Gehalt ${fmt(e.sal)}).`,'good',1);ui.celebrate=1;}
  }
 }
 
@@ -351,13 +371,16 @@ const ratingFromQ=q=>3.9+(q-1)*.425;
 const season=()=>SEASON[monthIdx()];
 const trust=()=>clamp(.75+(S.rating-3.6)*.4,.5,1.3);
 const shopMult=()=>1+(S.up.design?.15:0)+(S.up.checkout?.10:0)+(S.up.trusted?.08:0)+.08*E('design');
-const baseCR=()=>.03*season()*shopMult()*trust()*(1+S.awareness*.004)*(1+.02*(unlockedIds().length-1))*(S.promo.days>0?1.12:1);
+const baseCR=()=>.03*season()*shopMult()*trust()*(1+S.awareness*.004)*(1+.02*(unlockedIds().length-1))*(S.promo.days>0||S.mailDeal.days>0?1.12:1);
 function avgQ(id){const p=S.prod[id];return p.stock>0?p.qsum/p.stock:(p.lastQ||1);}
 const refPrice=id=>PRODUCTS[id].ref*qualMult(avgQ(id))*(1+S.awareness*.003)*A().ref*S.mkt.ref;
-const effPrice=id=>S.prod[id].price*(S.promo.days>0?1-S.promo.pct:1);
+const effPrice=id=>S.prod[id].price*(1-Math.max(S.promo.days>0?S.promo.pct:0,S.mailDeal.days>0?S.mailDeal.pct:0));
 const priceFactor=id=>clamp(Math.pow(refPrice(id)/effPrice(id),A().el),.05,3);
 const unitCost=(id,t,bi)=>PRODUCTS[id].cost*TIERS[t].c*BATCHES[bi].m*A().cogs*S.cogMod.m*(S.up.fabrik?.82:1)*(1-.04*E('buyer'));
-const repeatRate=()=>.008+(S.up.abo?.008:0)+(S.up.email?.003:0)+clamp(S.rating-4,-.5,.8)*.006;
+const repeatRate=()=>.008+(S.mail.feat.win?.003:0)+clamp(S.rating-4,-.5,.8)*.006;
+const signupRate=()=>.015*(S.mail.feat.lead?1.8:1);
+function subUnits(){const u=unlockedIds(),ps=u.reduce((a,id)=>a+popOf(id),0);return u.reduce((a,id)=>a+popOf(id)/ps*S.prod[id].price,0);}
+const mrr=()=>S.sub.n*(S.sub.feat.box?1.15:1)*subUnits()*(1-S.sub.disc);
 const fulfilCost=()=>3.6*(S.up.tpl?.65:1)*(1-.12*E('wh'));
 const cpCap=()=>3+(S.staff.creator?1:0)+(S.up.studio?1:0);
 const cpRegen=()=>.5+.35*E('creator');
@@ -372,7 +395,8 @@ function runRate(){const h=S.hist.slice(-60);return h.length?h.reduce((a,x)=>a+x
 function sum(n,key){return S.hist.slice(-n).reduce((a,x)=>a+x[key],0);}
 function valuation(){
  const rr=runRate(),h=S.hist.slice(-60),prof=h.reduce((a,x)=>a+x.profit,0),margin=rr?prof/h.length*365/rr:0;
- const m=clamp(.3+S.awareness/110+clamp(S.rating-4,-.5,.8)*.8+(margin>.1?.6:margin>0?.2:-.3)+(S.office>=4?.25:S.office>=3?.1:0),.3,3);
+ const sr=sum(30,'rev'),subShare=sr>0?Math.min(.6,(S.sub.n>0?mrr()/sr:0)):0;
+ const m=clamp(.3+S.awareness/110+subShare*.4+clamp(S.rating-4,-.5,.8)*.8+(margin>.1?.6:margin>0?.2:-.3)+(S.office>=4?.25:S.office>=3?.1:0),.3,3);
  return Math.max(0,rr*m+Math.max(0,S.cash)*.8+invValue()*.6-S.loan);
 }
 const stage=()=>{const v=S.val;return v<25000?'🏠 Garage':v<150000?'🚀 Startup':v<1e6?'📈 Scale-up':v<GOAL?'🏢 Marktführer':'🦄 Einhorn';};
@@ -391,8 +415,9 @@ function billLines(){
 }
 
 /* ================= Log / Toast / Sound / FX ================= */
-function log(msg,type=''){S.log.push({d:S.day,msg,type});if(S.log.length>120)S.log.shift();}
-function toast(msg){const tb=$('#toasts'),el=document.createElement('div');el.className='toast';el.innerHTML=msg;tb.appendChild(el);while(tb.children.length>3)tb.firstChild.remove();setTimeout(()=>el.remove(),3800);}
+function log(msg,type='',imp){S.log.push({d:S.day,msg,type,imp:!!imp});S.logN++;if(S.log.length>120)S.log.shift();}
+const unread=()=>Math.min(99,Math.max(0,S.logN-S.logSeen));
+let tt=null;function toast(msg){const tb=$('#toasts');tb.innerHTML='';const el=document.createElement('div');el.className='toast';el.innerHTML=msg;tb.appendChild(el);clearTimeout(tt);tt=setTimeout(()=>el.remove(),2200);}
 function addAw(x){S.awareness=clamp(S.awareness+x*(1-S.awareness/100),0,100);}
 function pay(c){if(S.cash<c){toast('❌ Nicht genug Cash ('+fmt(c)+' nötig)');sfx('err');return false;}S.cash-=c;return true;}
 let AC=null;
@@ -410,8 +435,12 @@ function confetti(n=26){
 function fx(txt,cls){const L=$('#fx');if(!L)return;const el=document.createElement('span');el.className='fxi '+(cls||'');el.textContent=txt;el.style.left=(6+Math.random()*80)+'%';el.style.bottom=(8+Math.random()*30)+'%';L.appendChild(el);el.addEventListener('animationend',()=>el.remove());setTimeout(()=>el.remove(),2400);}
 function dayFx(){
  const d=ui.fxq;ui.fxq=null;if(!d||ui.speed>2||ui.tab!=='home')return;
- const n=Math.min(5,Math.round(d.orders));for(let i=0;i<n;i++)setTimeout(()=>fx(pick(['📦','📦','🛍️']),''),i*220);
  if(d.rev>0){setTimeout(()=>fx('+'+fmt(d.rev),'coin'),150);sfx('coin');}
+}
+function hourFx(){
+ if(ui.speed>2||ui.tab!=='home'||ui.modal||S.hour<8||S.hour>21)return;
+ const last=S.hist[S.hist.length-1];if(!last)return;const p=last.orders/14,n=Math.min(3,Math.floor(p)+(Math.random()<p%1?1:0));
+ for(let i=0;i<n;i++)setTimeout(()=>fx(pick(['📦','📦','🛍️','💶']),''),i*220);
 }
 
 /* ================= Influencer ================= */
@@ -445,7 +474,7 @@ function makePost(plat,fk,auto){
  g=Math.round(g);S.fol[plat]+=g;addAw(F.aw*(viral?4:1));if(fk==='edu')S.rating=Math.min(5,S.rating+.01);
  S.postScore+=1;S.stats.posts++;S.dayMkt+=F.cost;
  S.feed.unshift({d:S.day,p:plat,f:fk,g,viral,auto:!!auto});if(S.feed.length>14)S.feed.pop();
- if(viral){toast(`🔥 <b>VIRAL!</b> ${F.e} ${F.n} auf ${P.n}: +${num(g)} Follower`);log(`🔥 Viral auf ${P.n}: +${num(g)} Follower`,'good');sfx('win');buzz(40);confetti(18);}
+ if(viral){if(!auto)toast(`🔥 <b>VIRAL!</b> ${F.e} ${F.n} auf ${P.n}: +${num(g)} Follower`);log(`🔥 Viral auf ${P.n}: +${num(g)} Follower`,'good',1);sfx('win');buzz(40);confetti(18);}
  else if(!auto){toast(`${F.e} ${P.n}: <b>+${num(g)}</b> Follower`);sfx('pop');}
  return g;
 }
@@ -476,14 +505,14 @@ function addReview(orders,stockouts){
 /* Missionen */
 const misCur=()=>MIS.filter(m=>!S.mis.claimed[m.id]);
 const misDone=m=>{const [c,t]=m.n();return c>=t;};
-function checkMis(){for(const m of misCur().slice(0,3)){if(misDone(m)&&!S.mis.seen[m.id]){S.mis.seen[m.id]=1;toast(`🎯 Mission geschafft: <b>${m.t}</b> – Belohnung abholen!`);sfx('claim');buzz(25);}}}
+function checkMis(){for(const m of misCur().slice(0,3)){if(misDone(m)&&!S.mis.seen[m.id]){S.mis.seen[m.id]=1;log(`🎯 Mission geschafft: ${m.t} – Belohnung im Büro abholen!`,'good',1);sfx('claim');}}}
 
 /* ================= Tagesschritt ================= */
 function stepDay(){
  const D={rev:0,cogs:0,fees:0,ads:0,mkt:S.dayMkt||0,fixed:0,orders:0,units:0,visitors:0,missed:0};
  S.dayMkt=0;S.day++;
  if(S.promo.days>0){S.promo.days--;if(S.promo.days===0){S.promo.pct=0;log('🏷️ Rabattaktion beendet');}}
- if(S.promo.cool>0)S.promo.cool--;if(S.mailCool>0)S.mailCool--;
+ if(S.promo.cool>0)S.promo.cool--;if(S.mailCool>0)S.mailCool--;if(S.mailDeal.days>0){S.mailDeal.days--;if(!S.mailDeal.days)S.mailDeal.pct=0;}S.mail.health=Math.min(1,S.mail.health+.03);
  if(S.mkt.until&&S.day>S.mkt.until){S.mkt={ref:1,until:0};log('📈 Der Preisdruck im Markt lässt nach.');}
  if(S.cogMod.until&&S.day>S.cogMod.until){S.cogMod={m:1,until:0};log('📉 Rohstoffpreise normalisieren sich.');}
  S.cp=Math.min(cpCap(),S.cp+cpRegen());S.postScore*=.92;S.inflHeat*=.97;
@@ -498,9 +527,12 @@ function stepDay(){
  if(S.up.amazon)src.push({k:'amazon',l:'Amazon',v:15+aw*2.5,cm:1.1,fee:.15});
  let avail=Math.max(0,S.cash);const totB=Object.values(S.ads).reduce((a,x)=>a+x.budget,0),sc=totB>avail?avail/totB:1;
  for(const k in ADCH){const a=S.ads[k];if(a.budget>0&&sc>0){const b=a.budget*sc,cpc=ADCH[k].cpc*Math.pow(1+a.budget/400,.6)*(1+a.fat*.8)*cpcMult();src.push({k:'ad_'+k,l:ADCH[k].n,v:b/cpc*(a.eff||1),cm:ADCH[k].cm*(1-a.fat*.3),spend:b,ad:k});D.ads+=b;a.fat=Math.min(1,a.fat+.005*(1-.5*Math.min(1,E('perf'))));a.eff=Math.min(1,(a.eff||.4)+.1);if(E('perf')>0&&a.fat>.6&&S.cash>1000){a.fat=0;S.cash-=150;D.mkt+=150;}}else{a.fat=Math.max(0,a.fat-.02);a.eff=.4;}}
- S.bursts=S.bursts.filter(b=>b.days>0);S.bursts.forEach(b=>{src.push({k:'burst',l:b.label,v:b.per,cm:b.cm});b.days--;});
+ S.bursts=S.bursts.filter(b=>b.days>0);S.bursts.forEach(b=>{src.push({k:'burst',l:b.label,v:b.per,cm:b.cm,ref:b.ref});b.days--;});
  S.camps.forEach(c=>{const sh=SHAPE[c.day]||0;src.push({k:'infl',l:'Influencer '+c.handle,v:c.tv*sh,cm:.8*c.fit,camp:c});});
  S.partners.forEach(p=>src.push({k:'partner',l:'Partner '+p.handle,v:p.vis*rnd(.85,1.15),cm:.8*p.fit,partner:p}));
+ const baseV=src.reduce((a,s)=>a+s.v,0),signups=baseV*signupRate(),mf=S.mail.feat;let fv=0;
+ if(mf.welcome)fv+=signups*1.5;if(mf.cart)fv+=baseV*.05;if(mf.win)fv+=S.email*.0025+S.customers*.002;
+ if(fv>0)src.push({k:'flows',l:'E-Mail-Flows',v:fv,cm:1.8});
  const CR=baseCR();let totalV=0,demO=0;
  const sat=Math.max(.1,1-S.totalOrders*.9/150000);
  src.forEach(s=>{s.o=s.v*s.cm*CR*sat;totalV+=s.v;demO+=s.o;});
@@ -511,7 +543,7 @@ function stepDay(){
   const dN=demO*cross*w*pf*rnd(.8,1.2),dR=S.customers*rate*w*Math.pow(pf,.7)*rnd(.85,1.15);
   const fN=(S.frac[id]||0)+dN,fR=(S.fracR[id]||0)+dR,uN=Math.floor(fN),uR=Math.floor(fR);S.frac[id]=fN-uN;S.fracR[id]=fR-uR;
   const want=uN+uR,sold=Math.min(want,Math.floor(p.stock));D.missed+=want-sold;
-  if(p.stock<1){stockouts++;if(!p.oos&&S.totalOrders>0){p.oos=true;log(`⚠️ Ausverkauft: ${PRODUCTS[id].n}!`,'bad');sfx('err');}}
+  if(p.stock<1){stockouts++;if(!p.oos&&S.totalOrders>0){p.oos=true;log(`⚠️ Ausverkauft: ${PRODUCTS[id].n}!`,'bad',1);}}
   if(sold>0){
    const ac=p.costSum/p.stock,aq=p.qsum/p.stock,sN=want?Math.round(sold*uN/want):0;
    p.stock-=sold;p.costSum=Math.max(0,p.costSum-ac*sold);p.qsum=Math.max(0,p.qsum-aq*sold);if(p.stock<1){p.stock=0;p.costSum=0;p.qsum=0;}
@@ -520,20 +552,36 @@ function stepDay(){
   p.ema=p.ema*.9+sold*.1;
   if(S.up.retail&&p.stock>=1){const rq=Math.min(Math.floor(p.stock),Math.round(S.awareness*.6*trust()*w*rnd(.8,1.2)));if(rq>0){const ac=p.costSum/p.stock,aq=p.qsum/p.stock,rp=refPrice(id)*.5;p.stock-=rq;p.costSum=Math.max(0,p.costSum-ac*rq);p.qsum=Math.max(0,p.qsum-aq*rq);if(p.stock<1){p.stock=0;p.costSum=0;p.qsum=0;}D.rev+=rq*rp;D.cogs+=rq*ac;retailRev+=rq*rp;retailU+=rq;qSum+=aq*rq;soldU+=rq;}}
  }
- const online=D.rev-retailRev,onlineU=soldU-retailU;D.units=soldU;
- const orders=onlineU/cross,newOrders=soldNewU/cross;D.orders=orders;D.visitors=totalV;
+ let subOrders=0,subRev=0;S.sub.miss=0;
+ if(S.up.abo&&S.sub.n>=1){
+  const tot=S.sub.n/30*(S.sub.feat.box?1.15:1)*rnd(.9,1.1);let miss=0;
+  for(const id of unl){const p=S.prod[id],w=popOf(id)/popSum,f=(S.fracS[id]||0)+tot*w,u=Math.floor(f);S.fracS[id]=f-u;const sold=Math.min(u,Math.floor(p.stock));miss+=u-sold;
+   if(sold>0){const ac=p.costSum/p.stock,aq=p.qsum/p.stock,pr=p.price*(1-S.sub.disc);p.stock-=sold;p.costSum=Math.max(0,p.costSum-ac*sold);p.qsum=Math.max(0,p.qsum-aq*sold);if(p.stock<1){p.stock=0;p.costSum=0;p.qsum=0;}D.rev+=sold*pr;D.cogs+=sold*ac;subRev+=sold*pr;subOrders+=sold;soldU+=sold;qSum+=aq*sold;}}
+  S.sub.miss=miss;if(miss>0&&S.day%5===0)log(`⚠️ ${num(miss)} Abo-Lieferungen konnten nicht rausgehen – Ware fehlt!`,'bad',1);
+ }
+ const online=D.rev-retailRev-subRev,onlineU=soldU-retailU-subOrders;D.units=soldU;
+ const orders=onlineU/cross,newOrders=soldNewU/cross;D.orders=orders+subOrders;D.visitors=totalV;D.subRev=subRev;
  let amzShare=0;
  src.forEach(s=>{const sh=demO>0?s.o/demO:0;s.ord=newOrders*sh;s.rev=revNew*sh;if(s.fee)amzShare+=sh;});
- D.fees=orders*(fulfilCost()+.25)+online*(.019+Math.max(.008,.025-.013*E('support')))+revNew*amzShare*.15;
+ D.fees=orders*(fulfilCost()+.25)+online*(.019+Math.max(.008,.025-.013*E('support')))+revNew*amzShare*.15+subOrders*(fulfilCost()*.85+.25)+subRev*.019;
  src.forEach(s=>{const c=S.ch[s.k]||(S.ch[s.k]={v:0,o:0,r:0,sp:0});c.v+=s.v;c.o+=s.ord;c.r+=s.rev;c.sp+=s.spend||0;
   if(s.camp){s.camp.visitors+=s.v;s.camp.orders+=s.ord;s.camp.rev+=s.rev;const g=s.camp.gain*(SHAPE[s.camp.day]||0);S.fol[s.camp.plat]+=g;s.camp.fol+=g;const b0=S.awareness;addAw(s.camp.aw*.6*(SHAPE[s.camp.day]||0));s.camp.awg=(s.camp.awg||0)+S.awareness-b0;}
   if(s.partner){const p=s.partner;p.visitors+=s.v;p.orders+=s.ord;p.rev+=s.rev;S.fol[p.plat]+=p.followers*.00004*p.fit;addAw(.04*p.fit);}
+  if(s.ref){s.ref.visitors+=s.v;s.ref.orders+=s.ord;s.ref.rev+=s.rev;}
   if(s.ad){const a=ADCH[s.ad];addAw(s.v*a.aw*.6);if(s.ad==='meta')S.fol.ig+=s.v*.008;if(s.ad==='tt')S.fol.tt+=s.v*.01;}});
  S.camps.forEach(c=>{c.day++;});
  const done=S.camps.filter(c=>c.day>=5);S.camps=S.camps.filter(c=>c.day<5);
  done.forEach(c=>{const roi=c.rev/c.price;S.campHist.unshift({id:c.id,handle:c.handle,tier:c.tier,plat:c.plat,followers:c.followers,fit:c.fit,eng:c.eng||.03,price:c.price,visitors:c.visitors,orders:c.orders,rev:c.rev,fol:c.fol,aw:c.awg||0,scandal:c.scandal,day:S.day,partner:false});if(S.campHist.length>15)S.campHist.pop();log(`🤝 ${c.handle}: ${num(c.visitors)} Besucher, ~${num(c.orders)} Bestellungen (≈${fmt(c.rev)} Umsatz), +${num(c.fol)} Follower – ${c.scandal?'Skandal! 😬':roi>=1.5?'Volltreffer 🎯':roi>=.8?'okay 👍':'Flop 📉'}`,roi>=.8?'good':'warn');});
- S.customers=(S.customers+newOrders*.92)*(1-(.009-(S.up.abo?.002:0)));
- S.email=S.email*.999+totalV*(S.up.email?.045:.015);
+ S.customers=(S.customers+newOrders*.92)*(1-.009);
+ S.email=S.email*.999+signups;
+ if(S.up.abo){
+  const sRate=Math.min(.35,(.04+S.sub.disc*1.1)*(S.sub.feat.box?1.3:1)*(.85+.3*trust())),conv=Math.min(S.customers,newOrders*.92*sRate);
+  S.customers-=conv;S.sub.n+=conv;S.sub.conv=conv;
+  const churnM=Math.max(.02,clamp(.10-(S.rating-4)*.05,.04,.16)-(S.sub.feat.pause?.02:0)-(S.sub.feat.gift?.02:0)-.01*Math.min(1.5,E('support'))+(S.sub.miss>0?.08*Math.min(1,S.sub.miss/Math.max(1,S.sub.n/30)):0));
+  const ch=S.sub.n*churnM/30;S.sub.n-=ch;S.customers+=ch*.4;S.sub.churnM=churnM;
+  if(S.sub.feat.gift){const g=S.sub.n*.8/30;S.cash-=g;D.mkt+=g;}
+  S.sub.hist.push(Math.round(S.sub.n));if(S.sub.hist.length>90)S.sub.hist.shift();
+ }
  addAw(newOrders*.005);S.awareness*=.992;
  S.fol.ig*=.9995;S.fol.tt*=.9995;S.fol.yt*=.9995;
  S.totalOrders+=orders;S.totalRev+=D.rev;
@@ -545,16 +593,16 @@ function stepDay(){
   const L=billLines();let f=L.reduce((a,x)=>a+x[1],0);
   const preProfit=sum(29,'profit')+(D.rev-D.cogs-D.fees-D.ads-D.mkt-f),tax=Math.max(0,preProfit)*.2;
   S.bill={day:S.day,lines:L,tax,total:f+tax};D.fixed=f+tax;
-  log(`🧾 Monatsabrechnung: ${fmt(f+tax)} (Miete, Gehälter, Tools${tax?', Steuern '+fmt(tax):''})`,'warn');
+  log(`🧾 Monatsabrechnung: ${fmt(f+tax)} (Miete, Gehälter, Tools${tax?', Steuern '+fmt(tax):''})`,'warn',1);
  }
  S.cash+=D.rev-D.fees-D.ads-D.fixed;
  const profit=D.rev-D.cogs-D.fees-D.ads-D.mkt-D.fixed;
- S.hist.push({d:S.day,rev:D.rev,cogs:D.cogs,fees:D.fees,ads:D.ads,mkt:D.mkt,fixed:D.fixed,orders:D.orders,visitors:D.visitors,units:D.units,profit,cash:S.cash});
+ S.hist.push({d:S.day,rev:D.rev,cogs:D.cogs,fees:D.fees,ads:D.ads,mkt:D.mkt,fixed:D.fixed,orders:D.orders,visitors:D.visitors,units:D.units,subRev:D.subRev||0,profit,cash:S.cash});ui.lastSignups=signups;
  if(S.hist.length>420)S.hist.shift();
  S.lastSrc=src.map(s=>({l:s.l,v:s.v,o:s.ord}));
- S.val=valuation();ui.fxq={orders:D.orders,rev:D.rev};
+ S.val=valuation();ui.fxq={orders:D.orders,rev:D.rev};ui.lastDay={rev:D.rev,orders:D.orders,profit:profit};
  autoBuy();
- for(const a of ACH){if(!S.ach[a[0]]&&a[3]()){S.ach[a[0]]=S.day;toast(`${a[1]} Erfolg: <b>${a[2]}</b>`);log(`${a[1]} Erfolg freigeschaltet: ${a[2]}`,'good');}}
+ for(const a of ACH){if(!S.ach[a[0]]&&a[3]()){S.ach[a[0]]=S.day;log(`${a[1]} Erfolg freigeschaltet: ${a[2]}`,'good',1);}}
  checkMis();
  if(S.cash<0)S.negDays++;else S.negDays=0;
  if(S.negDays>=10){S.over=true;ui.speed=0;openSheet('over');return;}
@@ -562,7 +610,6 @@ function stepDay(){
  if(S.day%360===324&&!S.last['bf'+Math.floor(S.day/360)]){S.last['bf'+Math.floor(S.day/360)]=1;openEvent(EVENTS.find(e=>e.k==='bf'));}
  else if(S.evCool>0)S.evCool--;
  else if(S.day>=10&&Math.random()<.07){const e=pick(EVENTS.filter(x=>x.k!=='bf'&&x.ok()));if(e){S.evCool=10;openEvent(e);}}
- if(S.weekStop&&S.day%7===0&&!S.over){ui.speed=0;ui.week=true;}
  if(S.day%5===0)save();
 }
 /* ================= Ereignisse ================= */
@@ -610,17 +657,21 @@ const EVENTS=[
 function openEvent(e){if(!e)return;const ev=e.make();ui.ev=ev;ui.speedBefore=ui.speed||ui.lastSpeed||1;ui.speed=0;buzz(30);openSheet('event');}
 /* ================= Aktionen ================= */
 function setSpeed(s){
- ui.speed=s;if(s>0){ui.lastSpeed=s;ui.week=false;schedule();}
+ ui.speed=s;if(s>0){ui.lastSpeed=s;ui.report=null;schedule();}else ui.until=null;
  updateHud();render();
 }
 const ACT={
  play(){if(S.over)return;setSpeed(ui.speed>0?0:(ui.lastSpeed||1));},
- spd(){const n=ui.speed>0?(ui.speed%3)+1:(ui.lastSpeed%3)+1;ui.lastSpeed=n;setSpeed(n);},
- snd(){ui.sound=!ui.sound;try{localStorage.setItem('bt.sound',ui.sound?'1':'0');}catch(e){}if(ui.sound)sfx('pop');updateHud();},
+ spd(){const n=ui.speed>0?(ui.speed%4)+1:(ui.lastSpeed%4)+1;ui.lastSpeed=n;setSpeed(n);},
+ nextday(){ui.until='day';setSpeed(ui.lastSpeed||1);},
+ nextweek(){ui.until='week';setSpeed(ui.lastSpeed||1);},
+ settings(){openSheet('settings');},
+ stopmode(d){S.stopMode=d.v;renderSheet();},
+ snd(){ui.sound=!ui.sound;try{localStorage.setItem('bt.sound',ui.sound?'1':'0');}catch(e){}if(ui.sound)sfx('pop');updateHud();if(ui.sheetKind==='settings')renderSheet();},
  tab(d){ui.tab=d.t;render(true);$('#main').scrollTop=0;},
  mtab(d){ui.mtab=d.t;render(true);},
  plat(d){ui.plat=d.p;render(true);},
- log(){openSheet('log');},
+ log(){S.logSeen=S.logN;openSheet('log');updateHud();},
  go(d){closeSheet();ui.tab=d.t;if(d.m)ui.mtab=d.m;render(true);},
  /* Produkte */
  order(d){ui.sh={id:d.id,tier:S.prod[d.id].ord.tier,bi:S.prod[d.id].ord.bi};openSheet('order');},
@@ -638,7 +689,17 @@ const ACT={
  planf(d){S.plan[d.p].f=d.v;render(true);},
  adrefresh(d){if(!pay(150))return;S.ads[d.k].fat=0;S.dayMkt+=150;toast('🎨 Neue Creatives – Anzeigen wieder frisch.');render(true);},
  hirei(d){hireInfl(d.id);checkMis();render(true);},
- mail(){if(S.mailCool>0||S.email<50)return;if(!pay(15))return;S.mailCool=3;S.dayMkt+=15;S.stats.mails++;S.bursts.push({per:S.email*.06,days:2,cm:1.8,label:'Newsletter'});addAw(.3);log(`📧 Newsletter an ${num(S.email)} Abonnenten verschickt`);sfx('pop');render(true);},
+ sendmail(d){const C=CAMP.find(x=>x.k===d.t);if(!C||S.mailCool>0||S.email<50||(C.need&&!S.up[C.need]))return;if(!pay(C.cost))return;
+  const h=S.mail.health,seg=S.mail.feat.seg?1.5:1,vis=S.email*C.open*C.click*3.5*h*seg,cm=C.k==='deal'?2.2:1.8;
+  const mc={id:Math.random().toString(36).slice(2,7),type:C.k,day:S.day,list:Math.round(S.email),visitors:0,orders:0,rev:0,cost:C.cost,planned:vis,health:h};S.mail.hist.unshift(mc);if(S.mail.hist.length>8)S.mail.hist.pop();
+  S.mailCool=2;S.dayMkt+=C.cost;S.stats.mails++;S.bursts.push({per:vis/2,days:2,cm,label:C.n,ref:mc});
+  S.email*=1-(.004+.02*(1-h))*(seg>1?.6:1);S.mail.health=Math.max(.15,h-C.health);
+  if(C.promo)S.mailDeal={pct:C.promo,days:2};if(C.aw)addAw(C.aw);
+  if(C.subconv&&S.up.abo){const conv=S.customers*C.subconv;S.customers-=conv;S.sub.n+=conv;toast(`🔁 ${num(conv)} neue Abonnenten!`);}
+  log(`${C.e} ${C.n} an ${num(S.email)} Abonnenten verschickt`);sfx('pop');checkMis();render(true);},
+ subdisc(d){S.sub.disc=+d.v;render(true);},
+ subfeat(d){const f=SUBF.find(x=>x.k===d.k);if(S.sub.feat[f.k]||!pay(f.c))return;S.sub.feat[f.k]=true;log(`${f.e} Abo-Feature: ${f.n}`,'good');sfx('win');save();render(true);},
+ mailfeat(d){const f=MAILF.find(x=>x.k===d.k);if(S.mail.feat[f.k]||!pay(f.c))return;S.mail.feat[f.k]=true;log(`${f.e} E-Mail-Feature: ${f.n}`,'good');sfx('win');save();render(true);},
  promo(d){if(S.promo.cool>0||S.promo.days>0)return;S.promo={pct:+d.p,days:3,cool:14};log(`🏷️ ${Math.round(+d.p*100)} % Rabatt-Aktion für 3 Tage gestartet`,'good');render(true);},
  partner(d){const h=S.campHist.find(x=>x.id===d.id);if(!h||h.partner)return;if(S.partners.length>=3){toast('Maximal 3 feste Partner');return;}const fee=Math.round(h.price*.7/10)*10;if(!pay(fee))return;S.partners.push({id:h.id,handle:h.handle,plat:h.plat,followers:h.followers,fit:h.fit,eng:h.eng,fee,vis:h.followers*h.eng*.5*h.fit*.045,since:S.day,visitors:0,orders:0,rev:0,fol:0});h.partner=true;S.stats.partnered++;log(`🤝 Feste Kooperation mit ${h.handle} (${fmt(fee)}/Monat)`,'good');sfx('hire');checkMis();save();render(true);},
  unpartner(d){const p=S.partners.find(x=>x.id===d.id);S.partners=S.partners.filter(x=>x.id!==d.id);const h=S.campHist.find(x=>x.id===d.id);if(h)h.partner=false;if(p)log(`👋 Kooperation mit ${p.handle} beendet`);render(true);},
@@ -654,21 +715,20 @@ const ACT={
  office(){const n=S.office+1,O=OFFICES[n];if(!O||!pay(O.cost))return;S.office=n;log(`🚚 Umzug: ${O.n} (${O.seats} Plätze, Lager ${num(O.cap)}).`,'good');toast(`${O.e} Willkommen im <b>${O.n}</b>!`);sfx('win');buzz(40);confetti(40);checkMis();save();ui.homeSig='';render(true);},
  perk(d){const p=PERKS.find(x=>x.k===d.k);if(S.perks[p.k]||!pay(p.c))return;S.perks[p.k]=true;log(`${p.e} Neu im Büro: ${p.n}`,'good');sfx('pop');ui.homeSig='';render(true);},
  teamevent(d){const c=+d.c;if((S.teamEvent||0)>S.day||!pay(c))return;S.teamEvent=S.day+30;for(const k in S.staff)S.staff[k].mood=Math.min(100,S.staff[k].mood+(c>1000?25:15));log(`🎳 Team-Event! Die Stimmung steigt.`,'good');confetti(24);sfx('win');render(true);},
- up(d){const u=UPS.find(x=>x.k===d.k);if(S.up[u.k])return;if(!pay(u.c))return;S.up[u.k]=true;log(`${u.e} Ausbau: ${u.n}`,'good');toast(`${u.e} <b>${u.n}</b> freigeschaltet`);sfx('win');save();render(true);},
+ up(d){const u=UPS.find(x=>x.k===d.k);if(!u||S.up[u.k])return;if(!pay(u.c))return;S.up[u.k]=true;log(`${u.e} Ausbau: ${u.n}`,'good');toast(`${u.e} <b>${u.n}</b> freigeschaltet`);sfx('win');save();render(true);},
  /* Finanzen */
  loan(d){const a=+d.amt,lim=5000+runRate()*.25;if(S.loan+a>lim){toast('🏦 Kreditlimit erreicht: '+fmt(lim));return;}S.loan+=a;S.cash+=a;log(`🏦 Kredit aufgenommen: ${fmt(a)}`);save();render(true);},
  repay(d){const a=Math.min(+d.amt,S.loan);if(!pay(a))return;S.loan-=a;log(`🏦 Kredit getilgt: ${fmt(a)}`);save();render(true);},
  invest(){const r=ROUNDS[S.rounds];if(!r||S.val<r.min)return;const cash=S.val*r.pct*.9;S.cash+=cash;S.owned*=(1-r.pct);S.rounds++;log(`📈 ${r.n}-Runde: ${fmt(cash)} für ${Math.round(r.pct*100)} % der Anteile`,'good');confetti(30);sfx('win');checkMis();save();render(true);},
  claim(d){const m=MIS.find(x=>x.id===d.id);if(!m||S.mis.claimed[m.id]||!misDone(m))return;S.mis.claimed[m.id]=1;S.cash+=m.r;S.dayMkt-=m.r;log(`🎯 Mission „${m.t}“ erfüllt: +${fmt(m.r)}`,'good');toast(`🎯 <b>+${fmt(m.r)}</b> Belohnung!`);sfx('claim');buzz(30);confetti(m.r>=3000?40:20);checkMis();save();render(true);},
- weekstop(){S.weekStop=!S.weekStop;render(true);},
  /* Spielstart */
  newgame(){openSheet('start',true);},
  pa(d){ui.pa=d.k;renderSheet();},pe(d){ui.pe=d.e;renderSheet();},pc(d){ui.pcol=d.c;renderSheet();},pf(d){ui.pfo=d.e;renderSheet();},
- start(){const n=($('#sn').value||'').trim()||'NovaFuel';S=newState(n.slice(0,20),ui.pe||'🔥',ui.pa||'hardcore',ui.pcol||'#ff6a3d',ui.pfo||'🧑‍💼');ui.tab='home';ui.week=false;ui.speed=0;ui.homeSig='';genInfluencers();S.val=valuation();log(`🎬 ${S.brand} wurde gegründet. Viel Erfolg!`,'good');closeSheet();ui.started=true;sfx('win');confetti(30);save();updateHud();render(true);},
+ start(){const n=($('#sn').value||'').trim()||'NovaFuel';S=newState(n.slice(0,20),ui.pe||'🔥',ui.pa||'hardcore',ui.pcol||'#ff6a3d',ui.pfo||'🧑‍💼');ui.tab='home';ui.report=null;ui.until=null;ui.speed=0;ui.homeSig='';genInfluencers();S.val=valuation();log(`🎬 ${S.brand} wurde gegründet. Viel Erfolg!`,'good');closeSheet();ui.started=true;sfx('win');confetti(30);save();updateHud();render(true);},
  cont(){S=migrate(loadSave());ui.started=true;ui.speed=0;closeSheet();ui.homeSig='';updateHud();render(true);},
  close(){closeSheet();},
  keep(){closeSheet();setSpeed(1);},
- choice(d){const c=ui.ev.choices[+d.i];closeSheet();c.f();ui.ev=null;save();setSpeed(ui.speedBefore||1);},
+ choice(d){const c=ui.ev.choices[+d.i];closeSheet();c.f();ui.ev=null;save();if(ui.report){updateHud();render(true);}else setSpeed(ui.speedBefore||1);},
 };
 const INP={
  price(el){const id=el.dataset.id;S.prod[id].price=+el.value;const t=$('#pi-'+id);if(t)t.innerHTML=priceInfo(id);},
@@ -706,7 +766,8 @@ function hints(){
  else if(S.totalOrders>60&&!S.staff.creator&&S.cash>3000&&seatsUsed()<seatsMax())h.push(['🎤','Ein Social-Media-Manager postet für dich nach Wochenplan.','firma']);
  else if(n<3&&S.cash>2500)h.push(['🧪','Entwickle ein zweites Produkt: größerer Warenkorb, mehr Conversion.','prod']);
  else if(seatsUsed()>=seatsMax()&&S.office<4&&S.cash>OFFICES[S.office+1].cost)h.push(['🏢','Alle Plätze belegt. Zeit für ein größeres Büro!','firma']);
- else if(S.totalOrders>150&&!S.up.abo)h.push(['🔁','Ein Abo-System macht aus Kunden planbaren Umsatz.','firma']);
+ else if(S.totalOrders>120&&!S.up.abo)h.push(['🔁','Schalte das Abo-System frei: planbarer Umsatz jeden Monat.','mkt:crm']);
+ else if(S.email>150&&!S.mail.feat.welcome)h.push(['💌','Dein E-Mail-Verteiler wächst. Ein Willkommens-Flow macht daraus Käufe.','mkt:crm']);
  else if(S.val>60000&&!S.rounds)h.push(['📈','Investoren-Runde möglich: Anteile verkaufen, schneller wachsen.','fin']);
  return h;
 }
@@ -717,16 +778,17 @@ function coachLine(){
  const lines=[last?`Gestern ${num(last.orders)} Bestellungen und ${fmt(last.rev)} Umsatz. Weiter so!`:'Läuft!','Poste regelmäßig, sonst sinkt die organische Reichweite.','Achte auf deine Marge, nicht nur auf Umsatz.','Wiederkäufer sind dein Goldschatz. Qualität und Abos zahlen sich aus.','Ein gutes Team ist die halbe Miete. Halte die Stimmung hoch.'];
  return lines[S.day%lines.length];
 }
+const clockStr=()=>`${WD[S.day%7]} ${String(S.hour).padStart(2,'0')}:00`;
 function updateHud(){
  if(!S)return;
  $('#hlogo').textContent=S.emoji;$('#hname').textContent=S.brand;$('#hstage').textContent=stage()+' · '+ARCH[S.arch].n;
  document.documentElement.style.setProperty('--brand',S.color);
- $('#hweek').textContent=`📅 W${Math.floor(S.day/7)+1} · ${MONTHS[monthIdx()]}`;
- $('#hval').textContent='🏷️ '+(S.val>=1e6?(S.val/1e6).toFixed(2).replace('.',',')+' Mio. €':fmt(S.val));
+ const ck=$('#hclock');ck.innerHTML=`🕘 ${clockStr()} · Woche ${Math.floor(S.day/7)+1}<i style="width:${S.hour/24*100}%"></i>`;
  const cv=$('#cashv');cv.classList.toggle('neg',S.cash<0);tweenCash(cv);
- const bp=$('#bplay');bp.textContent=ui.speed>0?'⏸':'▶';
- $('#bspd').textContent=(ui.speed>0?ui.speed:ui.lastSpeed)+'×';$('#bsnd').textContent=ui.sound?'🔊':'🔇';
- const t=S.log[S.log.length-1];const tk=$('#ticker');if(t){tk.className=t.type;tk.textContent=`T${t.d} · ${t.msg}`;}
+ $('#bplay').textContent=ui.speed>0?'⏸':'▶';
+ $('#bspd').textContent=(ui.speed>0?ui.speed:ui.lastSpeed)+'×';
+ const u=unread(),b=$('#bbell');let n=b.querySelector('.bn');if(u>0){if(!n){n=document.createElement('span');n.className='bn';b.appendChild(n);}n.textContent=u>9?'9+':u;}else if(n)n.remove();
+ const o=document.querySelector('.office');if(o)o.classList.toggle('night',S.hour<7||S.hour>=21);
 }
 let tw=null;
 function tweenCash(el){
@@ -742,9 +804,15 @@ function renderNav(){
 }
 function weekBanner(){
  if(S.over||ui.modal||ui.speed!==0)return '';
- if(!ui.week)return S.day===0?`<div class="card hl banner"><div><b>🎬 Bereit zum Start?</b><div class="small muted">Bestelle Ware, poste Inhalte, dann ▶ drücken. Am Ende jeder Woche pausiert das Spiel automatisch.</div></div><button class="btn primary" data-a="play">▶ Los geht’s</button></div>`:`<div class="card banner" style="padding:8px 12px"><b>⏸ Pause <span class="small muted" style="font-weight:400">· in Ruhe entscheiden</span></b><button class="btn primary sm" data-a="play">▶ Weiter</button></div>`;
- const h=S.hist.slice(-7),rev=h.reduce((a,x)=>a+x.rev,0),pr=h.reduce((a,x)=>a+x.profit,0),o=h.reduce((a,x)=>a+x.orders,0),prev=S.hist.slice(-14,-7).reduce((a,x)=>a+x.rev,0),tr=prev>0?rev/prev-1:null;
- return `<div class="card hl banner"><div><b>📅 Woche ${Math.floor(S.day/7)} geschafft</b><div class="small">Umsatz <b>${fmt(rev)}</b>${tr!==null?` <span class="${tr>=0?'good':'bad'}">(${tr>=0?'+':''}${Math.round(tr*100)} %)</span>`:''} · Gewinn <b class="${pr>=0?'good':'bad'}">${fmt(pr)}</b> · ${num(o)} Bestellungen</div></div><button class="btn primary" data-a="play">▶ Nächste Woche</button></div>`;
+ if(S.day===0&&S.hour===8&&!ui.report)return `<div class="card hl banner"><div><b>🎬 Bereit zum Start?</b><div class="small muted">Bestelle Ware, poste Inhalte, dann ▶ drücken. Ein Tag dauert ca. 12 Sekunden, mit 2×–4× geht es schneller.</div></div><button class="btn primary" data-a="play">▶ Los geht’s</button></div>`;
+ const more=`<button class="btn sm" data-a="nextday">▶ Tag</button><button class="btn sm" data-a="nextweek">▶ Woche</button>`;
+ if(ui.report==='week'){
+  const h=S.hist.slice(-7),rev=h.reduce((a,x)=>a+x.rev,0),pr=h.reduce((a,x)=>a+x.profit,0),o=h.reduce((a,x)=>a+x.orders,0),prev=S.hist.slice(-14,-7).reduce((a,x)=>a+x.rev,0),tr=prev>0?rev/prev-1:null;
+  return `<div class="card hl banner"><div><b>📅 Woche ${Math.floor(S.day/7)} geschafft</b><div class="small">Umsatz <b>${fmt(rev)}</b>${tr!==null?` <span class="${tr>=0?'good':'bad'}">(${tr>=0?'+':''}${Math.round(tr*100)} %)</span>`:''} · Gewinn <b class="${pr>=0?'good':'bad'}">${fmt(pr)}</b> · ${num(o)} Bestellungen</div></div><div class="row"><button class="btn primary" data-a="nextweek">▶ Nächste Woche</button><button class="btn sm" data-a="nextday">Tag</button></div></div>`;
+ }
+ if(ui.report==='day'&&ui.lastDay){const d=ui.lastDay;
+  return `<div class="card hl banner"><div><b>🌙 Tag ${S.day} vorbei</b><div class="small">Umsatz <b>${fmt(d.rev)}</b> · Gewinn <b class="${d.profit>=0?'good':'bad'}">${fmt(d.profit)}</b> · ${num(d.orders)} Bestellungen</div></div><div class="row"><button class="btn primary" data-a="nextday">▶ Nächster Tag</button><button class="btn sm" data-a="nextweek">Woche</button></div></div>`;}
+ return `<div class="card banner" style="padding:8px 12px"><b>⏸ Pause</b><div class="row"><button class="btn primary sm" data-a="play">▶ Weiter</button>${more}</div></div>`;
 }
 /* ---- Büro ---- */
 function seatHTML(e){
@@ -783,6 +851,48 @@ function chartSVG(){
  return `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Umsatz und Gewinn"><line x1="20" x2="${w-10}" y1="${py(0)}" y2="${py(0)}" stroke="#3a3166"/>${line('rev','#5cb9ff')}${line('profit','#35e0a8')}<text x="22" y="12" fill="#a49dc7" font-size="12">max ${fmt(mx)}/Tag</text></svg><div class="small muted"><span style="color:#5cb9ff">● Umsatz</span> &nbsp; <span style="color:#35e0a8">● Gewinn</span> · letzte ${d.length} Tage</div>`;
 }
 function vHome(){return `<div id="h-scene">${sceneHTML()}</div><div id="h-dyn">${homeDyn()}</div>`;}
+/* ---- Kunden: Abos & E-Mail ---- */
+function spark(arr,color){
+ if(arr.length<2)return '<div class="small muted">Verlauf erscheint nach ein paar Tagen …</div>';
+ const w=300,h=60,mx=Math.max(1,...arr),mn=Math.min(...arr),px=i=>4+(w-8)*i/(arr.length-1),py=v=>h-6-(h-12)*(v-mn)/(mx-mn||1);
+ const pts=arr.map((v,i)=>px(i).toFixed(1)+','+py(v).toFixed(1)).join(' ');
+ return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="60" role="img" aria-label="Verlauf"><polygon fill="${color}" fill-opacity=".15" points="4,${h-4} ${pts} ${w-4},${h-4}"/><polyline fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/><circle cx="${px(arr.length-1)}" cy="${py(arr[arr.length-1])}" r="4" fill="${color}"/></svg>`;
+}
+function vCrm(){
+ const SB=S.sub,MF=S.mail.feat,h=S.mail.health,seg=MF.seg?1.5:1;
+ const sRate=Math.min(.35,(.04+SB.disc*1.1)*(SB.feat.box?1.3:1)*(.85+.3*trust())),churn=SB.churnM||.1;
+ const subSh=sum(30,'rev')>0?sum(30,'subRev')/sum(30,'rev'):0;
+ const mrrV=mrr();
+ /* --- Abo --- */
+ let abo;
+ if(!S.up.abo){
+  abo=`<div class="card" style="border-style:dashed"><div class="row"><div style="font-size:42px">🔁</div><div style="flex:1;min-width:200px"><h3 style="margin:0">Abo-System</h3><div class="small muted">Kunden bestellen automatisch alle 30 Tage neu. Das ist planbarer Umsatz (MRR), den dir kein Algorithmus wegnimmt. Dafür gibst du einen Rabatt, dein Lager muss liefern können, und Abos kosten Churn-Pflege.</div></div></div><div style="margin-top:12px"><button class="btn primary" data-a="up" data-k="abo" ${S.cash<2500?'disabled':''}>Freischalten · ${fmt(2500)}</button></div></div>`;
+ }else{
+  abo=`<div class="card hl"><div class="row sp"><div><div class="small muted">Monatlich wiederkehrender Umsatz</div><div style="font-family:var(--fd);font-size:36px;line-height:1.1" class="coin">${fmt(mrrV)}</div></div><div style="text-align:right"><div class="small muted">Abonnent:innen</div><div style="font-family:var(--fd);font-size:30px;line-height:1.1">${num(SB.n)}</div></div></div>
+   <div style="margin-top:8px">${spark(SB.hist,'#ffc83d')}</div>
+   <div class="kpis" style="margin-top:8px"><div class="kpi"><span>CHURN / MONAT</span><b class="${churn>.1?'bad':''}">${pc(churn,1)}</b></div><div class="kpi"><span>Ø LAUFZEIT</span><b>${f1(1/churn)} M.</b></div><div class="kpi"><span>ABO-ANTEIL</span><b>${pc(subSh,0)}</b></div></div>
+   ${SB.miss>0?`<div class="small bad" style="margin-top:8px">⚠️ Lieferprobleme: Ware fehlt, das erhöht die Kündigungen!</div>`:''}</div>
+  <div class="card" style="margin-top:12px"><h3>Abo-Rabatt</h3><div class="small muted" style="margin-bottom:8px">Mehr Rabatt = mehr Abschlüsse, aber weniger Marge je Lieferung.</div>
+   <div class="seg">${[0,.05,.1,.15,.2].map(v=>`<button data-a="subdisc" data-v="${v}" class="${SB.disc===v?'on':''}">${Math.round(v*100)} %</button>`).join('')}</div>
+   <div class="small" style="margin-top:10px">≈ <b class="coin">${pc(sRate,0)}</b> der Neukunden schließen ein Abo ab.</div></div>
+  <div class="grid g3" style="margin-top:12px">${SUBF.map(f=>`<div class="card ${SB.feat[f.k]?'hl':''}"><b>${f.e} ${f.n}</b><div class="small muted" style="margin:4px 0 8px">${f.d}</div>${SB.feat[f.k]?'<span class="good">✔ Aktiv</span>':`<button class="btn sm primary" data-a="subfeat" data-k="${f.k}" ${S.cash<f.c?'disabled':''}>${fmt(f.c)}</button>`}</div>`).join('')}</div>`;
+ }
+ /* --- E-Mail --- */
+ const open=.3*h*(seg>1?1.1:1),canSend=S.mailCool<=0&&S.email>=50;
+ const camps=CAMP.map(C=>{const vis=S.email*C.open*C.click*3.5*h*seg,lock=C.need&&!S.up[C.need];
+  return `<div class="card"><div class="row sp"><b>${C.e} ${C.n}</b><span class="pill">${fmt(C.cost)}</span></div><div class="small muted" style="margin:4px 0">${C.d}</div><div class="small">≈ <b>${num(vis)}</b> Besucher · Öffnungsrate ${pc(C.open*h*(seg>1?1.1:1),0)}</div>
+   <button class="btn sm primary" style="margin-top:8px" data-a="sendmail" data-t="${C.k}" ${!canSend||lock||S.cash<C.cost?'disabled':''}>${lock?'🔒 Abo-System nötig':S.mailCool>0?`Pause ${S.mailCool} T.`:S.email<50?'Ab 50 Abonnenten':'Senden'}</button></div>`;}).join('');
+ const hist=S.mail.hist.length?S.mail.hist.map(m=>{const C=CAMP.find(x=>x.k===m.type),roi=m.rev/m.cost;return `<div class="rev"><div class="row sp"><b>${C.e} ${C.n}</b><span class="small muted">Tag ${m.day} · ${num(m.list)} Empfänger</span></div><div class="small">${num(m.visitors)} Besucher · ${f1(m.orders)} Bestellungen · <b>${fmt(m.rev)}</b> Umsatz <span class="${roi>=1?'good':'warn'}">(${num(roi)}× der Kosten)</span></div></div>`;}).join(''):'<div class="muted small">Noch keine Kampagnen verschickt.</div>';
+ const fl=S.ch.flows||{v:0,o:0,r:0};
+ const flows=MAILF.map(f=>`<div class="card ${MF[f.k]?'hl':''}"><b>${f.e} ${f.n}</b><div class="small muted" style="margin:4px 0 8px">${f.d}</div>${MF[f.k]?'<span class="good">✔ Läuft automatisch</span>':`<button class="btn sm primary" data-a="mailfeat" data-k="${f.k}" ${S.cash<f.c?'disabled':''}>${fmt(f.c)}</button>`}</div>`).join('');
+ const mail=`<div class="card hl"><div class="row sp"><div><div class="small muted">E-Mail-Verteiler</div><div style="font-family:var(--fd);font-size:34px;line-height:1.1">${num(S.email)}</div></div><div style="text-align:right"><div class="small muted">Neue pro Tag</div><div style="font-family:var(--fd);font-size:24px" class="good">+${f1(ui.lastSignups||0)}</div></div></div>
+  <div class="small muted" style="margin-top:8px">Listen-Gesundheit ${pc(h,0)} ${h<.5?'<span class="bad">· deine Liste ist müde, gib ihr Pause</span>':''}</div>${bar(h,1,h<.5?'red':'')}
+  <div class="small muted" style="margin-top:6px">Zu viele Mails hintereinander senken Öffnungsrate und lassen Leute abspringen. Erholung: +3 % pro Tag.</div></div>
+  <div class="sec"><span>✉️ Kampagne senden</span></div><div class="grid g2">${camps}</div>
+  <div class="sec"><span>🤖 Automatische Flows</span>${fl.r>0?`<span class="small good">${fmt(fl.r)} Umsatz bisher</span>`:''}</div><div class="grid g3">${flows}</div>
+  <div class="sec"><span>📊 Letzte Kampagnen</span></div><div class="card">${hist}</div>`;
+ return `<div class="sec" style="margin-top:4px"><span>🔁 Abos</span></div>${abo}<div class="sec"><span>💌 E-Mail-Marketing</span></div>${mail}`;
+}
 /* ---- Produkte ---- */
 function priceInfo(id){
  const p=S.prod[id],ref=refPrice(id),pf=priceFactor(id),ac=p.stock>0?p.costSum/p.stock:unitCost(id,p.ord.tier,p.ord.bi);
@@ -815,7 +925,7 @@ function adInfo(k){
 }
 function awStrip(){return `<div class="card" style="margin-bottom:12px"><div class="row sp"><b>🌍 Markenbekanntheit ${N0.format(S.awareness)} / 100</b><span class="small">Preis <b class="good">+${f1(S.awareness*.3)} %</b> · Conversion <b class="good">+${f1(S.awareness*.4)} %</b></span></div>${bar(S.awareness,100)}<div class="small muted" style="margin-top:6px">Wächst durch Posts, Ads, Influencer & Mundpropaganda, sinkt täglich um ~0,8 %.</div></div>`;}
 function vMkt(){
- const T=[['social','📸 Social'],['ads','🎯 Ads'],['infl','🤝 Influencer'],['promo','🏷️ Aktionen']];
+ const T=[['social','📸 Social'],['ads','🎯 Ads'],['infl','🤝 Influencer'],['crm','💌 Kunden'],['promo','🏷️ Aktionen']];
  let body='';
  if(ui.mtab==='social'){
   const pl=ui.plat,P=PLAT[pl],act=Math.min(1,S.postScore/3);
@@ -845,13 +955,13 @@ function vMkt(){
    <div class="small" style="margin:6px 0">Engagement ${pc(o.eng)} · Match <b class="${o.fit>1.1?'good':o.fit<.8?'bad':''}">${Math.round(o.fit*100)} %</b></div>
    <button class="btn primary" data-a="hirei" data-id="${o.id}" ${S.cash<o.price?'disabled':''}>Buchen ${fmt(o.price)}</button></div>`).join('')}</div>
    <div class="small muted" style="margin-top:10px">Ergebnisse schwanken (Flop bis Volltreffer, selten Skandal). Du brauchst genug Ware auf Lager. Zu viele Kampagnen kurz hintereinander verlieren an Wirkung.</div>`;
+ }else if(ui.mtab==='crm'){
+  body=vCrm();
  }else{
   const can=S.promo.cool<=0&&S.promo.days<=0;
-  body=`<div class="grid g2"><div class="card"><h3>🏷️ Rabatt-Aktion</h3><div class="small muted">3 Tage, alle Produkte. Senkt den Preis, erhöht Nachfrage & Conversion.</div>
+  body=`<div class="card"><h3>🏷️ Rabatt-Aktion</h3><div class="small muted">3 Tage, alle Produkte. Senkt den Preis, erhöht Nachfrage & Conversion.</div>
    ${S.promo.days>0?`<div class="good" style="margin:8px 0">Läuft: −${Math.round(S.promo.pct*100)} % noch ${S.promo.days} Tag(e)</div>`:S.promo.cool>0?`<div class="muted" style="margin:8px 0">Cooldown: ${S.promo.cool} Tage</div>`:''}
-   <div class="row" style="margin-top:10px">${[.1,.2,.3].map(p=>`<button class="btn" data-a="promo" data-p="${p}" ${can?'':'disabled'}>−${Math.round(p*100)} %</button>`).join('')}</div></div>
-   <div class="card"><h3>📧 Newsletter</h3><div class="small muted">${num(S.email)} Abonnenten · sehr hohe Kaufabsicht. 15 €, danach 3 Tage Pause.${S.email<50?' Ab 50 Abonnenten verfügbar.':''}</div>
-   <div style="margin-top:10px"><button class="btn primary" data-a="mail" ${S.mailCool>0||S.email<50||S.cash<15?'disabled':''}>${S.mailCool>0?`Pause ${S.mailCool} T.`:'Newsletter senden'}</button></div></div></div>`;
+   <div class="row" style="margin-top:10px">${[.1,.2,.3].map(p=>`<button class="btn" data-a="promo" data-p="${p}" ${can?'':'disabled'}>−${Math.round(p*100)} %</button>`).join('')}</div></div>`;
  }
  return `<h2>📣 Marketing</h2>${awStrip()}<div class="tabs">${T.map(([k,l])=>`<button data-a="mtab" data-t="${k}" class="${ui.mtab===k?'on':''}">${l}</button>`).join('')}</div>${body}`;
 }
@@ -871,7 +981,7 @@ function vFirma(){
   return `<div class="card" style="border-style:dashed"><div class="emp"><div class="av" style="opacity:.5">${R.e}</div><div><b>${R.n}</b><div class="small muted">${R.d}</div></div></div><div class="row sp" style="margin-top:10px"><span class="small muted">ab ca. ${fmt(R.base*.72)}/Monat</span><button class="btn sm primary" data-a="openhire" data-role="${R.k}" ${free<=0?'disabled':''}>${free<=0?'Kein Platz':'Bewerber ansehen'}</button></div></div>`;}).join('');
  const perks=PERKS.map(p=>`<div class="card ${S.perks[p.k]?'hl':''}"><div class="row sp"><b>${p.e} ${p.n}</b>${p.up?`<span class="pill">${fmt(p.up)}/Monat</span>`:''}</div><div class="small muted" style="margin:4px 0 8px">Stimmung +${p.mood} für das ganze Team</div>${S.perks[p.k]?'<span class="good">✔ Eingebaut</span>':`<button class="btn sm primary" data-a="perk" data-k="${p.k}" ${S.cash<p.c?'disabled':''}>${fmt(p.c)}</button>`}</div>`).join('');
  const evOn=(S.teamEvent||0)>S.day;
- const ups=UPS.map(u=>{const has=S.up[u.k],reqOk=!u.req||S.up[u.req],needOk=!u.need||u.need(),dis=has||!reqOk||!needOk||S.cash<u.c;
+ const ups=UPS.filter(u=>!u.hide).map(u=>{const has=S.up[u.k],reqOk=!u.req||S.up[u.req],needOk=!u.need||u.need(),dis=has||!reqOk||!needOk||S.cash<u.c;
   return `<div class="card ${has?'hl':''}"><h3>${u.e} ${u.n}</h3><div class="small muted" style="margin-bottom:8px">${u.d}</div>${has?'<span class="good">✔ Aktiv</span>':`<button class="btn primary sm" data-a="up" data-k="${u.k}" ${dis?'disabled':''}>${fmt(u.c)}</button>${!reqOk?`<div class="small warn">Braucht: ${UPS.find(x=>x.k===u.req).n}</div>`:''}${!needOk?`<div class="small warn">Braucht: ${u.needTxt}</div>`:''}`}</div>`;}).join('');
  return `<h2>👥 Firma</h2>${office}
  <div class="sec"><span>Team</span><span class="small muted">${fmt(Object.values(S.staff).reduce((a,e)=>a+e.sal,0))}/Monat</span></div><div class="grid g2">${team}</div>
@@ -892,8 +1002,7 @@ function vFin(){
  <div class="card"><h3>🏦 Kredit</h3><div class="small muted">Offen <b>${fmt(S.loan)}</b> · Limit ${fmt(lim)} · 1,5 % Zinsen pro Monat</div><div class="row" style="margin-top:10px">${LOANS.map(a=>`<button class="btn sm" data-a="loan" data-amt="${a}">+${fmt(a)}</button>`).join('')}</div><div class="row" style="margin-top:8px">${[1000,5000,20000].map(a=>`<button class="btn sm" data-a="repay" data-amt="${a}" ${S.loan<=0||S.cash<Math.min(a,S.loan)?'disabled':''}>Tilgen ${fmt(a)}</button>`).join('')}</div></div>
  <div class="card"><h3>📈 Investoren</h3>${r?`<div class="small muted">${r.n}-Runde: ${pc(r.pct,0)} der Anteile ab ${fmt(r.min)} Unternehmenswert.</div><div style="margin-top:10px"><button class="btn primary" data-a="invest" ${S.val<r.min?'disabled':''}>${fmt(S.val*r.pct*.9)} einsammeln</button></div>${S.val<r.min?`<div class="small warn" style="margin-top:6px">Noch ${fmt(r.min-S.val)} bis zur Runde.</div>`:''}`:'<div class="muted">Alle Runden abgeschlossen.</div>'}</div></div>
  ${det('ach',`🏆 Erfolge (${Object.keys(S.ach).length}/${ACH.length})`,ACH.map(a=>`<div class="small" style="padding:3px 0;${S.ach[a[0]]?'':'opacity:.4'}">${a[1]} ${a[2]}${S.ach[a[0]]?` <span class="muted">· Tag ${S.ach[a[0]]}</span>`:''}</div>`).join(''))}
- ${det('how','❓ So funktioniert der Shop',`<div class="small muted"><b>Besucher</b> kommen über Social Media, Ads, Influencer, Newsletter & SEO. Die <b>Conversion</b> (Preis, Bewertungen, Shop-Design, Bekanntheit) macht daraus <b>Bestellungen</b>. Kunden kaufen <b>wieder</b> (Abo, Qualität). Ohne Ware verpufft jeder Besucher.<br><br>Gewinn = Preis − Herstellung − Versand − <b>CAC</b> (Kosten pro Neukunde) − Fixkosten. Dein Team kostet jeden Monat Geld, bringt aber Automatik und Boni. Zufriedene Mitarbeiter arbeiten besser und steigen auf.</div>`)}
- ${det('set','⚙️ Einstellungen',`<div class="row"><button class="btn sm ${S.weekStop?'primary':''}" data-a="weekstop">📅 Wochen-Stopp: ${S.weekStop?'AN':'AUS'}</button><button class="btn sm" data-a="snd">${ui.sound?'🔊 Ton an':'🔇 Ton aus'}</button><button class="btn sm danger" data-a="newgame">Neues Spiel</button></div>`)}`;
+ ${det('how','❓ So funktioniert der Shop',`<div class="small muted"><b>Besucher</b> kommen über Social Media, Ads, Influencer, Newsletter & SEO. Die <b>Conversion</b> (Preis, Bewertungen, Shop-Design, Bekanntheit) macht daraus <b>Bestellungen</b>. Kunden kaufen <b>wieder</b> (Abo, Qualität). Ohne Ware verpufft jeder Besucher.<br><br>Gewinn = Preis − Herstellung − Versand − <b>CAC</b> (Kosten pro Neukunde) − Fixkosten. Dein Team kostet jeden Monat Geld, bringt aber Automatik und Boni. Zufriedene Mitarbeiter arbeiten besser und steigen auf.</div>`)}`;
 }
 /* ================= Sheets ================= */
 function openSheet(kind,lock){ui.sheetKind=kind;ui.sheetLock=lock===true?false:['event','start','win','over'].includes(kind);ui.modal=true;$('#sheet').classList.remove('hidden');renderSheet();}
@@ -930,8 +1039,10 @@ function renderSheet(){
   h=`<div class="big">🦄</div><div class="title">EXIT!</div><p style="text-align:center">Ein Konzern kauft <b>${esc(S.brand)}</b>. Unternehmenswert <b class="coin">${fmt(S.val)}</b>.</p><p style="text-align:center">Dein Anteil (${pc(S.owned,0)}): <b class="good" style="font-size:22px">${fmt(S.val*S.owned)}</b></p><p class="muted small" style="text-align:center">Nach ${S.day} Tagen (${f1(S.day/360)} Jahren), ${num(S.totalOrders)} Bestellungen und ${fmt(S.totalRev)} Umsatz.</p><div class="col"><button class="btn primary" data-a="keep">Weiterspielen (Sandbox)</button><button class="btn" data-a="newgame">Neues Spiel</button></div>`;
  }else if(k==='over'){
   h=`<div class="big">💥</div><div class="title" style="color:var(--bad);text-shadow:none">INSOLVENZ</div><p style="text-align:center">${esc(S.brand)} war zu lange im Minus. Die Bank dreht den Geldhahn zu.</p><p class="muted small" style="text-align:center">${S.day} Tage · ${num(S.totalOrders)} Bestellungen · ${fmt(S.totalRev)} Umsatz.<br>Tipp: Halte Ware auf Lager, beobachte den ROAS und plane Cash für die Monatsabrechnung ein.</p><button class="btn primary block" data-a="newgame" style="text-align:center">Nochmal versuchen</button>`;
+ }else if(k==='settings'){
+  h=`<h2>⚙️ Einstellungen</h2><div class="small muted">Automatisch pausieren</div><div class="seg" style="margin:6px 0 4px">${[['off','Nie'],['day','Nach jedem Tag'],['week','Nach jeder Woche']].map(([v,l])=>`<button data-a="stopmode" data-v="${v}" class="${S.stopMode===v?'on':''}">${l}</button>`).join('')}</div><div class="small muted">Dann erscheint ein Tages- oder Wochenbericht mit „Nächster Tag“ / „Nächste Woche“. Du kannst jederzeit mit dem Tempo-Button (1×–4×) schneller spielen.</div><hr><div class="row"><button class="btn" data-a="snd">${ui.sound?'🔊 Ton an':'🔇 Ton aus'}</button><button class="btn danger" data-a="newgame">Neues Spiel</button></div><div class="col" style="margin-top:16px"><button class="btn primary" data-a="close">Fertig</button></div>`;
  }else if(k==='log'){
-  h=`<h2>📜 Verlauf</h2>${S.log.slice(-40).reverse().map(l=>`<div class="small ${l.type}" style="padding:4px 0;border-bottom:1px solid var(--line)"><span class="muted">T${l.d}</span> ${l.msg}</div>`).join('')}<div class="col" style="margin-top:12px"><button class="btn" data-a="close">Schließen</button></div>`;
+  h=`<h2>🔔 Verlauf</h2><div class="small muted" style="margin-bottom:6px">Erfolge, Missionen, Team und Rechnungen landen hier statt als Pop-ups.</div>${S.log.filter(l=>l.imp||l.type==='bad'||l.type==='warn').slice(-40).reverse().map(l=>`<div class="small ${l.type}" style="padding:4px 0;border-bottom:1px solid var(--line)"><span class="muted">T${l.d}</span> ${l.msg}</div>`).join('')}<div class="col" style="margin-top:12px"><button class="btn" data-a="close">Schließen</button></div>`;
  }
  $('#sheet').innerHTML=`<div class="sbox">${h}</div>`;
  if(k==='start'){const i=$('#sn');if(i&&document.activeElement!==i&&!ui.sheetTouched){}}
@@ -955,15 +1066,26 @@ function render(force){
 }
 
 /* ================= Game-Loop ================= */
-const SPEEDS=[0,2200,900,350];let timer=null;
+const SPEEDS=[0,520,230,90,28];let timer=null;
 function schedule(){clearTimeout(timer);if(!S||ui.speed===0||S.over)return;timer=setTimeout(loop,SPEEDS[ui.speed]);}
+function afterDay(){
+ if(S.over)return;
+ const wk=S.day%7===0;
+ if(ui.until==='day'||(ui.until==='week'&&wk)){const k=ui.until;ui.until=null;pauseReport(k);}
+ else if(S.stopMode==='day'||(S.stopMode==='week'&&wk))pauseReport(S.stopMode);
+}
+function pauseReport(kind){ui.speed=0;ui.report=kind;}
 function loop(){
- if(!ui.modal&&S&&!S.over){stepDay();dayFx();render();}
+ if(!ui.modal&&S&&!S.over){
+  S.hour++;
+  if(S.hour>=24){S.hour=0;stepDay();dayFx();afterDay();render();}
+  else{hourFx();updateHud();}
+ }
  schedule();
 }
 window.addEventListener('beforeunload',()=>{if(S&&!S.over)save();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&ui.speed>0&&!ui.modal){setSpeed(0);}});
-window.G={get S(){return S;},ACT,ui,stepDay,unitCost,newState,setS(s){S=s;},valuation,render,misCur,misDone,migrate};
+window.G={get S(){return S;},ACT,ui,stepDay,unitCost,newState,setS(s){S=s;},valuation,render,misCur,misDone,migrate,mrr};
 (function init(){
  try{ui.sound=localStorage.getItem('bt.sound')!=='0';}catch(e){}
  ui.pa='hardcore';ui.pe='🔥';ui.pcol='#ff6a3d';ui.pfo='🧑‍💼';
