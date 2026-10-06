@@ -1,100 +1,147 @@
-<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Brand Tycoon – Supplement-Marke aufbauen</title>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0">
+<title>Brand Tycoon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Lilita+One&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0e14;--panel:#111822;--panel2:#172130;--line:#223047;--text:#e8eef6;--muted:#8697ad;--acc:#b6ff3b;--acc2:#2ee6c5;--bad:#ff5d6c;--warn:#ffb020;--good:#3ddc84;--r:14px}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+:root{color-scheme:dark;--bg:#0d0a1c;--bg2:#141029;--panel:#1b1633;--panel2:#261f47;--line:#3a3166;--text:#f5f2ff;--muted:#a49dc7;--coin:#ffc83d;--coin-d:#a87b08;--hot:#ff6a3d;--mint:#35e0a8;--bad:#ff5071;--warn:#ffb020;--sky:#5cb9ff;--brand:#ff6a3d;--r:16px;--fd:'Lilita One','Arial Rounded MT Bold',system-ui,sans-serif;--fb:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font:15px/1.45 var(--fb);overflow:hidden}
 button,select,input{font:inherit;color:inherit}
-.shell{display:grid;grid-template-columns:190px 1fr;grid-template-rows:auto 1fr auto;height:100vh}
-header{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;min-width:150px}
-.brand .logo{font-size:26px}
-.brand small{display:block;font-weight:500;color:var(--muted);font-size:11px}
-.stat{display:flex;flex-direction:column;min-width:78px}
-.stat b{font-size:16px}.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.speed{margin-left:auto;display:flex;gap:4px}
-.speed button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
-.speed button.on{background:var(--acc);color:#10200a;border-color:var(--acc);font-weight:700}
-nav{background:var(--panel);border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:4px;overflow:auto}
-nav button{text-align:left;background:none;border:0;border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--muted);font-weight:600}
-nav button:hover{background:var(--panel2);color:var(--text)}
-nav button.on{background:var(--panel2);color:var(--acc)}
-nav .badge{float:right;background:var(--bad);color:#fff;border-radius:99px;font-size:11px;padding:0 7px}
-main{overflow:auto;padding:18px;min-height:0}
-.logbar{grid-column:1/3;background:var(--panel);border-top:1px solid var(--line);padding:6px 16px;height:92px;overflow:auto;font-size:12.5px}
-.logbar div{padding:1px 0;color:var(--muted)}.logbar .t{color:var(--acc2);margin-right:6px}
-.logbar .bad{color:var(--bad)}.logbar .good{color:var(--good)}.logbar .warn{color:var(--warn)}
-h2{margin:0 0 12px;font-size:20px}h3{margin:0 0 8px;font-size:15px}
-.grid{display:grid;gap:12px}
-.g2{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
-.g3{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
-.g6{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
-.card.hl{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
-.kpi b{display:block;font-size:22px;margin-top:2px}.kpi span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.muted{color:var(--muted)}.small{font-size:12px}.good{color:var(--good)}.bad{color:var(--bad)}.warn{color:var(--warn)}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.sp{justify-content:space-between}
-.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600}
-.btn:hover:not(:disabled){border-color:var(--acc2)}
-.btn.primary{background:var(--acc);border-color:var(--acc);color:#10200a}
-.btn.danger{border-color:var(--bad);color:var(--bad)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.sm{padding:4px 9px;font-size:12px;border-radius:8px}
-.pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:1px 9px;font-size:11px;color:var(--muted)}
-.bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc))}
-.bar.red i{background:var(--bad)}
-.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.tabs button{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 14px;cursor:pointer;color:var(--muted);font-weight:600}
-.tabs button.on{background:var(--acc);border-color:var(--acc);color:#10200a}
-input[type=range]{width:100%;accent-color:var(--acc)}
-input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
-select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
-table{width:100%;border-collapse:collapse}td,th{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line)}td:first-child,th:first-child{text-align:left}
-.modal{position:fixed;inset:0;background:rgba(3,6,10,.75);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
-.modal.hidden{display:none}
-.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:520px;width:100%;max-height:92vh;overflow:auto}
-.modal .box h2{font-size:22px}
-.banner{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
-.split{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
-.prow{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.pic{font-size:26px;width:36px;text-align:center}.pmain{flex:1;min-width:0}.pbtn{text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
-.choice{display:block;width:100%;text-align:left;margin-top:8px}
-#toasts{position:fixed;right:14px;bottom:108px;display:flex;flex-direction:column;gap:8px;z-index:60;max-width:340px}
-.toast{background:var(--panel2);border:1px solid var(--acc2);border-radius:12px;padding:10px 14px;box-shadow:0 8px 30px #0008;animation:in .25s}
-@keyframes in{from{transform:translateY(-8px);opacity:0}to{opacity:1}}
-.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;cursor:pointer;background:var(--panel2)}
-.opt.on{border-color:var(--acc)}
-.emojis{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.emojis button{font-size:22px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:4px 9px;cursor:pointer}.emojis button.on{border-color:var(--acc)}
-@media(max-width:760px){
- .shell{grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto}
- header,nav,.logbar{grid-column:1}
- nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}
- nav button{white-space:nowrap}
- .speed{margin-left:0}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;max-width:1120px;margin:0 auto;background:var(--bg)}
+/* HUD */
+#hud{padding:10px 14px 8px;background:linear-gradient(var(--bg2),var(--bg));display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.h1{display:flex;align-items:center;gap:10px}
+.logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:24px;background:var(--panel2);border:2px solid var(--brand);box-shadow:0 0 14px -2px var(--brand);flex:none}
+.hn{min-width:0;flex:1}.hn b{display:block;font-family:var(--fd);font-weight:400;font-size:19px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hn small{color:var(--muted);font-size:12px}
+.cash{text-align:right;flex:none}.cash small{display:block;color:var(--muted);font-size:10.5px;letter-spacing:.08em}.cash b{font-family:var(--fd);font-weight:400;font-size:24px;line-height:1;color:var(--coin);font-variant-numeric:tabular-nums}.cash b.neg{color:var(--bad)}
+.h2{display:flex;align-items:center;gap:6px;justify-content:space-between;min-width:0}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ctrl{display:flex;gap:6px}
+.ctrl button{min-width:40px;height:40px;border-radius:13px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-weight:700;font-size:15px}
+.ctrl button.play{background:var(--coin);color:#2a1d00;border-color:var(--coin);box-shadow:0 3px 0 var(--coin-d);min-width:56px}
+.ctrl button:active{transform:translateY(2px)}
+#ticker{padding:6px 14px;font-size:13px;color:var(--muted);background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+#ticker.good{color:var(--mint)}#ticker.bad{color:var(--bad)}#ticker.warn{color:var(--warn)}
+#main{overflow:auto;padding:14px 14px 18px;overscroll-behavior:contain}
+#tabs{display:flex;background:var(--bg2);border-top:1px solid var(--line);padding:4px 6px calc(4px + env(safe-area-inset-bottom,0px))}
+#tabs button{flex:1;background:none;border:0;border-radius:14px;padding:6px 2px 4px;cursor:pointer;color:var(--muted);display:grid;justify-items:center;gap:1px;font-size:11px;font-weight:700;position:relative;min-height:52px}
+#tabs button i{font-style:normal;font-size:22px;line-height:1.1}
+#tabs button.on{color:var(--coin);background:var(--panel)}
+#tabs .badge{position:absolute;top:2px;right:22%;background:var(--bad);color:#fff;border-radius:99px;font-size:10px;padding:0 6px;line-height:16px}
+@media(min-width:900px){
+ #app{grid-template-columns:200px minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr)}
+ #hud,#ticker{grid-column:1/3}
+ #tabs{grid-row:3;grid-column:1;flex-direction:column;justify-content:flex-start;gap:4px;border-top:0;border-right:1px solid var(--line);padding:12px 10px}
+ #tabs button{flex:none;grid-template-columns:34px 1fr;justify-items:start;align-items:center;font-size:14px;padding:10px 12px;min-height:48px}
+ #tabs{align-content:start}
+ .h2{justify-content:flex-start;gap:12px}.h2 .chip:last-child{margin-left:auto}
+ #main{grid-row:3;grid-column:2;padding:18px 22px}
+ .hud-in{max-width:1120px}
 }
+/* Bausteine */
+h2{margin:0 0 10px;font-family:var(--fd);font-weight:400;font-size:24px;letter-spacing:.01em}
+h3{margin:0 0 6px;font-family:var(--fd);font-weight:400;font-size:18px}
+.sec{margin:20px 0 10px;font-family:var(--fd);font-size:20px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;min-width:0}
+.card.hl{border-color:var(--coin);box-shadow:0 0 0 1px var(--coin) inset,0 0 22px -8px var(--coin)}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}.g3{grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
+.muted{color:var(--muted)}.small{font-size:12.5px}.good{color:var(--mint)}.bad{color:var(--bad)}.warn{color:var(--warn)}.coin{color:var(--coin)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;min-width:0}.sp{justify-content:space-between}.col{display:grid;gap:8px}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:10px 14px;cursor:pointer;font-weight:700;min-height:42px;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.btn.primary{background:var(--coin);border-color:var(--coin);color:#2a1d00;box-shadow:0 3px 0 var(--coin-d)}
+.btn.hot{background:var(--hot);border-color:var(--hot);color:#2a0a00;box-shadow:0 3px 0 #a53a18}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.sm{padding:6px 11px;min-height:34px;font-size:13px;border-radius:11px}
+.btn.block{display:block;width:100%;text-align:left}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:7px 11px;cursor:pointer;font-weight:700;font-size:13px;min-height:36px}
+.seg button.on{background:var(--coin);color:#2a1d00;border-color:var(--coin)}.seg button:disabled{opacity:.4}
+.pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:1px 9px;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.bar{height:9px;background:var(--panel2);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--coin));border-radius:99px;transition:width .5s}
+.bar.red i{background:var(--bad)}
+input[type=range]{width:100%;height:34px;accent-color:var(--coin)}
+input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:12px;font-size:16px}
+hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+details{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-top:10px}summary{cursor:pointer;font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:9px 6px;text-align:center}
+.kpi b{display:block;font-family:var(--fd);font-weight:400;font-size:19px;font-variant-numeric:tabular-nums}.kpi span{font-size:10.5px;color:var(--muted);letter-spacing:.04em}
+@media(min-width:700px){.kpis{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.banner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}.tabs button{flex:none;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:8px 14px;cursor:pointer;color:var(--muted);font-weight:700;min-height:38px}
+.tabs button.on{background:var(--coin);border-color:var(--coin);color:#2a1d00}
+.prow{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.prow:last-child{border:0}.pic{font-size:28px;width:38px;text-align:center;flex:none}.pmain{flex:1;min-width:0}.pbtn{text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:none}
+/* Büro-Szene */
+.office{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);padding:12px 12px 12px;background:linear-gradient(#2a2050,#1a1436 70%)}
+.office[data-tier="1"]{background:linear-gradient(#1f3b52,#162a40 70%)}.office[data-tier="2"]{background:linear-gradient(#4a2b2f,#2c1a26 70%)}.office[data-tier="3"]{background:linear-gradient(#27493b,#17302c 70%)}.office[data-tier="4"]{background:linear-gradient(#35305f,#1a1a45 60%,#2a1f5a)}
+.orow{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13px;font-weight:700}
+.neon{font-family:var(--fd);font-size:26px;text-align:center;color:var(--brand);text-shadow:0 0 5px var(--brand),0 0 18px var(--brand);margin:8px 0 12px;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seats{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px}
+.seat{text-align:center;padding:4px 2px 0;background:none;border:0;color:inherit;min-width:0;font-family:inherit}
+.seat .av{font-size:36px;line-height:1.1;display:inline-block;animation:bob 2.6s ease-in-out infinite}
+.desk{height:9px;border-radius:5px;background:linear-gradient(#b0804f,#7b522c);margin:3px 4px 0;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.seat .nm{font-size:12.5px;font-weight:700;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.seat .rl{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mood{height:4px;border-radius:3px;background:rgba(0,0,0,.35);margin:3px 8px 0;overflow:hidden}.mood i{display:block;height:100%}
+.seat.empty{border:2px dashed var(--line);border-radius:14px;color:var(--muted);min-height:100px;cursor:pointer;display:grid;place-content:center;gap:2px}
+.decor{margin-top:10px;font-size:22px;text-align:center;letter-spacing:.3em}
+.fxlayer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.fxi{position:absolute;font-size:24px;animation:rise 1.9s ease-out forwards;opacity:0}
+.fxi.coin{font-family:var(--fd);color:var(--coin);font-size:22px;text-shadow:0 2px 0 #0008}
+@keyframes rise{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1;transform:translateY(-12px) scale(1.1)}100%{transform:translateY(-120px) scale(1);opacity:0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.coach{display:flex;gap:10px;align-items:flex-start;margin-top:12px}
+.coach .face{font-size:34px;flex:none}.bubble{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:6px 16px 16px 16px;padding:10px 13px;font-size:14px;flex:1;min-width:0}
+.shelf{display:flex;align-items:center;gap:10px;padding:5px 0}.shelf .nm{width:34%;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.boxes{display:flex;gap:3px;flex:1}.boxes i{flex:1;height:14px;border-radius:3px;background:var(--panel2)}.boxes i.f{background:var(--sky)}.boxes.low i.f{background:var(--bad)}.shelf b{width:58px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+.mis{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.mis:last-child{border:0}.mis .e{font-size:28px;flex:none}.mis .t{flex:1;min-width:0}
+.rev{padding:8px 0;border-bottom:1px solid var(--line)}.rev:last-child{border:0}
+.stars{color:var(--coin);letter-spacing:1px}
+/* Team */
+.emp{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}.emp .av{font-size:44px;line-height:1}
+.cand{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.cand:last-child{border:0}.cand .av{font-size:38px}
+/* Sheet */
+#sheet{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(5,3,14,.72);backdrop-filter:blur(3px)}
+#sheet.hidden{display:none}
+.sbox{width:100%;max-width:580px;background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:24px 24px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+@media(min-width:700px){#sheet{align-items:center}.sbox{border-radius:24px;border-bottom:1px solid var(--line)}}
+.big{font-size:54px;text-align:center;line-height:1.1;margin-bottom:6px}
+.opt{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--line);border-radius:15px;padding:11px;margin-top:8px;cursor:pointer;background:var(--panel2)}.opt.on{border-color:var(--coin)}
+.sw{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}.sw button{width:38px;height:38px;border-radius:50%;border:3px solid transparent;cursor:pointer}.sw button.on{border-color:#fff}
+.emo{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.emo button{font-size:24px;background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:3px 9px;cursor:pointer;min-height:44px}.emo button.on{border-color:var(--coin)}
+.title{font-family:var(--fd);font-size:40px;line-height:1;text-align:center;color:var(--coin);text-shadow:0 3px 0 var(--coin-d);margin:4px 0 6px}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:40;width:min(92vw,420px);pointer-events:none}
+.toast{background:var(--panel2);border:1px solid var(--coin);border-radius:14px;padding:10px 14px;box-shadow:0 10px 30px #000a;animation:up .25s;font-size:14px}
+@media(min-width:900px){#toasts{left:auto;right:20px;transform:none;bottom:20px}}
+.confetti{position:fixed;left:50%;top:55%;pointer-events:none;z-index:90}.confetti span{position:absolute;animation:conf 1.7s cubic-bezier(.15,.8,.3,1) forwards}
+@keyframes conf{from{transform:translate(0,0) rotate(0);opacity:1}to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
+@media(prefers-reduced-motion:reduce){.seat .av{animation:none}.fxi,.confetti span{animation-duration:.01s}}
+table{width:100%;border-collapse:collapse}td{padding:6px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}td:last-child{text-align:right}tr:last-child td{border:0}
 </style>
-</head>
-<body>
-<div class="shell">
- <header id="hdr"></header>
- <nav id="nav"></nav>
+<div id="app">
+ <header id="hud">
+  <div class="h1"><div class="logo" id="hlogo"></div><div class="hn"><b id="hname"></b><small id="hstage"></small></div><div class="cash"><small>CASH</small><b id="cashv">0 €</b></div></div>
+  <div class="h2"><span class="chip" id="hweek"></span><div class="ctrl"><button class="play" id="bplay" data-a="play" aria-label="Pause/Play">▶</button><button id="bspd" data-a="spd" aria-label="Tempo">1×</button><button id="bsnd" data-a="snd" aria-label="Ton">🔊</button></div><span class="chip" id="hval"></span></div>
+ </header>
+ <div id="ticker" data-a="log"></div>
  <main id="main"></main>
- <div class="logbar" id="log"></div>
+ <nav id="tabs"></nav>
 </div>
-<div class="modal hidden" id="modal"></div>
+<div id="sheet" class="hidden"></div>
 <div id="toasts"></div>
+
 <script>
 'use strict';
 /* ================= Helfer ================= */
 const $=s=>document.querySelector(s);
 const nf=(o)=>new Intl.NumberFormat('de-DE',o);
-const F0=nf({style:'currency',currency:'EUR',maximumFractionDigits:0}), F2=nf({style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2}), N0=nf({maximumFractionDigits:0}), N1=nf({minimumFractionDigits:1,maximumFractionDigits:1});
-const fmt=n=>F0.format(Math.round(n)), fmt2=n=>F2.format(n), num=n=>N0.format(Math.round(n));
+const F0=nf({style:'currency',currency:'EUR',maximumFractionDigits:0}),F2=nf({style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2}),N0=nf({maximumFractionDigits:0}),N1=nf({minimumFractionDigits:1,maximumFractionDigits:1});
+const fmt=n=>F0.format(Math.round(n)),fmt2=n=>F2.format(n),num=n=>N0.format(Math.round(n)),f1=x=>N1.format(x);
 const pc=(x,d=1)=>(x*100).toFixed(d).replace('.',',')+' %';
-const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(x,a,b)=>Math.max(a,Math.min(b,x)), pick=a=>a[Math.floor(Math.random()*a.length)];
+const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),pick=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MONTHS=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 const SEASON=[1.35,1.1,1.05,1.1,1.1,1.05,1.0,.95,1.0,1.0,1.05,1.1];
 const GOAL=5000000;
@@ -136,12 +183,70 @@ const ITIERS=[
 ];
 const HANDLES=['fitwithlena','maxpower','gymbro_jonas','clean.eats.mia','sarah.lifts','coach.kevin','nina.balance','muskel.marco','healthy.hannah','tim.trains','vegan.vivi','lukas.lean','bulk.bastian','yoga.yasmin','kraftkarl','fit.fabi','jule.jumps','protein.paul','mindful.mara','deadlift.dani'];
 const NICHES=['Fitness','Bodybuilding','Wellness','Lifestyle','Food'];
-const STAFF=[
- {k:'creator',n:'Social-Media-Manager',e:'🎤',s:1800,d:'Postet automatisch nach deinem Content-Plan, +25 % Follower pro Post, +1 Content-Punkt'},
- {k:'buyer',n:'Einkäufer',e:'🧾',s:1500,d:'Bestellt Ware automatisch nach (je Produkt einstellbar) und verhandelt 4 % günstigere Einkaufspreise'},
- {k:'support',n:'Customer Success',e:'🎧',s:1800,d:'Rating +0,1, weniger Retouren, weniger Ärger bei Krisen'},
- {k:'perf',n:'Performance-Marketer',e:'📊',s:3200,d:'Werbe-CPC −20 %, erneuert Creatives automatisch, Anzeigen ermüden langsamer'},
- {k:'wh',n:'Lager & Versand',e:'📦',s:2000,d:'Versandkosten −12 %'},
+
+const ROLES=[
+ {k:'buyer',n:'Einkäufer',e:'🧾',base:1500,d:'Bestellt Ware automatisch nach und handelt bessere Einkaufspreise aus.',fx:e=>`−${f1(4*e)} % Einkaufspreis · bestellt automatisch nach`},
+ {k:'creator',n:'Social-Media-Manager',e:'🎤',base:1800,d:'Postet automatisch nach deinem Content-Plan und holt mehr Follower pro Post.',fx:e=>`+${Math.round(25*e)} % Follower pro Post · postet automatisch`},
+ {k:'perf',n:'Performance-Marketer',e:'📊',base:3200,d:'Senkt die Klickpreise und erneuert Werbe-Creatives von allein.',fx:e=>`Werbe-CPC −${Math.round(20*e)} % · erneuert Creatives`},
+ {k:'wh',n:'Lager & Versand',e:'📦',base:2000,d:'Packt schneller und günstiger.',fx:e=>`Versandkosten −${Math.round(12*e)} %`},
+ {k:'support',n:'Customer Success',e:'🎧',base:1800,d:'Hält Kunden glücklich: bessere Bewertungen, weniger Retouren.',fx:e=>`Rating +${(.1*e).toFixed(2).replace('.',',')} · weniger Retouren`},
+ {k:'rd',n:'Produktentwickler:in',e:'🧪',base:2800,d:'Entwickelt neue Produkte schneller und billiger.',fx:e=>`Neue Produkte ${Math.round(30*e)} % günstiger`},
+ {k:'design',n:'Brand-Designer:in',e:'🎨',base:2400,d:'Macht Shop und Verpackung unwiderstehlich.',fx:e=>`Shop-Conversion +${Math.round(8*e)} %`},
+];
+const TRAITS={
+ solid:{n:'Zuverlässig',eff:1,sal:1,mood:0,d:'Macht einfach seinen Job.'},
+ cheap:{n:'Berufseinsteiger',eff:.85,sal:.72,mood:4,d:'Günstig, lernt noch.'},
+ star:{n:'Überflieger',eff:1.2,sal:1.2,mood:0,d:'Startet auf Level 2, will aber Geld sehen.'},
+ loyal:{n:'Teamplayer',eff:1,sal:1,mood:10,d:'Gute Stimmung ist ansteckend.'},
+ moody:{n:'Sensibel',eff:1.15,sal:1,mood:-8,d:'Brillant, aber stimmungsabhängig.'},
+};
+const LVLF=[0,1,1.25,1.5],LVLS=[0,1,1.2,1.45];
+const FIRST=['Mia','Jonas','Lena','Noah','Emma','Luca','Sofia','Elias','Yasmin','Tarek','Hannah','Felix','Aylin','Paul','Nina','Ben','Zoe','Mert','Clara','Leon','Amara','Jan','Marta','Ole','Ida','Kaan'];
+const AVS=['👩‍💼','🧑‍💼','👨‍💼','👩‍💻','🧑‍💻','👨‍💻','👩‍🎤','🧑‍🎤','👨‍🎤','👷‍♀️','👷','👷‍♂️','👩‍🔬','🧑‍🔬','👨‍🔬','👩‍🎨','🧑‍🎨','👨‍🎨'];
+const OFFICES=[
+ {n:'Küchentisch-Startup',e:'🏠',seats:2,cap:500,rent:0,cost:0,d:'Laptop, Küchentisch, Kartons im Flur.'},
+ {n:'Co-Working-Space',e:'🏢',seats:4,cap:2000,rent:390,cost:1500,d:'Eigene Ecke, schnelles WLAN, kleines Lager im Keller.'},
+ {n:'Loft in der Stadt',e:'🏙️',seats:6,cap:6000,rent:1450,cost:9000,d:'Backsteinwand, Paketstation, Platz fürs Team.'},
+ {n:'Eigenes Haus mit Lager',e:'🏭',seats:8,cap:20000,rent:4200,cost:45000,d:'Eigene Halle mit Verpackungsstraße. Prestige: Bekanntheit +.'},
+ {n:'HQ-Campus',e:'🏰',seats:9,cap:100000,rent:12000,cost:250000,d:'Glasfassade, Event-Fläche, Investoren stehen Schlange.'},
+];
+const PERKS=[
+ {k:'plants',n:'Pflanzen & Deko',e:'🪴',c:400,up:20,mood:4},
+ {k:'coffee',n:'Kaffeebar',e:'☕',c:900,up:60,mood:8},
+ {k:'kicker',n:'Kicker & Chill-Ecke',e:'🏓',c:1800,up:40,mood:8},
+ {k:'chairs',n:'Ergonomische Stühle',e:'🪑',c:3000,up:0,mood:10},
+];
+const REV_GOOD=['Schmeckt richtig gut und löst sich ohne Klumpen auf!','Schnelle Lieferung und mega Qualität.','Beste Marke, die ich bisher probiert habe.','Endlich ein Produkt ohne Kreide-Geschmack.','Preis-Leistung top, bestelle wieder!','Verpackung sieht richtig stark aus.'];
+const REV_MEH=['Okay, aber nichts Besonderes.','Geschmack ist gewöhnungsbedürftig.','Lieferung hat etwas gedauert.'];
+const REV_BAD=['Wunschprodukt war ausverkauft …','Für den Preis hatte ich mehr erwartet.','Paket kam beschädigt an.'];
+const MIS=[
+ {id:'m1',e:'📦',t:'Erste Charge bestellen',n:()=>[S.stats.ordered,1],r:200},
+ {id:'m2',e:'📸',t:'Ersten Post absetzen',n:()=>[S.stats.posts,1],r:100},
+ {id:'m3',e:'🛒',t:'Ersten Verkauf machen',n:()=>[S.totalOrders,1],r:150},
+ {id:'m4',e:'🔟',t:'10 Bestellungen',n:()=>[S.totalOrders,10],r:200},
+ {id:'m5',e:'🤝',t:'Ersten Influencer buchen',n:()=>[S.stats.infl,1],r:250},
+ {id:'m6',e:'👥',t:'500 Follower',n:()=>[folTotal(),500],r:300},
+ {id:'m7',e:'🧑‍💼',t:'Ersten Mitarbeiter einstellen',n:()=>[Object.keys(S.staff).length,1],r:400},
+ {id:'m8',e:'💯',t:'100 Bestellungen',n:()=>[S.totalOrders,100],r:500},
+ {id:'m9',e:'🧪',t:'Zweites Produkt entwickeln',n:()=>[unlockedIds().length,2],r:500},
+ {id:'m10',e:'⭐',t:'Rating 4,2 erreichen',n:()=>[S.rating,4.2],r:500,dec:1},
+ {id:'m11',e:'🏢',t:'In den Co-Working-Space ziehen',n:()=>[S.office,1],r:1000},
+ {id:'m12',e:'🎯',t:'Werbeanzeigen starten',n:()=>[Object.values(S.ads).some(a=>a.budget>0)?1:0,1],r:500},
+ {id:'m13',e:'📣',t:'5.000 Follower',n:()=>[folTotal(),5000],r:1000},
+ {id:'m14',e:'🎤',t:'Einkäufer und Social-Media-Manager im Team',n:()=>[(S.staff.buyer?1:0)+(S.staff.creator?1:0),2],r:1500},
+ {id:'m15',e:'🔥',t:'1.000 Bestellungen',n:()=>[S.totalOrders,1000],r:3000},
+ {id:'m16',e:'🌿',t:'5 Produkte im Sortiment',n:()=>[unlockedIds().length,5],r:3000},
+ {id:'m17',e:'🏙️',t:'Ins Loft ziehen',n:()=>[S.office,2],r:4000},
+ {id:'m18',e:'💍',t:'Fester Influencer-Partner',n:()=>[S.stats.partnered||0,1],r:2000},
+ {id:'m19',e:'💶',t:'100.000 € Umsatz',n:()=>[S.totalRev,100000],r:5000},
+ {id:'m20',e:'🔁',t:'Abo-System einführen',n:()=>[S.up.abo?1:0,1],r:2000},
+ {id:'m21',e:'🌟',t:'10.000 Follower',n:()=>[folTotal(),10000],r:3000},
+ {id:'m22',e:'🏆',t:'Rating 4,6 erreichen',n:()=>[S.rating,4.6],r:5000,dec:1},
+ {id:'m23',e:'🏭',t:'Eigenes Haus mit Lager beziehen',n:()=>[S.office,3],r:15000},
+ {id:'m24',e:'📈',t:'Erste Investorenrunde',n:()=>[S.rounds,1],r:10000},
+ {id:'m25',e:'👑',t:'100.000 Follower',n:()=>[folTotal(),100000],r:10000},
+ {id:'m26',e:'🏰',t:'HQ-Campus beziehen',n:()=>[S.office,4],r:40000},
+ {id:'m27',e:'🤑',t:'1 Mio. € Umsatz',n:()=>[S.totalRev,1e6],r:50000},
 ];
 const UPS=[
  {k:'design',n:'Shop-Design Pro',e:'🎨',c:1200,d:'+15 % Conversion'},
@@ -153,7 +258,7 @@ const UPS=[
  {k:'seo',n:'SEO-Blog & Ratgeber',e:'📝',c:2000,d:'Dauerhaft mehr organische Besucher'},
  {k:'amazon',n:'Amazon-Store',e:'📦',c:1800,d:'Neuer Traffic-Kanal (15 % Gebühr)'},
  {k:'studio',n:'Content-Studio',e:'🎥',c:8000,d:'+1 Content-Punkt, +15 % Follower pro Post (900 €/Monat Miete)'},
- {k:'tpl',n:'3PL-Logistikpartner',e:'🚚',c:6000,d:'Versandkosten −35 %'},
+ {k:'tpl',n:'3PL-Logistikpartner',e:'🚚',c:6000,d:'Versandkosten −35 %, Lagerkapazität ×3'},
  {k:'fabrik',n:'Eigene Produktionslinie',e:'🏭',c:40000,d:'Herstellkosten −18 %'},
  {k:'retail',n:'Retail-Listung (DM, Rossmann …)',e:'🏬',c:25000,d:'Stetiger Großabnehmer-Absatz zum Großhandelspreis',need:()=>S.awareness>=35&&unlockedIds().length>=3,needTxt:'Bekanntheit ≥ 35 und 3 Produkte'},
 ];
@@ -179,32 +284,65 @@ const ACH=[
  ['seed','📈','Erste Finanzierungsrunde',()=>S.rounds>=1],
 ];
 
+
 /* ================= State ================= */
 let S=null;
-const ui={tab:'ueber',mtab:'social',speed:0,order:{},modal:null,interacting:false,ev:null};
-function newState(brand,emoji,arch){
+const ui={tab:'home',mtab:'social',plat:'tt',speed:0,sheet:null,modal:false,interacting:false,ev:null,week:false,sound:true,open:{},homeSig:'',cashShown:0,lastSpeed:1};
+function newState(brand,emoji,arch,color,founder){
  const prod={};
  Object.keys(PRODUCTS).forEach(id=>prod[id]={unlocked:id==='whey',price:PRODUCTS[id].ref,stock:0,qsum:0,costSum:0,lastQ:1,oos:false,ema:0,ord:{tier:1,bi:1},auto:true});
- return {v:1,brand,emoji,arch,day:0,cash:8000,loan:0,owned:1,rounds:0,
+ return {v:2,brand,emoji,arch,color:color||'#ff6a3d',founder:founder||'🧑‍💼',day:0,cash:8000,loan:0,owned:1,rounds:0,
   fol:{ig:120,tt:0,yt:0},email:0,awareness:2,rating:4.0,customers:0,
   totalOrders:0,totalRev:0,prod,batches:[],frac:{},fracR:{},
-  cp:3,postScore:0,staff:{},up:{},ads:{meta:{budget:0,fat:0,eff:.4},tt:{budget:0,fat:0,eff:.4},google:{budget:0,fat:0,eff:.4}},plan:{ig:{n:0,f:'mix',acc:0},tt:{n:0,f:'mix',acc:0},yt:{n:0,f:'mix',acc:0}},feed:[],campHist:[],partners:[],weekStop:true,buyDays:14,
+  cp:3,postScore:0,staff:{},cand:{},up:{},office:0,perks:{},eventCool:0,
+  ads:{meta:{budget:0,fat:0,eff:.4},tt:{budget:0,fat:0,eff:.4},google:{budget:0,fat:0,eff:.4}},
+  plan:{ig:{n:0,f:'mix',acc:0},tt:{n:0,f:'mix',acc:0},yt:{n:0,f:'mix',acc:0}},feed:[],campHist:[],partners:[],weekStop:true,buyDays:14,
   infl:[],camps:[],bursts:[],promo:{pct:0,days:0,cool:0},mailCool:0,mkt:{ref:1,until:0},cogMod:{m:1,until:0},
-  hist:[],log:[],ach:{},stats:{ordered:0,posts:0,infl:0,mails:0,viral:0,mega:0},last:{},ch:{},lastSrc:[],
+  hist:[],log:[],ach:{},mis:{claimed:{},seen:{}},reviews:[],bill:null,
+  stats:{ordered:0,posts:0,infl:0,mails:0,viral:0,mega:0,partnered:0},last:{},ch:{},lastSrc:[],
   evCool:8,inflHeat:0,negDays:0,exited:false,over:false,val:0,dayMkt:0};
+}
+function migrate(s){
+ const d=newState('x','x','hardcore');
+ ['plan','feed','campHist','partners','weekStop','buyDays','inflHeat','cand','office','perks','mis','reviews','bill','color','founder'].forEach(k=>{if(s[k]===undefined)s[k]=d[k];});
+ s.stats=Object.assign({},d.stats,s.stats);
+ Object.keys(PRODUCTS).forEach(id=>{const p=s.prod[id];if(!p.ord)p.ord={tier:1,bi:1};if(p.auto===undefined)p.auto=true;});
+ for(const k in s.ads)if(s.ads[k].eff===undefined)s.ads[k].eff=1;
+ for(const k of Object.keys(s.staff)){if(s.staff[k]===true){const R=ROLES.find(r=>r.k===k);s.staff[k]=mkCand(k,R&&R.base,s);s.staff[k].since=s.day;s.staff[k].promoAt=s.day+90;}else if(s.staff[k]===false)delete s.staff[k];}
+ s.v=2;return s;
 }
 const A=()=>ARCH[S.arch];
 const unlockedIds=()=>Object.keys(PRODUCTS).filter(id=>S.prod[id].unlocked);
 const folTotal=()=>S.fol.ig+S.fol.tt+S.fol.yt;
 const monthIdx=()=>Math.floor((S.day%360)/30);
 const dateStr=()=>`Jahr ${Math.floor(S.day/360)+1} · ${MONTHS[monthIdx()]} · Tag ${S.day%30+1}`;
-function migrate(s){const d=newState('x','x','hardcore');
- ['plan','feed','campHist','partners','weekStop','buyDays','inflHeat'].forEach(k=>{if(s[k]===undefined)s[k]=d[k];});
- Object.keys(PRODUCTS).forEach(id=>{const p=s.prod[id];if(!p.ord)p.ord={tier:1,bi:1};if(p.auto===undefined)p.auto=true;});
- for(const k in s.ads)if(s.ads[k].eff===undefined)s.ads[k].eff=1;
- return s;}
-function save(){try{localStorage.setItem('brandTycoon.v1',JSON.stringify(S));}catch(e){}}
-function loadSave(){try{const s=localStorage.getItem('brandTycoon.v1');return s?JSON.parse(s):null;}catch(e){return null;}}
+const SKEY='brandTycoon.v1';
+function save(){if(!ui.started)return;try{localStorage.setItem(SKEY,JSON.stringify(S));}catch(e){}}
+function loadSave(){try{const s=localStorage.getItem(SKEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+
+/* ================= Mitarbeiter ================= */
+function E(k){const e=S.staff[k];if(!e)return 0;return LVLF[e.lvl]*TRAITS[e.trait].eff*(.75+e.mood/100*.45);}
+const seatsUsed=()=>1+Object.keys(S.staff).length;
+const seatsMax=()=>OFFICES[S.office].seats;
+function mkCand(role,base,st){
+ const R=ROLES.find(r=>r.k===role),b=base||R.base,tk=pick(['solid','solid','cheap','star','loyal','moody']),T=TRAITS[tk],lvl=tk==='star'?2:1;
+ return {id:Math.random().toString(36).slice(2,7),name:pick(FIRST)+' '+String.fromCharCode(65+Math.floor(Math.random()*26))+'.',av:pick(AVS),role,lvl,trait:tk,sal:Math.round(b*LVLS[lvl]*T.sal*rnd(.92,1.08)/10)*10,mood:62,since:0,promoAt:0,low:0,raise:0};
+}
+function cands(role){if(!S.cand[role]||S.day-(S.cand[role].d||0)>=14)S.cand[role]={d:S.day,list:[mkCand(role),mkCand(role),mkCand(role)]};return S.cand[role].list;}
+function moodTarget(e){
+ let t=45+[0,6,12,18,24][S.office]+TRAITS[e.trait].mood+(e.raise||0);
+ PERKS.forEach(p=>{if(S.perks[p.k])t+=p.mood;});
+ if(S.teamEvent>S.day)t+=15;
+ return clamp(t,5,95);
+}
+function updateStaff(){
+ for(const k of Object.keys(S.staff)){const e=S.staff[k];
+  e.mood=clamp(e.mood+(moodTarget(e)-e.mood)*.04,0,100);
+  e.low=e.mood<20?(e.low||0)+1:0;
+  if(e.low>=14){delete S.staff[k];log(`🚪 ${e.name} (${ROLES.find(r=>r.k===k).n}) hat gekündigt – die Stimmung war am Boden.`,'bad');toast(`🚪 ${esc(e.name)} hat gekündigt`);continue;}
+  if(S.day>=e.promoAt&&e.lvl<3&&e.mood>=45){e.lvl++;e.sal=Math.round(e.sal*1.2/10)*10;e.promoAt=S.day+90*e.lvl;log(`🎖️ ${e.name} ist auf Level ${e.lvl} aufgestiegen (Gehalt ${fmt(e.sal)}).`,'good');toast(`🎖️ <b>${esc(e.name)}</b> ist jetzt Level ${e.lvl}!`);ui.celebrate=1;}
+ }
+}
 
 /* ================= Ökonomie ================= */
 const popOf=id=>PRODUCTS[id].pop*(A().boost.includes(id)?(S.arch==='clean'?1.25:1.2):1);
@@ -212,44 +350,77 @@ const qualMult=q=>1+(q-1)*.21;
 const ratingFromQ=q=>3.9+(q-1)*.425;
 const season=()=>SEASON[monthIdx()];
 const trust=()=>clamp(.75+(S.rating-3.6)*.4,.5,1.3);
-const shopMult=()=>1+(S.up.design?.15:0)+(S.up.checkout?.10:0)+(S.up.trusted?.08:0);
+const shopMult=()=>1+(S.up.design?.15:0)+(S.up.checkout?.10:0)+(S.up.trusted?.08:0)+.08*E('design');
 const baseCR=()=>.03*season()*shopMult()*trust()*(1+S.awareness*.004)*(1+.02*(unlockedIds().length-1))*(S.promo.days>0?1.12:1);
 function avgQ(id){const p=S.prod[id];return p.stock>0?p.qsum/p.stock:(p.lastQ||1);}
 const refPrice=id=>PRODUCTS[id].ref*qualMult(avgQ(id))*(1+S.awareness*.003)*A().ref*S.mkt.ref;
 const effPrice=id=>S.prod[id].price*(S.promo.days>0?1-S.promo.pct:1);
 const priceFactor=id=>clamp(Math.pow(refPrice(id)/effPrice(id),A().el),.05,3);
-const unitCost=(id,t,bi)=>PRODUCTS[id].cost*TIERS[t].c*BATCHES[bi].m*A().cogs*S.cogMod.m*(S.up.fabrik?.82:1)*(S.staff.buyer?.96:1);
+const unitCost=(id,t,bi)=>PRODUCTS[id].cost*TIERS[t].c*BATCHES[bi].m*A().cogs*S.cogMod.m*(S.up.fabrik?.82:1)*(1-.04*E('buyer'));
 const repeatRate=()=>.008+(S.up.abo?.008:0)+(S.up.email?.003:0)+clamp(S.rating-4,-.5,.8)*.006;
-const fulfilCost=()=>3.6*(S.up.tpl?.65:1)*(S.staff.wh?.88:1);
+const fulfilCost=()=>3.6*(S.up.tpl?.65:1)*(1-.12*E('wh'));
 const cpCap=()=>3+(S.staff.creator?1:0)+(S.up.studio?1:0);
-const cpRegen=()=>.5+(S.staff.creator?.35:0);
-const postMult=()=>(S.staff.creator?1.25:1)*(S.up.studio?1.15:1);
-function adCPC(k){const a=S.ads[k];return ADCH[k].cpc*Math.pow(1+a.budget/400,.6)*(1+a.fat*.8)*(S.staff.perf?.8:1);}
+const cpRegen=()=>.5+.35*E('creator');
+const postMult=()=>(1+.25*E('creator'))*(S.up.studio?1.15:1);
+const cpcMult=()=>Math.max(.5,1-.2*E('perf'));
+function adCPC(k){const a=S.ads[k];return ADCH[k].cpc*Math.pow(1+a.budget/400,.6)*(1+a.fat*.8)*cpcMult();}
 const inTransit=id=>S.batches.filter(b=>b.pid===id).reduce((a,b)=>a+b.qty,0);
+const stockCap=()=>OFFICES[S.office].cap*(S.up.tpl?3:1);
+const stockTotal=()=>Object.values(S.prod).reduce((a,p)=>a+p.stock,0)+S.batches.reduce((a,b)=>a+b.qty,0);
 const invValue=()=>Object.values(S.prod).reduce((a,p)=>a+p.costSum,0);
 function runRate(){const h=S.hist.slice(-60);return h.length?h.reduce((a,x)=>a+x.rev,0)/h.length*365:0;}
 function sum(n,key){return S.hist.slice(-n).reduce((a,x)=>a+x[key],0);}
 function valuation(){
  const rr=runRate(),h=S.hist.slice(-60),prof=h.reduce((a,x)=>a+x.profit,0),margin=rr?prof/h.length*365/rr:0;
- const m=clamp(.3+S.awareness/110+clamp(S.rating-4,-.5,.8)*.8+(margin>.1?.6:margin>0?.2:-.3),.3,3);
+ const m=clamp(.3+S.awareness/110+clamp(S.rating-4,-.5,.8)*.8+(margin>.1?.6:margin>0?.2:-.3)+(S.office>=4?.25:S.office>=3?.1:0),.3,3);
  return Math.max(0,rr*m+Math.max(0,S.cash)*.8+invValue()*.6-S.loan);
 }
 const stage=()=>{const v=S.val;return v<25000?'🏠 Garage':v<150000?'🚀 Startup':v<1e6?'📈 Scale-up':v<GOAL?'🏢 Marktführer':'🦄 Einhorn';};
+function billLines(){
+ const L=[],O=OFFICES[S.office],rev30=sum(30,'rev');
+ if(O.rent)L.push([`${O.e} Miete: ${O.n}`,O.rent]);
+ for(const R of ROLES){const e=S.staff[R.k];if(e)L.push([`${e.av} Gehalt ${e.name} (${R.n})`,e.sal]);}
+ PERKS.forEach(p=>{if(S.perks[p.k]&&p.up)L.push([`${p.e} Unterhalt ${p.n}`,p.up]);});
+ if(S.up.studio)L.push(['🎥 Miete Content-Studio',900]);
+ L.push(['🛒 Shop-Software & Tools',79+Math.round(rev30*.006)]);
+ L.push(['🛡️ Versicherungen',45+15*Object.keys(S.staff).length]);
+ if(S.office>=1)L.push(['🧮 Steuerberater',150]);
+ S.partners.forEach(p=>L.push([`🤝 Partner ${p.handle}`,p.fee]));
+ if(S.loan)L.push(['🏦 Kreditzinsen',Math.round(S.loan*.015)]);
+ return L;
+}
 
-/* ================= Log / Toast ================= */
-function log(msg,type=''){S.log.push({d:S.day,msg,type});if(S.log.length>80)S.log.shift();}
-function toast(msg){const el=document.createElement('div');el.className='toast';el.innerHTML=msg;const tb=$('#toasts');tb.appendChild(el);while(tb.children.length>4)tb.firstChild.remove();setTimeout(()=>el.remove(),4200);}
+/* ================= Log / Toast / Sound / FX ================= */
+function log(msg,type=''){S.log.push({d:S.day,msg,type});if(S.log.length>120)S.log.shift();}
+function toast(msg){const tb=$('#toasts'),el=document.createElement('div');el.className='toast';el.innerHTML=msg;tb.appendChild(el);while(tb.children.length>3)tb.firstChild.remove();setTimeout(()=>el.remove(),3800);}
 function addAw(x){S.awareness=clamp(S.awareness+x*(1-S.awareness/100),0,100);}
-function pay(c){if(S.cash<c){toast('❌ Nicht genug Cash ('+fmt(c)+' nötig)');return false;}S.cash-=c;return true;}
+function pay(c){if(S.cash<c){toast('❌ Nicht genug Cash ('+fmt(c)+' nötig)');sfx('err');return false;}S.cash-=c;return true;}
+let AC=null;
+function sfx(k){
+ if(!ui.sound)return;
+ try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const seqs={coin:[[988,.06],[1319,.13]],pop:[[520,.05]],win:[[523,.1],[659,.1],[784,.1],[1047,.3]],err:[[190,.14]],hire:[[392,.08],[523,.08],[659,.16]],claim:[[659,.07],[880,.07],[1175,.18]]};
+  let at=AC.currentTime;(seqs[k]||[]).forEach(([f,d])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.035,at);g.gain.exponentialRampToValueAtTime(.0001,at+d);o.connect(g);g.connect(AC.destination);o.start(at);o.stop(at+d);at+=d*.9;});}catch(e){}
+}
+function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
+function confetti(n=26){
+ const box=document.createElement('div');box.className='confetti';const em=['🎉','✨','🪙','⭐','💥'];
+ for(let i=0;i<n;i++){const s=document.createElement('span');s.textContent=pick(em);s.style.setProperty('--x',(Math.random()*2-1)*45+'vw');s.style.setProperty('--y',(-12-Math.random()*45)+'vh');s.style.setProperty('--r',(Math.random()*720-360)+'deg');s.style.animationDelay=Math.random()*.2+'s';s.style.fontSize=(16+Math.random()*16)+'px';box.appendChild(s);}
+ document.body.appendChild(box);setTimeout(()=>box.remove(),2300);
+}
+function fx(txt,cls){const L=$('#fx');if(!L)return;const el=document.createElement('span');el.className='fxi '+(cls||'');el.textContent=txt;el.style.left=(6+Math.random()*80)+'%';el.style.bottom=(8+Math.random()*30)+'%';L.appendChild(el);el.addEventListener('animationend',()=>el.remove());setTimeout(()=>el.remove(),2400);}
+function dayFx(){
+ const d=ui.fxq;ui.fxq=null;if(!d||ui.speed>2||ui.tab!=='home')return;
+ const n=Math.min(5,Math.round(d.orders));for(let i=0;i<n;i++)setTimeout(()=>fx(pick(['📦','📦','🛍️']),''),i*220);
+ if(d.rev>0){setTimeout(()=>fx('+'+fmt(d.rev),'coin'),150);sfx('coin');}
+}
 
 /* ================= Influencer ================= */
 function genInfluencers(){
  S.infl=[];
  const n=6,maxT=Math.min(4,Math.floor(S.day/60)+1+(S.awareness>25?1:0)+(S.awareness>50?1:0));
  for(let i=0;i<n;i++){
-  const ti=i<2?0:Math.floor(Math.random()*(maxT+1));const T=ITIERS[Math.min(ti,4)];
-  const f=Math.round(rnd(...T.f)),niche=pick(NICHES),liked=A().liked.includes(niche);
-  const fit=clamp(rnd(.75,1.1)*(liked?1.25:.9),.5,1.5);
+  const ti=i<2?0:Math.floor(Math.random()*(maxT+1)),T=ITIERS[Math.min(ti,4)];
+  const f=Math.round(rnd(...T.f)),niche=pick(NICHES),liked=A().liked.includes(niche),fit=clamp(rnd(.75,1.1)*(liked?1.25:.9),.5,1.5);
   S.infl.push({id:Math.random().toString(36).slice(2,8),handle:'@'+pick(HANDLES)+(Math.random()<.5?Math.floor(rnd(1,99)):''),tier:ITIERS.indexOf(T),followers:f,niche,fit,eng:rnd(...T.eng),price:Math.round(f*rnd(...T.pp)/10)*10,plat:pick(['ig','tt','yt'])});
  }
 }
@@ -262,7 +433,7 @@ function hireInfl(id){
  if(scandal){tv*=.35;S.rating=Math.max(1,S.rating-.15);}
  S.camps.push({id:o.id,handle:o.handle,tier:o.tier,plat:o.plat,followers:o.followers,price:o.price,day:0,tv,fit:o.fit,gain:o.followers*.004*o.fit*rnd(.5,1.5),aw:Math.max(0,(Math.log10(o.followers)-3.2)*2.2*o.fit),scandal,q:flop,eng:o.eng,awg:0,visitors:0,orders:0,rev:0,fol:0});
  S.inflHeat+=1;S.stats.infl++;if(o.tier===4)S.stats.mega++;
- log(`🤝 Kampagne mit ${o.handle} gestartet (${fmt(o.price)})`,'good');save();
+ log(`🤝 Kampagne mit ${o.handle} gestartet (${fmt(o.price)})`,'good');sfx('pop');save();
 }
 const SHAPE=[.35,.25,.18,.12,.10];
 
@@ -274,7 +445,8 @@ function makePost(plat,fk,auto){
  g=Math.round(g);S.fol[plat]+=g;addAw(F.aw*(viral?4:1));if(fk==='edu')S.rating=Math.min(5,S.rating+.01);
  S.postScore+=1;S.stats.posts++;S.dayMkt+=F.cost;
  S.feed.unshift({d:S.day,p:plat,f:fk,g,viral,auto:!!auto});if(S.feed.length>14)S.feed.pop();
- if(viral){toast(`🔥 <b>VIRAL!</b> ${F.e} ${F.n} auf ${P.n}: +${num(g)} Follower`);log(`🔥 Viral auf ${P.n}: +${num(g)} Follower`,'good');}
+ if(viral){toast(`🔥 <b>VIRAL!</b> ${F.e} ${F.n} auf ${P.n}: +${num(g)} Follower`);log(`🔥 Viral auf ${P.n}: +${num(g)} Follower`,'good');sfx('win');buzz(40);confetti(18);}
+ else if(!auto){toast(`${F.e} ${P.n}: <b>+${num(g)}</b> Follower`);sfx('pop');}
  return g;
 }
 function autoPosts(){
@@ -285,15 +457,27 @@ function autoPosts(){
 }
 function placeOrder(id,auto){
  const o=S.prod[id].ord,t=(o.tier===3&&!S.up.lab)?2:o.tier,q=BATCHES[o.bi].q,cost=unitCost(id,t,o.bi)*q;
+ if(stockTotal()+q>stockCap()){if(!auto){toast('📦 Lager voll! Kapazität: '+num(stockCap())+' Stück. Zieh in ein größeres Büro oder nutze einen 3PL-Partner.');sfx('err');}return false;}
  if(auto){if(S.cash<cost+1000)return false;S.cash-=cost;}else if(!pay(cost))return false;
  S.batches.push({pid:id,qty:q,tier:t,cost,arrive:S.day+TIERS[t].lead});S.stats.ordered++;
- log(`${auto?'🧾 Einkäufer: ':'🏭 '}Bestellt: ${num(q)}× ${PRODUCTS[id].n} (${TIERS[t].n}) für ${fmt(cost)} – Lieferung in ${TIERS[t].lead} Tagen`);return true;
+ log(`${auto?'🧾 Einkäufer: ':'🏭 '}Bestellt: ${num(q)}× ${PRODUCTS[id].n} (${TIERS[t].n}) für ${fmt(cost)} – Lieferung in ${TIERS[t].lead} Tagen`);if(!auto)sfx('pop');return true;
 }
 function autoBuy(){
  if(!S.staff.buyer)return;
  for(const id of unlockedIds()){const p=S.prod[id];if(!p.auto||inTransit(id))continue;
   const rate=Math.max(p.ema,1);if(p.stock/rate<S.buyDays)placeOrder(id,true);}
 }
+function addReview(orders,stockouts){
+ if(orders<1&&Math.random()>.2)return;if(Math.random()>Math.min(.7,.15+orders/15))return;
+ let st=clamp(Math.round(S.rating+rnd(-1.3,.7)),1,5);if(stockouts&&Math.random()<.3)st=2;
+ const pool=st>=4?REV_GOOD:st===3?REV_MEH:REV_BAD,pr=pick(unlockedIds());
+ S.reviews.unshift({n:pick(FIRST)+' '+String.fromCharCode(65+Math.floor(Math.random()*26))+'.',s:st,t:(st<=2&&stockouts)?REV_BAD[0]:pick(pool),p:pr,d:S.day});if(S.reviews.length>8)S.reviews.pop();
+}
+/* Missionen */
+const misCur=()=>MIS.filter(m=>!S.mis.claimed[m.id]);
+const misDone=m=>{const [c,t]=m.n();return c>=t;};
+function checkMis(){for(const m of misCur().slice(0,3)){if(misDone(m)&&!S.mis.seen[m.id]){S.mis.seen[m.id]=1;toast(`🎯 Mission geschafft: <b>${m.t}</b> – Belohnung abholen!`);sfx('claim');buzz(25);}}}
+
 /* ================= Tagesschritt ================= */
 function stepDay(){
  const D={rev:0,cogs:0,fees:0,ads:0,mkt:S.dayMkt||0,fixed:0,orders:0,units:0,visitors:0,missed:0};
@@ -304,48 +488,43 @@ function stepDay(){
  if(S.cogMod.until&&S.day>S.cogMod.until){S.cogMod={m:1,until:0};log('📉 Rohstoffpreise normalisieren sich.');}
  S.cp=Math.min(cpCap(),S.cp+cpRegen());S.postScore*=.92;S.inflHeat*=.97;
  autoPosts();
- // Wareneingang
  const arr=S.batches.filter(b=>b.arrive<=S.day);S.batches=S.batches.filter(b=>b.arrive>S.day);
  arr.forEach(b=>{const p=S.prod[b.pid];p.stock+=b.qty;p.qsum+=b.qty*b.tier;p.costSum+=b.cost;p.lastQ=b.tier;p.oos=false;log(`📦 Wareneingang: ${num(b.qty)}× ${PRODUCTS[b.pid].n} (${TIERS[b.tier].n})`,'good');});
  if(S.day%7===1||!S.infl.length)genInfluencers();
- // Quellen
+ if(S.office>=4)S.awareness=Math.max(S.awareness,15);else if(S.office>=3)S.awareness=Math.max(S.awareness,6);
  const src=[],act=.35+.65*Math.min(1,S.postScore/3),aw=S.awareness;
  src.push({k:'social',l:'Social organisch',v:(S.fol.ig*PLAT.ig.co+S.fol.tt*PLAT.tt.co+S.fol.yt*PLAT.yt.co)*act*(1+aw*.004),cm:1});
  src.push({k:'direct',l:'Direkt & Mundpropaganda',v:3+S.customers*.012+aw*.3+(S.up.seo?12+aw*.5:0),cm:1.15});
  if(S.up.amazon)src.push({k:'amazon',l:'Amazon',v:15+aw*2.5,cm:1.1,fee:.15});
  let avail=Math.max(0,S.cash);const totB=Object.values(S.ads).reduce((a,x)=>a+x.budget,0),sc=totB>avail?avail/totB:1;
- for(const k in ADCH){const a=S.ads[k];if(a.budget>0&&sc>0){const b=a.budget*sc,cpc=ADCH[k].cpc*Math.pow(1+a.budget/400,.6)*(1+a.fat*.8)*(S.staff.perf?.8:1);src.push({k:'ad_'+k,l:ADCH[k].n,v:b/cpc*(a.eff||1),cm:ADCH[k].cm*(1-a.fat*.3),spend:b,ad:k});D.ads+=b;a.fat=Math.min(1,a.fat+.005*(S.staff.perf?.5:1));a.eff=Math.min(1,(a.eff||.4)+.1);if(S.staff.perf&&a.fat>.6&&S.cash>1000){a.fat=0;S.cash-=150;D.mkt+=150;}}else{a.fat=Math.max(0,a.fat-.02);a.eff=.4;}}
+ for(const k in ADCH){const a=S.ads[k];if(a.budget>0&&sc>0){const b=a.budget*sc,cpc=ADCH[k].cpc*Math.pow(1+a.budget/400,.6)*(1+a.fat*.8)*cpcMult();src.push({k:'ad_'+k,l:ADCH[k].n,v:b/cpc*(a.eff||1),cm:ADCH[k].cm*(1-a.fat*.3),spend:b,ad:k});D.ads+=b;a.fat=Math.min(1,a.fat+.005*(1-.5*Math.min(1,E('perf'))));a.eff=Math.min(1,(a.eff||.4)+.1);if(E('perf')>0&&a.fat>.6&&S.cash>1000){a.fat=0;S.cash-=150;D.mkt+=150;}}else{a.fat=Math.max(0,a.fat-.02);a.eff=.4;}}
  S.bursts=S.bursts.filter(b=>b.days>0);S.bursts.forEach(b=>{src.push({k:'burst',l:b.label,v:b.per,cm:b.cm});b.days--;});
  S.camps.forEach(c=>{const sh=SHAPE[c.day]||0;src.push({k:'infl',l:'Influencer '+c.handle,v:c.tv*sh,cm:.8*c.fit,camp:c});});
  S.partners.forEach(p=>src.push({k:'partner',l:'Partner '+p.handle,v:p.vis*rnd(.85,1.15),cm:.8*p.fit,partner:p}));
  const CR=baseCR();let totalV=0,demO=0;
  const sat=Math.max(.1,1-S.totalOrders*.9/150000);
  src.forEach(s=>{s.o=s.v*s.cm*CR*sat;totalV+=s.v;demO+=s.o;});
- // Verkauf
  const unl=unlockedIds(),popSum=unl.reduce((a,id)=>a+popOf(id),0),cross=1+.1*(unl.length-1),rate=repeatRate();
- let soldU=0,soldNewU=0,revNew=0,qSum=0,stockouts=0,retailRev=0;
+ let soldU=0,soldNewU=0,revNew=0,qSum=0,stockouts=0,retailRev=0,retailU=0;
  for(const id of unl){
   const p=S.prod[id],w=popOf(id)/popSum,pf=priceFactor(id),ep=effPrice(id);
   const dN=demO*cross*w*pf*rnd(.8,1.2),dR=S.customers*rate*w*Math.pow(pf,.7)*rnd(.85,1.15);
   const fN=(S.frac[id]||0)+dN,fR=(S.fracR[id]||0)+dR,uN=Math.floor(fN),uR=Math.floor(fR);S.frac[id]=fN-uN;S.fracR[id]=fR-uR;
   const want=uN+uR,sold=Math.min(want,Math.floor(p.stock));D.missed+=want-sold;
-  if(p.stock<1){stockouts++;if(!p.oos&&S.totalOrders>0){p.oos=true;log(`⚠️ Ausverkauft: ${PRODUCTS[id].n}!`,'bad');}}
+  if(p.stock<1){stockouts++;if(!p.oos&&S.totalOrders>0){p.oos=true;log(`⚠️ Ausverkauft: ${PRODUCTS[id].n}!`,'bad');sfx('err');}}
   if(sold>0){
    const ac=p.costSum/p.stock,aq=p.qsum/p.stock,sN=want?Math.round(sold*uN/want):0;
    p.stock-=sold;p.costSum=Math.max(0,p.costSum-ac*sold);p.qsum=Math.max(0,p.qsum-aq*sold);if(p.stock<1){p.stock=0;p.costSum=0;p.qsum=0;}
    D.rev+=sold*ep;D.cogs+=sold*ac;soldU+=sold;soldNewU+=sN;revNew+=sN*ep;qSum+=aq*sold;
   }
   p.ema=p.ema*.9+sold*.1;
-  // Retail
-  if(S.up.retail&&p.stock>=1){const rq=Math.min(Math.floor(p.stock),Math.round(S.awareness*.6*trust()*w*rnd(.8,1.2)));if(rq>0){const ac=p.costSum/p.stock,aq=p.qsum/p.stock,rp=refPrice(id)*.5;p.stock-=rq;p.costSum=Math.max(0,p.costSum-ac*rq);p.qsum=Math.max(0,p.qsum-aq*rq);if(p.stock<1){p.stock=0;p.costSum=0;p.qsum=0;}D.rev+=rq*rp;D.cogs+=rq*ac;retailRev+=rq*rp;D.units+=rq;qSum+=aq*rq;soldU+=rq;}}
+  if(S.up.retail&&p.stock>=1){const rq=Math.min(Math.floor(p.stock),Math.round(S.awareness*.6*trust()*w*rnd(.8,1.2)));if(rq>0){const ac=p.costSum/p.stock,aq=p.qsum/p.stock,rp=refPrice(id)*.5;p.stock-=rq;p.costSum=Math.max(0,p.costSum-ac*rq);p.qsum=Math.max(0,p.qsum-aq*rq);if(p.stock<1){p.stock=0;p.costSum=0;p.qsum=0;}D.rev+=rq*rp;D.cogs+=rq*ac;retailRev+=rq*rp;retailU+=rq;qSum+=aq*rq;soldU+=rq;}}
  }
- const online=D.rev-retailRev,onlineU=soldU-(S.up.retail?D.units:0);D.units+=onlineU;
+ const online=D.rev-retailRev,onlineU=soldU-retailU;D.units=soldU;
  const orders=onlineU/cross,newOrders=soldNewU/cross;D.orders=orders;D.visitors=totalV;
- // Kosten
  let amzShare=0;
  src.forEach(s=>{const sh=demO>0?s.o/demO:0;s.ord=newOrders*sh;s.rev=revNew*sh;if(s.fee)amzShare+=sh;});
- D.fees=orders*(fulfilCost()+.25)+online*(.019+(S.staff.support?.012:.025))+revNew*amzShare*.15;
- // Attribution & Wachstum
+ D.fees=orders*(fulfilCost()+.25)+online*(.019+Math.max(.008,.025-.013*E('support')))+revNew*amzShare*.15;
  src.forEach(s=>{const c=S.ch[s.k]||(S.ch[s.k]={v:0,o:0,r:0,sp:0});c.v+=s.v;c.o+=s.ord;c.r+=s.rev;c.sp+=s.spend||0;
   if(s.camp){s.camp.visitors+=s.v;s.camp.orders+=s.ord;s.camp.rev+=s.rev;const g=s.camp.gain*(SHAPE[s.camp.day]||0);S.fol[s.camp.plat]+=g;s.camp.fol+=g;const b0=S.awareness;addAw(s.camp.aw*.6*(SHAPE[s.camp.day]||0));s.camp.awg=(s.camp.awg||0)+S.awareness-b0;}
   if(s.partner){const p=s.partner;p.visitors+=s.v;p.orders+=s.ord;p.rev+=s.rev;S.fol[p.plat]+=p.followers*.00004*p.fit;addAw(.04*p.fit);}
@@ -358,35 +537,34 @@ function stepDay(){
  addAw(newOrders*.005);S.awareness*=.992;
  S.fol.ig*=.9995;S.fol.tt*=.9995;S.fol.yt*=.9995;
  S.totalOrders+=orders;S.totalRev+=D.rev;
- // Rating
  const aq2=soldU>0?qSum/soldU:unl.reduce((a,id)=>a+avgQ(id),0)/unl.length;
- const tgt=ratingFromQ(aq2)+(S.up.lab?.12:0)+(S.staff.support?.1:0)+(S.up.trusted?.05:0)-Math.min(.3,stockouts*.1);
+ const tgt=ratingFromQ(aq2)+(S.up.lab?.12:0)+.1*E('support')+(S.up.trusted?.05:0)-Math.min(.3,stockouts*.1);
  S.rating=clamp(S.rating+(tgt-S.rating)*.03,1,5);
- // Fixkosten (monatlich)
+ updateStaff();addReview(orders,stockouts);
  if(S.day%30===0){
-  let f=79;STAFF.forEach(s=>{if(S.staff[s.k])f+=s.s;});if(S.up.studio)f+=900;S.partners.forEach(p=>f+=p.fee);
-  const intr=S.loan*.015;f+=intr;D.fixed=f;
-  log(`🧾 Monatsabrechnung: ${fmt(f)} (Tools, Gehälter, Miete${intr?', Zinsen':''})`,'warn');
+  const L=billLines();let f=L.reduce((a,x)=>a+x[1],0);
+  const preProfit=sum(29,'profit')+(D.rev-D.cogs-D.fees-D.ads-D.mkt-f),tax=Math.max(0,preProfit)*.2;
+  S.bill={day:S.day,lines:L,tax,total:f+tax};D.fixed=f+tax;
+  log(`🧾 Monatsabrechnung: ${fmt(f+tax)} (Miete, Gehälter, Tools${tax?', Steuern '+fmt(tax):''})`,'warn');
  }
  S.cash+=D.rev-D.fees-D.ads-D.fixed;
  const profit=D.rev-D.cogs-D.fees-D.ads-D.mkt-D.fixed;
  S.hist.push({d:S.day,rev:D.rev,cogs:D.cogs,fees:D.fees,ads:D.ads,mkt:D.mkt,fixed:D.fixed,orders:D.orders,visitors:D.visitors,units:D.units,profit,cash:S.cash});
  if(S.hist.length>420)S.hist.shift();
  S.lastSrc=src.map(s=>({l:s.l,v:s.v,o:s.ord}));
- S.val=valuation();
+ S.val=valuation();ui.fxq={orders:D.orders,rev:D.rev};
  autoBuy();
- // Ereignisse & Ziele
  for(const a of ACH){if(!S.ach[a[0]]&&a[3]()){S.ach[a[0]]=S.day;toast(`${a[1]} Erfolg: <b>${a[2]}</b>`);log(`${a[1]} Erfolg freigeschaltet: ${a[2]}`,'good');}}
+ checkMis();
  if(S.cash<0)S.negDays++;else S.negDays=0;
- if(S.negDays>=10){S.over=true;ui.speed=0;showOver();return;}
- if(!S.exited&&S.val>=GOAL){S.exited=true;ui.speed=0;showWin();return;}
+ if(S.negDays>=10){S.over=true;ui.speed=0;openSheet('over');return;}
+ if(!S.exited&&S.val>=GOAL){S.exited=true;ui.speed=0;openSheet('win');return;}
  if(S.day%360===324&&!S.last['bf'+Math.floor(S.day/360)]){S.last['bf'+Math.floor(S.day/360)]=1;openEvent(EVENTS.find(e=>e.k==='bf'));}
  else if(S.evCool>0)S.evCool--;
  else if(S.day>=10&&Math.random()<.07){const e=pick(EVENTS.filter(x=>x.k!=='bf'&&x.ok()));if(e){S.evCool=10;openEvent(e);}}
  if(S.weekStop&&S.day%7===0&&!S.over){ui.speed=0;ui.week=true;}
  if(S.day%5===0)save();
 }
-
 /* ================= Ereignisse ================= */
 const since=(k,d)=>S.day-(S.last[k]??-9999)>d;
 const mark=k=>S.last[k]=S.day;
@@ -419,7 +597,7 @@ const EVENTS=[
   {t:'Anwalt einschalten (350 €) – 50 % Chance',f(){mark('abmahnung');pay(350);if(Math.random()<.5){log('⚖️ Abmahnung abgewehrt!','good');}else{S.cash-=1200;log('⚖️ Verloren: weitere 1.200 € fällig.','bad');}}}]};}},
  {k:'support',ok:()=>S.totalOrders>60&&since('support',90),make(){return{title:'😤 Kundenservice-Welle',text:'Ein Paket-Dienstleister hat Lieferprobleme – dein Postfach brennt, erste 1-Sterne-Bewertungen tauchen auf.',choices:[
   {t:'Gutscheine verteilen (400 €)',f(){mark('support');if(!pay(400))S.rating=Math.max(1,S.rating-.12);else log('🎫 Gutscheine verteilt – Kunden besänftigt.');}},
-  {t:'Aussitzen',f(){mark('support');S.rating=Math.max(1,S.rating-(S.staff.support?.04:.12));log('😤 Bewertungen leiden.','bad');}}]};}},
+  {t:'Aussitzen',f(){mark('support');S.rating=Math.max(1,S.rating-(.12-.08*Math.min(1,E('support'))));log('😤 Bewertungen leiden.','bad');}}]};}},
  {k:'marathon',ok:()=>S.cash>2500&&S.day>30&&since('marathon',100),make(){return{title:'🏃 Marathon-Sponsoring',text:'Ein regionaler Marathon sucht Sponsoren. 1.500 € für Banner, Verpflegungsstand und Social-Reichweite.',choices:[
   {t:'Sponsern (1.500 €)',f(){mark('marathon');if(pay(1500)){const g=Math.round(rnd(500,1200));S.fol.ig+=g;addAw(4);log(`🏃 Marathon-Sponsoring: +${g} Follower, Bekanntheit steigt.`,'good');}}},
   {t:'Kein Budget',f(){mark('marathon');}}]};}},
@@ -428,274 +606,370 @@ const EVENTS=[
   {t:'Nur 10 % für 5 Tage',f(){S.promo={pct:.10,days:5,cool:10};}},
   {t:'Keine Rabatte – Premium-Haltung',f(){addAw(.5);}}]};}},
 ];
-function openEvent(e){if(!e)return;const ev=e.make();ui.ev=ev;ui.speedBefore=ui.speed;ui.speed=0;
- showModal(`<h2>${ev.title}</h2><p class="muted">${ev.text}</p>${ev.choices.map((c,i)=>`<button class="btn choice" data-a="choice" data-i="${i}">${c.t}</button>`).join('')}`);}
 
+function openEvent(e){if(!e)return;const ev=e.make();ui.ev=ev;ui.speedBefore=ui.speed||ui.lastSpeed||1;ui.speed=0;buzz(30);openSheet('event');}
 /* ================= Aktionen ================= */
+function setSpeed(s){
+ ui.speed=s;if(s>0){ui.lastSpeed=s;ui.week=false;schedule();}
+ updateHud();render();
+}
 const ACT={
- speed(d){ui.speed=+d.s;if(ui.speed>0){ui.week=false;if(!S.over)schedule();}render(true);},
- tab(d){ui.tab=d.t;render(true);},
+ play(){if(S.over)return;setSpeed(ui.speed>0?0:(ui.lastSpeed||1));},
+ spd(){const n=ui.speed>0?(ui.speed%3)+1:(ui.lastSpeed%3)+1;ui.lastSpeed=n;setSpeed(n);},
+ snd(){ui.sound=!ui.sound;try{localStorage.setItem('bt.sound',ui.sound?'1':'0');}catch(e){}if(ui.sound)sfx('pop');updateHud();},
+ tab(d){ui.tab=d.t;render(true);$('#main').scrollTop=0;},
  mtab(d){ui.mtab=d.t;render(true);},
- choice(d){const c=ui.ev.choices[+d.i];hideModal();c.f();ui.ev=null;ui.speed=ui.speedBefore||1;save();schedule();render(true);},
+ plat(d){ui.plat=d.p;render(true);},
+ log(){openSheet('log');},
+ go(d){closeSheet();ui.tab=d.t;if(d.m)ui.mtab=d.m;render(true);},
+ /* Produkte */
+ order(d){ui.sh={id:d.id,tier:S.prod[d.id].ord.tier,bi:S.prod[d.id].ord.bi};openSheet('order');},
+ ot(d){ui.sh.tier=+d.v;renderSheet();},
+ ob(d){ui.sh.bi=+d.v;renderSheet();},
+ buy(){const p=S.prod[ui.sh.id];p.ord={tier:ui.sh.tier,bi:ui.sh.bi};if(placeOrder(ui.sh.id,false)){closeSheet();save();render(true);}},
  reorder(d){if(placeOrder(d.id,false)){save();render(true);}},
  auto(d){S.prod[d.id].auto=!S.prod[d.id].auto;render(true);},
- weekstop(){S.weekStop=!S.weekStop;render(true);},
- plat(d){ui.plat=d.p;render(true);},
- partner(d){const h=S.campHist.find(x=>x.id===d.id);if(!h||h.partner)return;if(S.partners.length>=3){toast('Maximal 3 feste Partner');return;}const fee=Math.round(h.price*.7/10)*10;if(!pay(fee))return;S.partners.push({id:h.id,handle:h.handle,plat:h.plat,followers:h.followers,fit:h.fit,eng:h.eng,fee,vis:h.followers*h.eng*.5*h.fit*.045,since:S.day,visitors:0,orders:0,rev:0,fol:0});h.partner=true;log(`🤝 Feste Kooperation mit ${h.handle} (${fmt(fee)}/Monat)`,'good');save();render(true);},
- unpartner(d){const p=S.partners.find(x=>x.id===d.id);S.partners=S.partners.filter(x=>x.id!==d.id);const h=S.campHist.find(x=>x.id===d.id);if(h)h.partner=false;if(p)log(`👋 Kooperation mit ${p.handle} beendet`);render(true);},
- unlock(d){const P=PRODUCTS[d.id];if(!pay(P.rd))return;S.prod[d.id].unlocked=true;log(`🧪 Neues Produkt entwickelt: ${P.n}`,'good');toast(`${P.e} <b>${P.n}</b> ist im Sortiment!`);save();render(true);},
- post(d){const F=FORMATS[d.f];if(S.cp<1){toast('⚡ Keine Content-Punkte mehr – warte bis morgen.');return;}if(F.need&&S.customers<F.need){toast('🙌 Dafür brauchst du '+F.need+'+ Kunden.');return;}
-  if(!pay(F.cost))return;S.cp-=1;makePost(d.p,d.f,false);render(true);},
- adrefresh(d){if(!pay(150))return;S.ads[d.k].fat=0;S.dayMkt+=150;toast('🎨 Neue Creatives – Ad-Müdigkeit zurückgesetzt.');render(true);},
- hire(d){hireInfl(d.id);render(true);},
- mail(){if(S.mailCool>0||S.email<50)return;if(!pay(15))return;S.mailCool=3;S.dayMkt+=15;S.stats.mails++;S.bursts.push({per:S.email*.06,days:2,cm:1.8,label:'Newsletter'});addAw(.3);log(`📧 Newsletter an ${num(S.email)} Abonnenten verschickt`);render(true);},
+ buydays(d){S.buyDays=+d.v;render(true);},
+ unlock(d){const P=PRODUCTS[d.id],c=Math.round(P.rd*(1-.3*E('rd')));if(!pay(c))return;S.prod[d.id].unlocked=true;log(`🧪 Neues Produkt entwickelt: ${P.n}`,'good');toast(`${P.e} <b>${P.n}</b> ist im Sortiment!`);sfx('win');confetti(14);save();render(true);},
+ /* Marketing */
+ post(d){const F=FORMATS[d.f];if(S.cp<1){toast('⚡ Keine Content-Punkte mehr. Morgen gibt es neue.');return;}if(F.need&&S.customers<F.need){toast('🙌 Dafür brauchst du '+F.need+'+ Kunden.');return;}
+  if(!pay(F.cost))return;S.cp-=1;makePost(d.p,d.f,false);checkMis();render(true);},
+ plann(d){S.plan[d.p].n=+d.v;render(true);},
+ planf(d){S.plan[d.p].f=d.v;render(true);},
+ adrefresh(d){if(!pay(150))return;S.ads[d.k].fat=0;S.dayMkt+=150;toast('🎨 Neue Creatives – Anzeigen wieder frisch.');render(true);},
+ hirei(d){hireInfl(d.id);checkMis();render(true);},
+ mail(){if(S.mailCool>0||S.email<50)return;if(!pay(15))return;S.mailCool=3;S.dayMkt+=15;S.stats.mails++;S.bursts.push({per:S.email*.06,days:2,cm:1.8,label:'Newsletter'});addAw(.3);log(`📧 Newsletter an ${num(S.email)} Abonnenten verschickt`);sfx('pop');render(true);},
  promo(d){if(S.promo.cool>0||S.promo.days>0)return;S.promo={pct:+d.p,days:3,cool:14};log(`🏷️ ${Math.round(+d.p*100)} % Rabatt-Aktion für 3 Tage gestartet`,'good');render(true);},
- staff(d){const s=STAFF.find(x=>x.k===d.k);if(S.staff[d.k]){S.staff[d.k]=false;log(`👋 ${s.n} verlässt das Team`);}else{if(S.cash<s.s){toast('❌ Mind. ein Monatsgehalt als Cash nötig');return;}S.staff[d.k]=true;log(`🎉 ${s.n} eingestellt (${fmt(s.s)}/Monat)`,'good');}save();render(true);},
- up(d){const u=UPS.find(x=>x.k===d.k);if(S.up[u.k])return;if(!pay(u.c))return;S.up[u.k]=true;log(`${u.e} Ausbau: ${u.n}`,'good');toast(`${u.e} <b>${u.n}</b> freigeschaltet`);save();render(true);},
+ partner(d){const h=S.campHist.find(x=>x.id===d.id);if(!h||h.partner)return;if(S.partners.length>=3){toast('Maximal 3 feste Partner');return;}const fee=Math.round(h.price*.7/10)*10;if(!pay(fee))return;S.partners.push({id:h.id,handle:h.handle,plat:h.plat,followers:h.followers,fit:h.fit,eng:h.eng,fee,vis:h.followers*h.eng*.5*h.fit*.045,since:S.day,visitors:0,orders:0,rev:0,fol:0});h.partner=true;S.stats.partnered++;log(`🤝 Feste Kooperation mit ${h.handle} (${fmt(fee)}/Monat)`,'good');sfx('hire');checkMis();save();render(true);},
+ unpartner(d){const p=S.partners.find(x=>x.id===d.id);S.partners=S.partners.filter(x=>x.id!==d.id);const h=S.campHist.find(x=>x.id===d.id);if(h)h.partner=false;if(p)log(`👋 Kooperation mit ${p.handle} beendet`);render(true);},
+ /* Firma */
+ openhire(d){ui.sh={role:d.role};openSheet('hire');},
+ hire(d){const list=cands(d.role),c=list.find(x=>x.id===d.id);if(!c||S.staff[d.role])return;
+  if(seatsUsed()>=seatsMax()){toast('🪑 Kein freier Platz. Zieh in ein größeres Büro.');sfx('err');return;}
+  if(S.cash<c.sal){toast('❌ Mindestens ein Monatsgehalt als Cash nötig ('+fmt(c.sal)+')');sfx('err');return;}
+  c.since=S.day;c.promoAt=S.day+90*c.lvl;S.staff[d.role]=c;S.cand[d.role]=null;closeSheet();
+  log(`🎉 ${c.name} startet als ${ROLES.find(r=>r.k===d.role).n} (${fmt(c.sal)}/Monat)`,'good');toast(`🎉 <b>${esc(c.name)}</b> ist an Bord!`);sfx('hire');buzz(25);confetti(18);checkMis();save();render(true);},
+ fire(d){const e=S.staff[d.role];if(!e)return;delete S.staff[d.role];for(const k in S.staff)S.staff[k].mood=Math.max(0,S.staff[k].mood-6);log(`👋 ${e.name} wurde entlassen. Das Team ist verunsichert.`,'warn');render(true);},
+ raise(d){const e=S.staff[d.role];if(!e||e.raise>=12)return;e.sal=Math.round(e.sal*1.1/10)*10;e.raise=(e.raise||0)+4;e.mood=Math.min(100,e.mood+8);log(`💸 ${e.name} bekommt mehr Gehalt (${fmt(e.sal)}).`);sfx('pop');render(true);},
+ office(){const n=S.office+1,O=OFFICES[n];if(!O||!pay(O.cost))return;S.office=n;log(`🚚 Umzug: ${O.n} (${O.seats} Plätze, Lager ${num(O.cap)}).`,'good');toast(`${O.e} Willkommen im <b>${O.n}</b>!`);sfx('win');buzz(40);confetti(40);checkMis();save();ui.homeSig='';render(true);},
+ perk(d){const p=PERKS.find(x=>x.k===d.k);if(S.perks[p.k]||!pay(p.c))return;S.perks[p.k]=true;log(`${p.e} Neu im Büro: ${p.n}`,'good');sfx('pop');ui.homeSig='';render(true);},
+ teamevent(d){const c=+d.c;if((S.teamEvent||0)>S.day||!pay(c))return;S.teamEvent=S.day+30;for(const k in S.staff)S.staff[k].mood=Math.min(100,S.staff[k].mood+(c>1000?25:15));log(`🎳 Team-Event! Die Stimmung steigt.`,'good');confetti(24);sfx('win');render(true);},
+ up(d){const u=UPS.find(x=>x.k===d.k);if(S.up[u.k])return;if(!pay(u.c))return;S.up[u.k]=true;log(`${u.e} Ausbau: ${u.n}`,'good');toast(`${u.e} <b>${u.n}</b> freigeschaltet`);sfx('win');save();render(true);},
+ /* Finanzen */
  loan(d){const a=+d.amt,lim=5000+runRate()*.25;if(S.loan+a>lim){toast('🏦 Kreditlimit erreicht: '+fmt(lim));return;}S.loan+=a;S.cash+=a;log(`🏦 Kredit aufgenommen: ${fmt(a)}`);save();render(true);},
  repay(d){const a=Math.min(+d.amt,S.loan);if(!pay(a))return;S.loan-=a;log(`🏦 Kredit getilgt: ${fmt(a)}`);save();render(true);},
- invest(){const r=ROUNDS[S.rounds];if(!r||S.val<r.min)return;const cash=S.val*r.pct*.9;S.cash+=cash;S.owned*=(1-r.pct);S.rounds++;log(`📈 ${r.n}-Runde: ${fmt(cash)} für ${Math.round(r.pct*100)} % der Anteile`,'good');save();render(true);},
- newgame(){showStart(true);},
- start(){const n=$('#sn').value.trim()||'NovaFuel';S=newState(n.slice(0,22),ui.pe||'🔥',ui.pa||'hardcore');ui.tab='ueber';ui.week=false;genInfluencers();S.val=valuation();log(`🎬 ${S.brand} wurde gegründet. Viel Erfolg!`,'good');hideModal();ui.speed=0;save();render(true);},
- cont(){S=migrate(loadSave());S.log=S.log||[];hideModal();ui.speed=0;render(true);},
- pa(d){ui.pa=d.k;showStart();},pe(d){ui.pe=d.e;showStart();},
- close(){hideModal();ui.speed=ui.speed||0;render(true);},
- keep(){hideModal();ui.speed=1;schedule();render(true);},
+ invest(){const r=ROUNDS[S.rounds];if(!r||S.val<r.min)return;const cash=S.val*r.pct*.9;S.cash+=cash;S.owned*=(1-r.pct);S.rounds++;log(`📈 ${r.n}-Runde: ${fmt(cash)} für ${Math.round(r.pct*100)} % der Anteile`,'good');confetti(30);sfx('win');checkMis();save();render(true);},
+ claim(d){const m=MIS.find(x=>x.id===d.id);if(!m||S.mis.claimed[m.id]||!misDone(m))return;S.mis.claimed[m.id]=1;S.cash+=m.r;S.dayMkt-=m.r;log(`🎯 Mission „${m.t}“ erfüllt: +${fmt(m.r)}`,'good');toast(`🎯 <b>+${fmt(m.r)}</b> Belohnung!`);sfx('claim');buzz(30);confetti(m.r>=3000?40:20);checkMis();save();render(true);},
+ weekstop(){S.weekStop=!S.weekStop;render(true);},
+ /* Spielstart */
+ newgame(){openSheet('start',true);},
+ pa(d){ui.pa=d.k;renderSheet();},pe(d){ui.pe=d.e;renderSheet();},pc(d){ui.pcol=d.c;renderSheet();},pf(d){ui.pfo=d.e;renderSheet();},
+ start(){const n=($('#sn').value||'').trim()||'NovaFuel';S=newState(n.slice(0,20),ui.pe||'🔥',ui.pa||'hardcore',ui.pcol||'#ff6a3d',ui.pfo||'🧑‍💼');ui.tab='home';ui.week=false;ui.speed=0;ui.homeSig='';genInfluencers();S.val=valuation();log(`🎬 ${S.brand} wurde gegründet. Viel Erfolg!`,'good');closeSheet();ui.started=true;sfx('win');confetti(30);save();updateHud();render(true);},
+ cont(){S=migrate(loadSave());ui.started=true;ui.speed=0;closeSheet();ui.homeSig='';updateHud();render(true);},
+ close(){closeSheet();},
+ keep(){closeSheet();setSpeed(1);},
+ choice(d){const c=ui.ev.choices[+d.i];closeSheet();c.f();ui.ev=null;save();setSpeed(ui.speedBefore||1);},
 };
 const INP={
- price(el){const id=el.dataset.id;S.prod[id].price=+el.value;$('#pi-'+id).innerHTML=priceInfo(id);},
- ad(el){const k=el.dataset.k;S.ads[k].budget=+el.value;$('#ai-'+k).innerHTML=adInfo(k);},
- otier(el){S.prod[el.dataset.id].ord.tier=+el.value;ui.interacting=false;render(true);},
- buydays(el){S.buyDays=+el.value;ui.interacting=false;render(true);},
- plann(el){S.plan[el.dataset.p].n=+el.value;ui.interacting=false;render(true);},
- planf(el){S.plan[el.dataset.p].f=el.value;ui.interacting=false;render(true);},
- obatch(el){S.prod[el.dataset.id].ord.bi=+el.value;ui.interacting=false;render(true);},
+ price(el){const id=el.dataset.id;S.prod[id].price=+el.value;const t=$('#pi-'+id);if(t)t.innerHTML=priceInfo(id);},
+ ad(el){const k=el.dataset.k;S.ads[k].budget=+el.value;const t=$('#ai-'+k);if(t)t.innerHTML=adInfo(k);},
 };
-document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const f=ACT[b.dataset.a];if(f)f(b.dataset);});
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-a]');
+ if(e.target.id==='sheet'&&!ui.sheetLock){closeSheet();return;}
+ if(!b||b.disabled)return;const f=ACT[b.dataset.a];if(f)f(b.dataset);
+});
 document.addEventListener('input',e=>{const f=e.target.dataset&&INP[e.target.dataset.i];if(f&&e.target.type==='range')f(e.target);});
-document.addEventListener('change',e=>{const f=e.target.dataset&&INP[e.target.dataset.i];if(f&&e.target.tagName==='SELECT')f(e.target);});
 document.addEventListener('pointerdown',e=>{if(e.target.matches&&e.target.matches('input[type=range]'))ui.interacting=true;});
-document.addEventListener('pointerup',()=>{if(ui.interacting){ui.interacting=false;save();}});
-document.addEventListener('focusin',e=>{if(e.target.tagName==='SELECT')ui.interacting=true;});
-document.addEventListener('focusout',e=>{if(e.target.tagName==='SELECT')ui.interacting=false;});
-
-/* ================= Rendering ================= */
+const endInt=()=>{if(ui.interacting){ui.interacting=false;save();}};
+document.addEventListener('pointerup',endInt);document.addEventListener('pointercancel',endInt);
+document.addEventListener('toggle',e=>{const d=e.target;if(d.tagName==='DETAILS'&&d.dataset.d)ui.open[d.dataset.d]=d.open;},true);
+/* ================= HUD / Nav / Rendering ================= */
 const bar=(v,m,cls='')=>`<div class="bar ${cls}"><i style="width:${clamp(v/m*100,0,100)}%"></i></div>`;
-function renderHeader(){
- const wk=Math.floor(S.day/7)+1;
- $('#hdr').innerHTML=`<div class="brand"><span class="logo">${S.emoji}</span><div>${S.brand}<small>${stage()} · ${ARCH[S.arch].n}</small></div></div>
- <div class="stat"><b>Woche ${wk}</b><span>${dateStr()}</span></div>
- <div class="stat"><b class="${S.cash<0?'bad':''}">${fmt(S.cash)}</b><span>Cash</span></div>
- <div class="stat"><b>${fmt(S.val)}</b><span>Unternehmenswert</span></div>
- <div class="stat"><b>★ ${N1.format(S.rating)}</b><span>Rating</span></div>
- <div class="stat"><b>${num(folTotal())}</b><span>Follower</span></div>
- <div class="stat"><b>${N0.format(S.awareness)}/100</b><span>Bekanntheit</span></div>
- <div class="speed">${[['0','⏸','Pause'],['1','▶','Normal (1 Tag ≈ 2 s)'],['2','⏩','Schnell'],['3','⏭','Sehr schnell']].map(([s,l,t])=>`<button data-a="speed" data-s="${s}" class="${ui.speed==s?'on':''}" title="${t}">${l}</button>`).join('')}<button data-a="weekstop" class="${S.weekStop?'on':''}" title="Pausiert am Ende jeder Woche, damit du in Ruhe entscheiden kannst">📅 Wochen-Stopp</button></div>`;
-}
+const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
 function alerts(){
  const a=[];
  unlockedIds().forEach(id=>{const p=S.prod[id],N=PRODUCTS[id].n,tr=inTransit(id);
   if(p.stock<1&&S.totalOrders>0)a.push({t:`❗ ${N} ist ausverkauft`+(tr?' – Nachschub unterwegs':''),btn:tr?null:{a:'reorder',id,l:'Nachbestellen'}});
   else if(p.ema>0&&p.stock/p.ema<7&&!tr)a.push({t:`⚠️ ${N} reicht nur noch ~${Math.max(1,Math.floor(p.stock/p.ema))} Tage`,btn:{a:'reorder',id,l:'Nachbestellen'}});});
  if(S.cash<0)a.push({t:'🚨 Dein Konto ist im Minus! Nach 10 Tagen droht die Insolvenz.'});
+ Object.values(S.staff).forEach(e=>{if(e.mood<30)a.push({t:`😟 ${e.name} ist unzufrieden – Gehalt, Büro-Extras oder Team-Event helfen.`,btn:{a:'go',t:'firma',l:'Zum Team'}});});
  return a;
-}
-function renderNav(){
- const al=alerts().length;
- const T=[['ueber','📊','Übersicht'],['sort','🧴','Sortiment'],['mkt','📣','Marketing'],['team','🛠️','Team & Ausbau'],['fin','💶','Finanzen'],['erf','🏆','Ziele & Hilfe']];
- $('#nav').innerHTML=T.map(([k,e,l])=>`<button data-a="tab" data-t="${k}" class="${ui.tab===k?'on':''}">${e} ${l}${k==='ueber'&&al?`<span class="badge">${al}</span>`:''}</button>`).join('');
-}
-function renderLog(){
- $('#log').innerHTML=S.log.slice(-30).reverse().map(l=>`<div class="${l.type}"><span class="t">T${l.d}</span>${l.msg}</div>`).join('');
 }
 function hints(){
  const h=[],ad=Object.values(S.ads).some(a=>a.budget>0),n=unlockedIds().length;
- if(!S.stats.ordered)h.push(['📦','Erste Charge bestellen','Ohne Ware keine Umsätze. Im Sortiment 300 Stk. Whey (Standard) bestellen.','sort']);
- if(!S.stats.posts&&!S.staff.creator)h.push(['📸','Ersten Social-Post absetzen','Die Founder-Story kostet nichts und bringt die ersten Follower.','mkt']);
- if(!S.stats.infl&&S.stats.ordered)h.push(['🤝','Nano-Influencer buchen','Sobald deine Ware da ist: ein kleiner Creator für ~300 € bringt hunderte Besucher.','mkt']);
- if(S.totalOrders>15&&!ad)h.push(['🎯','Werbeanzeigen testen','Starte mit ~30 €/Tag und beobachte den ROAS.','mkt']);
- if(S.totalOrders>40&&!S.staff.buyer&&S.cash>2500)h.push(['🧾','Einkäufer einstellen','Er bestellt Ware automatisch nach und handelt bessere Preise aus.','team']);
- if(S.totalOrders>60&&!S.staff.creator&&S.cash>3000)h.push(['🎤','Social-Media-Manager einstellen','Er postet automatisch nach deinem Content-Plan.','team']);
- if(n<3&&S.cash>2500)h.push(['🧪','Zweites Produkt entwickeln','Mehr Produkte = größerer Warenkorb und höhere Conversion.','sort']);
- if(!S.up.design&&S.cash>1500&&S.totalOrders>20)h.push(['🎨','Shop-Design verbessern','Mehr Conversion hilft bei jedem Besucher.','team']);
- if(S.totalOrders>150&&!S.up.abo)h.push(['🔁','Abo-System einführen','Aus Kunden wird planbarer Umsatz.','team']);
- if(S.val>60000&&!S.rounds)h.push(['📈','Investoren-Runde möglich','Anteile verkaufen, um schneller zu wachsen.','fin']);
- return h.slice(0,3);
+ if(!S.stats.ordered)h.push(['📦','Bestelle deine erste Charge Whey. Ohne Ware keine Umsätze!','prod']);
+ else if(!S.stats.posts&&!S.staff.creator)h.push(['📸','Poste etwas! Die Founder-Story ist gratis und bringt erste Follower.','mkt']);
+ else if(!S.stats.infl)h.push(['🤝','Sobald deine Ware da ist: Ein Nano-Influencer für ~300 € bringt hunderte Besucher.','mkt']);
+ else if(S.totalOrders>15&&!ad)h.push(['🎯','Teste Werbung: ~30 €/Tag und beobachte den ROAS.','mkt']);
+ else if(S.totalOrders>40&&!S.staff.buyer&&S.cash>2500&&seatsUsed()<seatsMax())h.push(['🧾','Stell einen Einkäufer ein. Der bestellt von allein nach.','firma']);
+ else if(S.totalOrders>60&&!S.staff.creator&&S.cash>3000&&seatsUsed()<seatsMax())h.push(['🎤','Ein Social-Media-Manager postet für dich nach Wochenplan.','firma']);
+ else if(n<3&&S.cash>2500)h.push(['🧪','Entwickle ein zweites Produkt: größerer Warenkorb, mehr Conversion.','prod']);
+ else if(seatsUsed()>=seatsMax()&&S.office<4&&S.cash>OFFICES[S.office+1].cost)h.push(['🏢','Alle Plätze belegt. Zeit für ein größeres Büro!','firma']);
+ else if(S.totalOrders>150&&!S.up.abo)h.push(['🔁','Ein Abo-System macht aus Kunden planbaren Umsatz.','firma']);
+ else if(S.val>60000&&!S.rounds)h.push(['📈','Investoren-Runde möglich: Anteile verkaufen, schneller wachsen.','fin']);
+ return h;
 }
-function chartSVG(){
- const d=S.hist.slice(-60),w=640,h=170;if(d.length<2)return '<div class="muted">Die Kurve erscheint nach den ersten Spieltagen …</div>';
- let mn=0,mx=1;d.forEach(x=>{mn=Math.min(mn,x.profit);mx=Math.max(mx,x.rev);});
- const px=i=>20+(w-30)*i/(d.length-1),py=v=>h-14-(h-26)*(v-mn)/(mx-mn||1);
- const line=(k,c)=>`<polyline fill="none" stroke="${c}" stroke-width="2" points="${d.map((x,i)=>px(i).toFixed(1)+','+py(x[k]).toFixed(1)).join(' ')}"/>`;
- return `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Umsatz und Gewinn"><line x1="20" x2="${w-10}" y1="${py(0)}" y2="${py(0)}" stroke="#223047"/>${line('rev','#2ee6c5')}${line('profit','#b6ff3b')}<text x="22" y="12" fill="#8697ad" font-size="11">max ${fmt(mx)}/Tag</text></svg>
- <div class="small muted"><span style="color:#2ee6c5">● Umsatz</span> &nbsp; <span style="color:#b6ff3b">● Gewinn</span> (letzte ${d.length} Tage)</div>`;
+function coachLine(){
+ const al=alerts()[0];if(al)return al.t.replace(/^[^\s]+\s/,'');
+ const h=hints()[0];if(h)return h[1];
+ const last=S.hist[S.hist.length-1];
+ const lines=[last?`Gestern ${num(last.orders)} Bestellungen und ${fmt(last.rev)} Umsatz. Weiter so!`:'Läuft!','Poste regelmäßig, sonst sinkt die organische Reichweite.','Achte auf deine Marge, nicht nur auf Umsatz.','Wiederkäufer sind dein Goldschatz. Qualität und Abos zahlen sich aus.','Ein gutes Team ist die halbe Miete. Halte die Stimmung hoch.'];
+ return lines[S.day%lines.length];
+}
+function updateHud(){
+ if(!S)return;
+ $('#hlogo').textContent=S.emoji;$('#hname').textContent=S.brand;$('#hstage').textContent=stage()+' · '+ARCH[S.arch].n;
+ document.documentElement.style.setProperty('--brand',S.color);
+ $('#hweek').textContent=`📅 W${Math.floor(S.day/7)+1} · ${MONTHS[monthIdx()]}`;
+ $('#hval').textContent='🏷️ '+(S.val>=1e6?(S.val/1e6).toFixed(2).replace('.',',')+' Mio. €':fmt(S.val));
+ const cv=$('#cashv');cv.classList.toggle('neg',S.cash<0);tweenCash(cv);
+ const bp=$('#bplay');bp.textContent=ui.speed>0?'⏸':'▶';
+ $('#bspd').textContent=(ui.speed>0?ui.speed:ui.lastSpeed)+'×';$('#bsnd').textContent=ui.sound?'🔊':'🔇';
+ const t=S.log[S.log.length-1];const tk=$('#ticker');if(t){tk.className=t.type;tk.textContent=`T${t.d} · ${t.msg}`;}
+}
+let tw=null;
+function tweenCash(el){
+ const to=S.cash,from=ui.cashShown;if(Math.abs(to-from)<1){el.textContent=fmt(to);ui.cashShown=to;return;}
+ cancelAnimationFrame(tw);const t0=performance.now(),dur=450;
+ const f=t=>{const k=clamp((t-t0)/dur,0,1),v=from+(to-from)*(1-Math.pow(1-k,3));el.textContent=fmt(v);ui.cashShown=v;if(k<1)tw=requestAnimationFrame(f);else ui.cashShown=to;};
+ tw=requestAnimationFrame(f);
+}
+const TABS=[['home','🏠','Büro'],['prod','🧴','Produkte'],['mkt','📣','Marketing'],['firma','👥','Firma'],['fin','💶','Zahlen']];
+function renderNav(){
+ const al=alerts().length,rd=misCur().slice(0,3).filter(misDone).length;
+ $('#tabs').innerHTML=TABS.map(([k,e,l])=>`<button data-a="tab" data-t="${k}" class="${ui.tab===k?'on':''}"><i>${e}</i>${l}${k==='home'&&(al+rd)?`<span class="badge">${al+rd}</span>`:''}</button>`).join('');
 }
 function weekBanner(){
  if(S.over||ui.modal||ui.speed!==0)return '';
- if(!ui.week)return S.day===0?`<div class="card hl banner"><div><b>🎬 Bereit zum Start?</b><div class="small muted">Bestelle zuerst Ware (Sortiment), poste ein paar Inhalte, dann starte die Zeit mit ▶. Das Spiel pausiert automatisch am Ende jeder Woche.</div></div><button class="btn primary" data-a="speed" data-s="1">▶ Los geht’s</button></div>`:`<div class="card banner"><div><b>⏸ Pausiert</b><div class="small muted">Nimm dir Zeit für deine Entscheidungen.</div></div><button class="btn primary" data-a="speed" data-s="1">▶ Weiter</button></div>`;
- const h=S.hist.slice(-7),rev=h.reduce((a,x)=>a+x.rev,0),pr=h.reduce((a,x)=>a+x.profit,0),o=h.reduce((a,x)=>a+x.orders,0),pv=S.hist.slice(-14,-7),prev=pv.reduce((a,x)=>a+x.rev,0);
- const tr=prev>0?rev/prev-1:null;
- return `<div class="card hl banner"><div><b>📅 Woche ${Math.floor(S.day/7)} abgeschlossen</b><div class="small">Umsatz <b>${fmt(rev)}</b>${tr!==null?` <span class="${tr>=0?'good':'bad'}">(${tr>=0?'+':''}${Math.round(tr*100)} %)</span>`:''} · Gewinn <b class="${pr>=0?'good':'bad'}">${fmt(pr)}</b> · ${num(o)} Bestellungen · Cash ${fmt(S.cash)}</div>${alerts().length?`<div class="small warn">${alerts().length} Hinweis(e) unter „Übersicht“</div>`:''}</div><button class="btn primary" data-a="speed" data-s="1">▶ Nächste Woche</button></div>`;
+ if(!ui.week)return S.day===0?`<div class="card hl banner"><div><b>🎬 Bereit zum Start?</b><div class="small muted">Bestelle Ware, poste Inhalte, dann ▶ drücken. Am Ende jeder Woche pausiert das Spiel automatisch.</div></div><button class="btn primary" data-a="play">▶ Los geht’s</button></div>`:`<div class="card banner" style="padding:8px 12px"><b>⏸ Pause <span class="small muted" style="font-weight:400">· in Ruhe entscheiden</span></b><button class="btn primary sm" data-a="play">▶ Weiter</button></div>`;
+ const h=S.hist.slice(-7),rev=h.reduce((a,x)=>a+x.rev,0),pr=h.reduce((a,x)=>a+x.profit,0),o=h.reduce((a,x)=>a+x.orders,0),prev=S.hist.slice(-14,-7).reduce((a,x)=>a+x.rev,0),tr=prev>0?rev/prev-1:null;
+ return `<div class="card hl banner"><div><b>📅 Woche ${Math.floor(S.day/7)} geschafft</b><div class="small">Umsatz <b>${fmt(rev)}</b>${tr!==null?` <span class="${tr>=0?'good':'bad'}">(${tr>=0?'+':''}${Math.round(tr*100)} %)</span>`:''} · Gewinn <b class="${pr>=0?'good':'bad'}">${fmt(pr)}</b> · ${num(o)} Bestellungen</div></div><button class="btn primary" data-a="play">▶ Nächste Woche</button></div>`;
 }
-function vOver(){
+/* ---- Büro ---- */
+function seatHTML(e){
+ const R=ROLES.find(r=>r.k===e.role),col=e.mood>66?'var(--mint)':e.mood>35?'var(--warn)':'var(--bad)';
+ return `<div class="seat"><div class="av" style="animation-delay:-${(e.id.charCodeAt(0)%20)/10}s">${e.av}</div><div class="desk"></div><div class="nm">${esc(e.name)}</div><div class="rl">${R.e} ${R.n.split(' ')[0]} <span class="stars">${stars(e.lvl)}</span></div><div class="mood"><i style="width:${e.mood}%;background:${col}"></i></div></div>`;
+}
+function sceneHTML(){
+ const O=OFFICES[S.office],seats=[`<div class="seat"><div class="av">${S.founder}</div><div class="desk"></div><div class="nm">Du</div><div class="rl">Gründer:in</div></div>`];
+ ROLES.forEach(R=>{const e=S.staff[R.k];if(e)seats.push(seatHTML(e));});
+ while(seats.length<O.seats)seats.push(`<button class="seat empty" data-a="tab" data-t="firma"><div style="font-size:22px">＋</div><div class="rl">Platz frei</div></button>`);
+ const perks=PERKS.filter(p=>S.perks[p.k]).map(p=>p.e).join(' ');
+ return `<section class="office" data-tier="${S.office}"><div class="orow"><span>${O.e} ${O.n}</span><span class="muted">${seatsUsed()}/${O.seats} Plätze</span></div><div class="neon">${S.emoji} ${esc(S.brand)}</div><div class="seats">${seats.join('')}</div>${perks?`<div class="decor">${perks}</div>`:''}<div class="fxlayer" id="fx"></div></section>`;
+}
+function homeSig(){return JSON.stringify([S.office,Object.values(S.staff).map(e=>e.id+e.lvl+Math.round(e.mood/20)),Object.keys(S.perks),S.brand,S.emoji,S.founder]);}
+function homeDyn(){
  const h7=S.hist.slice(-7),n=h7.length||1,rev=h7.reduce((a,x)=>a+x.rev,0)/n,ord=h7.reduce((a,x)=>a+x.orders,0)/n,vis=h7.reduce((a,x)=>a+x.visitors,0)/n;
- const adK=Object.keys(S.ch).filter(k=>k.startsWith('ad_')),adRev=adK.reduce((a,k)=>a+S.ch[k].r,0),adSp=adK.reduce((a,k)=>a+S.ch[k].sp,0);
- const k=[['Umsatz / Tag',fmt(rev)],['Bestellungen / Tag',N1.format(ord)],['Besucher / Tag',num(vis)],['Conversion',vis?pc(ord/vis,2):'–'],['Ø Warenkorb',ord?fmt2(rev/ord):'–'],['Gewinn (30 Tage)',fmt(sum(30,'profit'))]];
- const hs=hints(),al=alerts();
- const srcs=[...S.lastSrc].sort((a,b)=>b.v-a.v).filter(s=>s.v>=.5).slice(0,6);const mxv=Math.max(1,...srcs.map(s=>s.v));
- const todo=al.map(a=>`<div class="row sp" style="margin-bottom:8px"><span class="small">${a.t}</span>${a.btn?`<button class="btn sm primary" data-a="${a.btn.a}" data-id="${a.btn.id}">${a.btn.l}</button>`:''}</div>`).join('')+hs.map(x=>`<div class="row sp" style="margin-bottom:8px"><span class="small"><b>${x[0]} ${x[1]}</b><br><span class="muted">${x[2]}</span></span><button class="btn sm" data-a="tab" data-t="${x[3]}">Öffnen</button></div>`).join('');
- return `<div class="grid g6">${k.map(([l,v])=>`<div class="card kpi"><span>${l}</span><b>${v}</b></div>`).join('')}</div>
- <div class="grid g2" style="margin-top:12px">
-  <div class="card ${todo?'hl':''}"><h3>🎯 Jetzt wichtig</h3>${todo||'<div class="muted">Alles im grünen Bereich. Optimiere Preise, Kanäle und Sortiment.</div>'}</div>
-  <div class="card"><h3>🏁 Ziel: Exit bei ${fmt(GOAL)}</h3><div class="small muted">Unternehmenswert ${fmt(S.val)} · ${stage()}</div>${bar(S.val,GOAL)}
-   <div class="small muted" style="margin-top:8px">Dein Anteil ${pc(S.owned,0)} · Run-Rate ${fmt(runRate())}/Jahr<br>Kunden ${num(S.customers)} · Newsletter ${num(S.email)}${adSp?` · Ads-ROAS ${(adRev/adSp).toFixed(2).replace('.',',')}×`:''}</div></div>
-  <div class="card"><h3>📈 Umsatz & Gewinn</h3>${chartSVG()}</div>
-  <div class="card"><h3>🚦 Woher kommen die Besucher? (gestern)</h3>${srcs.length?srcs.map(s=>`<div class="small row sp"><span>${s.l}</span><span class="muted">${num(s.v)} Besucher · ${N1.format(s.o)} Best.</span></div>${bar(s.v,mxv)}<div style="height:6px"></div>`).join(''):'<div class="muted">Noch kein Traffic.</div>'}</div>
- </div>`;
+ const k=[['💶','Umsatz/Tag',fmt(rev)],['📦','Bestell./Tag',f1(ord)],['🎯','Conversion',vis?pc(ord/vis,1):'–'],['⭐','Rating',f1(S.rating)],['👥','Follower',num(folTotal())],['🌍','Bekanntheit',N0.format(S.awareness)]];
+ const al=alerts(),ms=misCur().slice(0,3),rv=S.reviews.slice(0,3);
+ const todo=al.map(a=>`<div class="row sp" style="margin-bottom:8px"><span class="small" style="flex:1;min-width:0">${a.t}</span>${a.btn?`<button class="btn sm primary" data-a="${a.btn.a}" data-id="${a.btn.id||''}" data-t="${a.btn.t||''}">${a.btn.l}</button>`:''}</div>`).join('');
+ const shelves=unlockedIds().map(id=>{const p=S.prod[id],cover=p.ema>.05?p.stock/p.ema:(p.stock>0?30:0),fill=Math.round(clamp(cover/30,0,1)*10);return `<div class="shelf"><span class="nm">${PRODUCTS[id].e} ${PRODUCTS[id].n.split(' ')[0]}</span><div class="boxes ${cover<7?'low':''}">${Array.from({length:10},(_,i)=>`<i class="${i<fill?'f':''}"></i>`).join('')}</div><b>${num(p.stock)}</b></div>`;}).join('');
+ return `<div class="coach"><div class="face">${S.founder}</div><div class="bubble">${coachLine()}</div></div>
+ <div class="kpis">${k.map(([e,l,v])=>`<div class="kpi"><span>${e} ${l}</span><b>${v}</b></div>`).join('')}</div>
+ ${todo?`<div class="card hl" style="margin-top:12px"><h3>🎯 Jetzt wichtig</h3>${todo}</div>`:''}
+ <div class="sec"><span>🏁 Missionen</span><span class="small muted">${Object.keys(S.mis.claimed).length}/${MIS.length}</span></div>
+ <div class="card">${ms.length?ms.map(m=>{const [c,t]=m.n(),ok=c>=t;return `<div class="mis"><div class="e">${m.e}</div><div class="t"><b>${m.t}</b>${ok?'':`<div class="small muted">${m.dec?f1(c):num(Math.min(c,t))} / ${m.dec?f1(t):num(t)}</div>`}${ok?'':bar(c,t)}</div>${ok?`<button class="btn primary sm" data-a="claim" data-id="${m.id}">+${fmt(m.r)}</button>`:`<span class="pill">${fmt(m.r)}</span>`}</div>`;}).join(''):'<div class="muted">Alle Missionen geschafft. Du bist eine Legende!</div>'}</div>
+ <div class="sec"><span>📦 Lager</span><span class="small muted">${num(stockTotal())} / ${num(stockCap())}</span></div><div class="card">${shelves}</div>
+ ${rv.length?`<div class="sec"><span>💬 Kundenstimmen</span></div><div class="card">${rv.map(r=>`<div class="rev"><div class="small"><span class="stars">${'★'.repeat(r.s)}${'☆'.repeat(5-r.s)}</span> <b>${esc(r.n)}</b> <span class="muted">· ${PRODUCTS[r.p].e} ${PRODUCTS[r.p].n}</span></div><div class="small">„${r.t}“</div></div>`).join('')}</div>`:''}
+ <div class="sec"><span>📈 Umsatz & Gewinn</span><span class="small ${sum(30,'profit')>=0?'good':'bad'}">${fmt(sum(30,'profit'))} / 30 T.</span></div><div class="card">${chartSVG()}</div>
+ <div class="sec"><span>🚀 Ziel: Exit bei ${fmt(GOAL)}</span></div><div class="card">${bar(S.val,GOAL)}<div class="small muted" style="margin-top:8px">Unternehmenswert ${fmt(S.val)} · Dein Anteil ${pc(S.owned,0)} · Run-Rate ${fmt(runRate())}/Jahr</div></div>`;
 }
+function chartSVG(){
+ const d=S.hist.slice(-60),w=640,h=170;if(d.length<2)return '<div class="muted small">Die Kurve erscheint nach den ersten Spieltagen …</div>';
+ let mn=0,mx=1;d.forEach(x=>{mn=Math.min(mn,x.profit);mx=Math.max(mx,x.rev);});
+ const px=i=>20+(w-30)*i/(d.length-1),py=v=>h-14-(h-26)*(v-mn)/(mx-mn||1);
+ const line=(k,c)=>`<polyline fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round" points="${d.map((x,i)=>px(i).toFixed(1)+','+py(x[k]).toFixed(1)).join(' ')}"/>`;
+ return `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Umsatz und Gewinn"><line x1="20" x2="${w-10}" y1="${py(0)}" y2="${py(0)}" stroke="#3a3166"/>${line('rev','#5cb9ff')}${line('profit','#35e0a8')}<text x="22" y="12" fill="#a49dc7" font-size="12">max ${fmt(mx)}/Tag</text></svg><div class="small muted"><span style="color:#5cb9ff">● Umsatz</span> &nbsp; <span style="color:#35e0a8">● Gewinn</span> · letzte ${d.length} Tage</div>`;
+}
+function vHome(){return `<div id="h-scene">${sceneHTML()}</div><div id="h-dyn">${homeDyn()}</div>`;}
+/* ---- Produkte ---- */
 function priceInfo(id){
  const p=S.prod[id],ref=refPrice(id),pf=priceFactor(id),ac=p.stock>0?p.costSum/p.stock:unitCost(id,p.ord.tier,p.ord.bi);
  const m=effPrice(id)-ac-fulfilCost()-effPrice(id)*.04;
  const d=pf>1.25?['🔥 Nachfrage hoch','good']:pf>.8?['👍 Nachfrage normal','']:pf>.45?['😐 eher teuer','warn']:['🛑 zu teuer','bad'];
- return `<div class="row sp"><b style="font-size:18px">${fmt2(p.price)}</b><span class="${d[1]} small">${d[0]}</span></div>
- <div class="small muted">Marktpreis ca. ${fmt2(ref)} · Marge/Stk. ≈ <span class="${m>0?'good':'bad'}">${fmt2(m)}</span> (nach Versand & Gebühren)</div>`;
+ return `<div class="row sp"><b style="font-family:var(--fd);font-weight:400;font-size:24px">${fmt2(p.price)}</b><span class="${d[1]} small">${d[0]}</span></div>
+ <div class="small muted">Marktpreis ca. ${fmt2(ref)} · Marge/Stk. ≈ <span class="${m>0?'good':'bad'}">${fmt2(m)}</span></div>`;
 }
-function vSort(){
- const ids=unlockedIds(),locked=Object.keys(PRODUCTS).filter(id=>!S.prod[id].unlocked);
- const buyerBox=S.staff.buyer?`<div class="card row sp" style="margin-bottom:12px"><div><b>🧾 Einkäufer aktiv</b><div class="small muted">Bestellt automatisch nach (Menge & Qualität pro Produkt unten), spart 4 % Einkaufspreis. Läuft nur, wenn nach der Bestellung noch 1.000 € Cash übrig bleiben.</div></div>
-  <div class="small muted">Nachbestellen bei Reichweite unter <select data-i="buydays">${[7,10,14,21].map(d=>`<option value="${d}" ${S.buyDays===d?'selected':''}>${d} Tage</option>`).join('')}</select></div></div>`
-  :`<div class="card row sp" style="margin-bottom:12px"><div class="small muted">💡 Kein Bock auf ständiges Nachbestellen? Ein <b>Einkäufer</b> (1.500 €/Monat) erledigt das automatisch.</div><button class="btn sm" data-a="tab" data-t="team">Zum Team</button></div>`;
- return `<h2>🧴 Sortiment & Produktion</h2>${buyerBox}<div class="grid g2">${ids.map(id=>{
-  const P=PRODUCTS[id],p=S.prod[id],o=p.ord,q=BATCHES[o.bi].q,uc=unitCost(id,o.tier,o.bi),tr=inTransit(id),cover=p.ema>.05?p.stock/p.ema:null;
+function vProd(){
+ const ids=unlockedIds(),locked=Object.keys(PRODUCTS).filter(id=>!S.prod[id].unlocked),cap=stockCap(),tot=stockTotal();
+ const buyer=S.staff.buyer?`<div class="card" style="margin-bottom:12px"><div class="row sp"><div style="flex:1;min-width:200px"><b>🧾 ${esc(S.staff.buyer.name)} kauft automatisch ein</b><div class="small muted">Nachbestellen, wenn der Vorrat unter … Tage fällt. Menge & Qualität stellst du pro Produkt ein.</div></div><div class="seg">${[7,10,14,21].map(d=>`<button data-a="buydays" data-v="${d}" class="${S.buyDays===d?'on':''}">${d} T.</button>`).join('')}</div></div></div>`
+  :`<div class="card row sp" style="margin-bottom:12px"><div class="small muted" style="flex:1;min-width:200px">💡 Keine Lust auf Nachbestellen? Ein <b>Einkäufer</b> erledigt das automatisch.</div><button class="btn sm" data-a="tab" data-t="firma">Zur Firma</button></div>`;
+ return `<h2>🧴 Produkte</h2>
+ <div class="card" style="margin-bottom:12px"><div class="row sp small"><b>📦 Lagerplatz</b><span class="${tot/cap>.9?'bad':'muted'}">${num(tot)} / ${num(cap)} Stück (inkl. unterwegs)</span></div>${bar(tot,cap,tot/cap>.9?'red':'')}</div>${buyer}
+ <div class="grid g2">${ids.map(id=>{
+  const P=PRODUCTS[id],p=S.prod[id],tr=inTransit(id),cover=p.ema>.05?p.stock/p.ema:null,q=BATCHES[p.ord.bi].q,uc=unitCost(id,p.ord.tier,p.ord.bi);
   return `<div class="card"><div class="row sp"><h3 style="margin:0">${P.e} ${P.n}</h3><span class="pill">Ø ${TIERS[Math.round(avgQ(id))].n}</span></div>
   <div class="row sp small" style="margin:8px 0 4px"><span>Lager <b class="${p.stock<1?'bad':''}">${num(p.stock)}</b>${tr?` <span class="muted">(+${num(tr)} unterwegs)</span>`:''}</span><span class="muted">${cover===null?'noch keine Verkäufe':'reicht ~'+Math.floor(cover)+' Tage'}</span></div>${bar(cover===null?(p.stock>0?30:0):cover,30,cover!==null&&cover<7?'red':'')}
   <div class="small muted" style="margin-top:10px">Verkaufspreis</div><input type="range" min="${(P.ref*.5).toFixed(1)}" max="${(P.ref*2).toFixed(1)}" step=".1" value="${p.price}" data-i="price" data-id="${id}"><div id="pi-${id}">${priceInfo(id)}</div>
-  <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
-  <div class="row"><select data-i="otier" data-id="${id}">${[1,2,3].map(t=>`<option value="${t}" ${o.tier===t?'selected':''} ${t===3&&!S.up.lab?'disabled':''}>${TIERS[t].n}${t===3&&!S.up.lab?' 🔒 Labor':''}</option>`).join('')}</select>
-  <select data-i="obatch" data-id="${id}">${BATCHES.map((b,i)=>`<option value="${i}" ${o.bi===i?'selected':''}>${num(b.q)} Stk.</option>`).join('')}</select>
-  <span class="small muted">${fmt2(uc)}/Stk. · ${TIERS[o.tier].lead} Tage</span></div>
-  <div class="row sp" style="margin-top:8px"><button class="btn primary" data-a="reorder" data-id="${id}" ${S.cash<uc*q?'disabled':''}>Bestellen ${fmt(uc*q)}</button>${S.staff.buyer?`<button class="btn sm ${p.auto?'on':''}" data-a="auto" data-id="${id}" style="${p.auto?'border-color:var(--acc);color:var(--acc)':''}">🤖 Auto: ${p.auto?'AN':'AUS'}</button>`:''}</div></div>`;}).join('')}</div>
- <h2 style="margin-top:22px">🧪 Neue Produkte entwickeln</h2><div class="grid g3">${locked.map(id=>{const P=PRODUCTS[id];return `<div class="card"><h3>${P.e} ${P.n}</h3><div class="small muted">Marktpreis ca. ${fmt2(P.ref)} · Herstellung ab ${fmt2(P.cost)}</div><div style="height:8px"></div><button class="btn primary" data-a="unlock" data-id="${id}" ${S.cash<P.rd?'disabled':''}>Entwickeln ${fmt(P.rd)}</button></div>`;}).join('')||'<div class="muted">Du hast das komplette Sortiment!</div>'}</div>`;
+  <div class="row" style="margin-top:12px"><button class="btn primary" data-a="order" data-id="${id}">📦 Bestellen</button>
+  <button class="btn sm" data-a="reorder" data-id="${id}" ${S.cash<uc*q?'disabled':''} title="${num(q)} Stk. ${TIERS[p.ord.tier].n}">⚡ ${num(q)} Stk. · ${fmt(uc*q)}</button>
+  ${S.staff.buyer?`<button class="btn sm" data-a="auto" data-id="${id}" style="${p.auto?'border-color:var(--mint);color:var(--mint)':''}">🤖 Auto ${p.auto?'AN':'AUS'}</button>`:''}</div></div>`;}).join('')}</div>
+ <div class="sec"><span>🧪 Neue Produkte</span></div><div class="grid g3">${locked.map(id=>{const P=PRODUCTS[id],c=Math.round(P.rd*(1-.3*E('rd')));return `<div class="card"><h3>${P.e} ${P.n}</h3><div class="small muted">Marktpreis ca. ${fmt2(P.ref)} · Herstellung ab ${fmt2(P.cost)}</div><div style="height:10px"></div><button class="btn primary" data-a="unlock" data-id="${id}" ${S.cash<c?'disabled':''}>Entwickeln ${fmt(c)}</button></div>`;}).join('')||'<div class="muted">Du hast das komplette Sortiment!</div>'}</div>`;
 }
+/* ---- Marketing ---- */
 function adInfo(k){
  const a=S.ads[k],C=ADCH[k],cpc=adCPC(k),v=a.budget/cpc*(a.eff||1),cr=baseCR()*C.cm*(1-a.fat*.3),cac=a.budget>0?cpc/cr:0,ch=S.ch['ad_'+k]||{sp:0,r:0};
- return `<div class="row sp"><b style="font-size:18px">${fmt(a.budget)}<span class="muted small"> / Tag</span></b><span class="small muted">≈ ${num(v)} Besucher</span></div>
- <div class="small muted">CPC ${fmt2(cpc)} · geschätzter CAC ${a.budget>0?fmt2(cac):'–'} · ROAS gesamt ${ch.sp>0?(ch.r/ch.sp).toFixed(2).replace('.',',')+'×':'–'}</div>`;
+ return `<div class="row sp"><b style="font-family:var(--fd);font-weight:400;font-size:24px">${fmt(a.budget)}<span class="muted small" style="font-family:var(--fb)"> / Tag</span></b><span class="small muted">≈ ${num(v)} Besucher</span></div>
+ <div class="small muted">CPC ${fmt2(cpc)} · CAC ≈ ${a.budget>0?fmt2(cac):'–'} · ROAS ${ch.sp>0?(ch.r/ch.sp).toFixed(2).replace('.',',')+'×':'–'}</div>`;
 }
-function awStrip(){const f=x=>x.toFixed(1).replace('.',',');return `<div class="card row sp" style="margin-bottom:12px"><div style="min-width:0"><b>🌍 Markenbekanntheit ${N0.format(S.awareness)} / 100</b><div class="small muted">Wächst durch Posts, Ads, Influencer & Mundpropaganda, sinkt täglich um ~0,8 %.</div></div><div style="flex:1;min-width:140px;max-width:300px">${bar(S.awareness,100)}</div><div class="small">Preisaufschlag <b class="good">+${f(S.awareness*.3)} %</b> · Conversion <b class="good">+${f(S.awareness*.4)} %</b></div></div>`;}
+function awStrip(){return `<div class="card" style="margin-bottom:12px"><div class="row sp"><b>🌍 Markenbekanntheit ${N0.format(S.awareness)} / 100</b><span class="small">Preis <b class="good">+${f1(S.awareness*.3)} %</b> · Conversion <b class="good">+${f1(S.awareness*.4)} %</b></span></div>${bar(S.awareness,100)}<div class="small muted" style="margin-top:6px">Wächst durch Posts, Ads, Influencer & Mundpropaganda, sinkt täglich um ~0,8 %.</div></div>`;}
 function vMkt(){
- const T=[['social','📸 Social'],['ads','🎯 Ads'],['infl','🤝 Influencer'],['promo','🏷️ Aktionen & Mail']];
+ const T=[['social','📸 Social'],['ads','🎯 Ads'],['infl','🤝 Influencer'],['promo','🏷️ Aktionen']];
  let body='';
  if(ui.mtab==='social'){
-  const pl=ui.plat||'tt',P=PLAT[pl],act=Math.min(1,S.postScore/3);
-  const rows=Object.keys(FORMATS).map(f=>{const F=FORMATS[f],lock=F.need&&S.customers<F.need,g=postGain(pl,f);return `<div class="prow"><div class="pic">${F.e}</div><div class="pmain"><b>${F.n}</b> <span class="small muted">${F.d}</span><div class="small">≈ ${num(g*.6)}–${num(g*1.5)} Follower · Viral-Chance ${Math.round(F.viral*P.v*100)} %</div></div><div class="pbtn"><div class="small muted">${F.cost?fmt(F.cost):'gratis'}</div><button class="btn sm primary" data-a="post" data-f="${f}" data-p="${pl}" ${S.cp<1||S.cash<F.cost||lock?'disabled':''}>Posten</button></div></div>`;}).join('');
-  const plan=S.staff.creator?`<div class="small muted" style="margin-bottom:8px">Dein Manager postet automatisch, so oft du es einstellst. Kosten pro Post siehe Format.</div>${Object.keys(PLAT).map(p=>`<div class="row sp" style="margin-bottom:8px"><span>${PLAT[p].e} <b>${PLAT[p].n}</b></span><span class="row"><select data-i="plann" data-p="${p}">${[[0,'Aus'],[1,'1× / Woche'],[2,'2× / Woche'],[3,'3× / Woche'],[5,'5× / Woche'],[7,'Täglich']].map(([v,l])=>`<option value="${v}" ${S.plan[p].n===v?'selected':''}>${l}</option>`).join('')}</select><select data-i="planf" data-p="${p}">${[['mix','Mix'],['reel','Reels'],['edu','Education'],['story','Founder-Story'],['photo','Produktfotos']].map(([v,l])=>`<option value="${v}" ${S.plan[p].f===v?'selected':''}>${l}</option>`).join('')}</select></span></div>`).join('')}`
-   :`<div class="muted small">🔒 Mit einem <b>Social-Media-Manager</b> (1.800 €/Monat) läuft das Posten automatisch nach deinem Wochenplan. Du legst nur fest, wie oft und welche Art von Inhalten.</div><div style="margin-top:8px"><button class="btn sm" data-a="tab" data-t="team">Zum Team</button></div>`;
+  const pl=ui.plat,P=PLAT[pl],act=Math.min(1,S.postScore/3);
+  const rows=Object.keys(FORMATS).map(f=>{const F=FORMATS[f],lock=F.need&&S.customers<F.need,g=postGain(pl,f);return `<div class="prow"><div class="pic">${F.e}</div><div class="pmain"><b>${F.n}</b> <span class="small muted">${F.d}</span><div class="small">≈ ${num(g*.6)}–${num(g*1.5)} Follower · Viral ${Math.round(F.viral*P.v*100)} %</div></div><div class="pbtn"><span class="small muted">${F.cost?fmt(F.cost):'gratis'}</span><button class="btn sm primary" data-a="post" data-f="${f}" data-p="${pl}" ${S.cp<1||S.cash<F.cost||lock?'disabled':''}>Posten</button></div></div>`;}).join('');
+  const FQ=[[0,'Aus'],[1,'1×'],[2,'2×'],[3,'3×'],[5,'5×'],[7,'täglich']],FF=[['mix','Mix'],['reel','Reels'],['edu','Edu'],['story','Story'],['photo','Foto']];
+  const plan=S.staff.creator?`<div class="small muted" style="margin-bottom:8px">${esc(S.staff.creator.name)} postet nach diesem Wochenplan. Die Kosten pro Post zahlst du.</div>${Object.keys(PLAT).map(p=>`<div style="margin-bottom:12px"><b>${PLAT[p].e} ${PLAT[p].n}</b><div class="seg" style="margin:6px 0">${FQ.map(([v,l])=>`<button data-a="plann" data-p="${p}" data-v="${v}" class="${S.plan[p].n===v?'on':''}">${l}</button>`).join('')}</div><div class="seg">${FF.map(([v,l])=>`<button data-a="planf" data-p="${p}" data-v="${v}" class="${S.plan[p].f===v?'on':''}" ${S.plan[p].n?'':'disabled'}>${l}</button>`).join('')}</div></div>`).join('')}`
+   :`<div class="muted small">🔒 Mit einem <b>Social-Media-Manager</b> läuft das Posten automatisch nach deinem Wochenplan. Du legst nur fest, wie oft und welche Inhalte.</div><div style="margin-top:10px"><button class="btn sm" data-a="tab" data-t="firma">Zur Firma</button></div>`;
   const feed=S.feed.length?S.feed.map(x=>`<div class="small row sp" style="padding:3px 0"><span>${FORMATS[x.f].e} ${PLAT[x.p].e} ${FORMATS[x.f].n}${x.auto?' <span class="pill">auto</span>':''}${x.viral?' 🔥':''}</span><span class="${x.viral?'good':'muted'}">+${num(x.g)}</span></div>`).join(''):'<div class="muted small">Noch keine Posts.</div>';
-  body=`<div class="grid split"><div class="card"><div class="row sp"><h3 style="margin:0">Jetzt posten</h3><span class="small">⚡ <b>${N1.format(S.cp)}</b> / ${cpCap()} Content-Punkte</span></div>
-   <div class="tabs" style="margin:10px 0 4px">${Object.keys(PLAT).map(p=>`<button data-a="plat" data-p="${p}" class="${pl===p?'on':''}">${PLAT[p].e} ${PLAT[p].n} · ${num(S.fol[p])}</button>`).join('')}</div>
-   <div class="small muted" style="margin-bottom:4px">Jeder Post kostet 1 Content-Punkt (+0,5/Tag). Regelmäßig posten hält die organische Reichweite oben:</div>${bar(.35+.65*act,1,act<.3?'red':'')}<div>${rows}</div></div>
-  <div class="grid" style="align-content:start"><div class="card"><h3>🗓️ Content-Plan</h3>${plan}</div><div class="card"><h3>Letzte Posts</h3>${feed}</div></div></div>`;
+  body=`<div class="card"><div class="row sp"><h3 style="margin:0">Jetzt posten</h3><span class="small">⚡ <b>${f1(S.cp)}</b> / ${cpCap()} Punkte</span></div>
+   <div class="seg" style="margin:10px 0">${Object.keys(PLAT).map(p=>`<button data-a="plat" data-p="${p}" class="${pl===p?'on':''}">${PLAT[p].e} ${PLAT[p].n} · ${num(S.fol[p])}</button>`).join('')}</div>
+   <div class="small muted" style="margin-bottom:4px">Jeder Post kostet 1 Content-Punkt (+${f1(cpRegen())}/Tag). Regelmäßig posten hält die Reichweite oben:</div>${bar(.35+.65*act,1,act<.3?'red':'')}<div>${rows}</div></div>
+  <div class="sec"><span>🗓️ Content-Plan</span></div><div class="card">${plan}</div><div class="sec"><span>Letzte Posts</span></div><div class="card">${feed}</div>`;
  }else if(ui.mtab==='ads'){
   body=`<div class="grid g3">${Object.keys(ADCH).map(k=>{const C=ADCH[k],a=S.ads[k];return `<div class="card"><h3>${C.e} ${C.n}</h3><div class="small muted">${C.d}</div><div style="height:6px"></div>
    <input type="range" min="0" max="500" step="10" value="${a.budget}" data-i="ad" data-k="${k}"><div id="ai-${k}">${adInfo(k)}</div>
    <div class="small muted" style="margin-top:8px">Creative-Frische ${a.fat>.6?'<span class="bad">(ermüdet)</span>':''}</div>${bar(1-a.fat,1,a.fat>.6?'red':'')}
-   ${S.staff.perf?'<div class="small good" style="margin-top:6px">📊 Performance-Marketer erneuert Creatives automatisch</div>':`<button class="btn sm" style="margin-top:8px" data-a="adrefresh" data-k="${k}">🎨 Creatives auffrischen (150 €)</button>`}</div>`;}).join('')}</div>
-   <div class="small muted" style="margin-top:10px">Neue Budgets durchlaufen eine Lernphase (die ersten Tage kommen weniger Besucher). Mit steigendem Budget wird jeder Klick teurer. Unter 1,0× ROAS zahlst du drauf, Wiederkäufe zählen hier nicht mit. Ein Performance-Marketer erledigt die Creative-Pflege für dich.</div>`;
+   ${E('perf')>0?`<div class="small good" style="margin-top:6px">📊 ${esc(S.staff.perf.name)} erneuert Creatives automatisch</div>`:`<button class="btn sm" style="margin-top:8px" data-a="adrefresh" data-k="${k}">🎨 Creatives auffrischen (150 €)</button>`}</div>`;}).join('')}</div>
+   <div class="small muted" style="margin-top:10px">Neue Budgets laufen erst ein paar Tage in der Lernphase. Mit steigendem Budget wird jeder Klick teurer. Unter 1,0× ROAS zahlst du drauf (Wiederkäufe zählen nicht mit).</div>`;
  }else if(ui.mtab==='infl'){
   const inPartner=id=>S.partners.some(p=>p.id===id);
-  const partners=S.partners.length?`<h3>🤝 Feste Partner <span class="small muted">(${S.partners.length}/3)</span></h3><div class="grid g3">${S.partners.map(p=>{const months=Math.max(1,Math.ceil((S.day-p.since)/30)),cost=p.fee*months,roi=p.rev/cost;return `<div class="card hl"><div class="row sp"><b>${p.handle}</b><span class="pill">${fmt(p.fee)}/Monat</span></div><div class="small muted">${PLAT[p.plat].e} ${num(p.followers)} Follower · seit Tag ${p.since}</div><div class="small" style="margin:6px 0">${num(p.visitors)} Besucher · ≈${num(p.orders)} Bestellungen · ${fmt(p.rev)} Umsatz<br>ROI bisher <b class="${roi>=1?'good':'warn'}">${roi.toFixed(1).replace('.',',')}×</b></div><button class="btn sm danger" data-a="unpartner" data-id="${p.id}">Kooperation beenden</button></div>`;}).join('')}</div><div style="height:16px"></div>`:'';
-  const camps=S.camps.length?`<h3>Laufende Kampagnen</h3><div class="grid g3">${S.camps.map(c=>`<div class="card"><b>${c.handle}</b> <span class="pill">${ITIERS[c.tier].n}</span><div class="small muted">Tag ${c.day+1}/5 · ${num(c.visitors)} Besucher · ≈${num(c.orders)} Best.</div>${bar(c.day,5)}</div>`).join('')}</div><div style="height:16px"></div>`:'';
-  const hist=S.campHist.length?`<h3>📊 Ergebnisse abgeschlossener Kampagnen</h3><div style="overflow-x:auto"><table><tr><th>Creator</th><th>Kosten</th><th>Besucher</th><th>Best.</th><th>Umsatz</th><th>ROI</th><th>+Follower</th><th>+Bekanntheit</th><th></th></tr>${S.campHist.map(h=>{const roi=h.rev/h.price;return `<tr><td>${h.handle}<br><span class="small muted">${ITIERS[h.tier].n} · ${PLAT[h.plat].e} ${num(h.followers)}</span></td><td>${fmt(h.price)}</td><td>${num(h.visitors)}</td><td>${num(h.orders)}</td><td>${fmt(h.rev)}</td><td class="${roi>=1?'good':roi>=.6?'warn':'bad'}">${roi.toFixed(1).replace('.',',')}×</td><td>+${num(h.fol)}</td><td>+${(h.aw||0).toFixed(1).replace('.',',')}</td><td>${h.partner||inPartner(h.id)?'<span class="pill">Partner</span>':h.scandal?'<span class="bad small">Skandal</span>':`<button class="btn sm primary" data-a="partner" data-id="${h.id}" ${S.partners.length>=3||S.cash<Math.round(h.price*.7/10)*10?'disabled':''} title="Monatlich ${fmt(Math.round(h.price*.7/10)*10)}">Kooperation (${fmt(Math.round(h.price*.7/10)*10)}/M.)</button>`}</td></tr>`;}).join('')}</table></div><div class="small muted" style="margin:6px 0 16px">ROI = Umsatz der Kampagne ÷ Kosten. Follower und Bekanntheit sind Zusatznutzen, den der Umsatz nicht zeigt. Wer sich gelohnt hat, kannst du als festen Partner buchen: gleichmäßiger Traffic jeden Tag, ohne Flop-Risiko.</div>`:'';
-  body=`${partners}${camps}${hist}<h3>Neue Creator <span class="small muted">(Angebot wechselt wöchentlich)</span></h3>
+  const partners=S.partners.length?`<div class="sec"><span>🤝 Feste Partner</span><span class="small muted">${S.partners.length}/3</span></div><div class="grid g3">${S.partners.map(p=>{const months=Math.max(1,Math.ceil((S.day-p.since)/30)),roi=p.rev/(p.fee*months);return `<div class="card hl"><div class="row sp"><b>${p.handle}</b><span class="pill">${fmt(p.fee)}/Monat</span></div><div class="small muted">${PLAT[p.plat].e} ${num(p.followers)} Follower · seit Tag ${p.since}</div><div class="small" style="margin:6px 0">${num(p.visitors)} Besucher · ≈${num(p.orders)} Best. · ${fmt(p.rev)} Umsatz<br>ROI bisher <b class="${roi>=1?'good':'warn'}">${f1(roi)}×</b></div><button class="btn sm danger" data-a="unpartner" data-id="${p.id}">Beenden</button></div>`;}).join('')}</div>`:'';
+  const camps=S.camps.length?`<div class="sec"><span>Laufende Kampagnen</span></div><div class="grid g3">${S.camps.map(c=>`<div class="card"><b>${c.handle}</b> <span class="pill">${ITIERS[c.tier].n}</span><div class="small muted">Tag ${c.day+1}/5 · ${num(c.visitors)} Besucher · ≈${num(c.orders)} Best.</div>${bar(c.day,5)}</div>`).join('')}</div>`:'';
+  const hist=S.campHist.length?`<div class="sec"><span>📊 Ergebnisse</span></div><div class="grid g2">${S.campHist.map(h=>{const roi=h.rev/h.price,fee=Math.round(h.price*.7/10)*10;return `<div class="card"><div class="row sp"><b>${h.handle}</b><b class="${roi>=1?'good':roi>=.6?'warn':'bad'}">${f1(roi)}× ROI</b></div><div class="small muted">${ITIERS[h.tier].n} · ${PLAT[h.plat].e} ${num(h.followers)} · Kosten ${fmt(h.price)}</div><div class="small" style="margin:6px 0">${num(h.visitors)} Besucher · ${num(h.orders)} Bestellungen · ${fmt(h.rev)} Umsatz<br>+${num(h.fol)} Follower · Bekanntheit +${f1(h.aw||0)}</div>${h.partner||inPartner(h.id)?'<span class="pill">Fester Partner</span>':h.scandal?'<span class="bad small">Skandal – lieber nicht</span>':`<button class="btn sm primary" data-a="partner" data-id="${h.id}" ${S.partners.length>=3||S.cash<fee?'disabled':''}>Kooperation ${fmt(fee)}/Monat</button>`}</div>`;}).join('')}</div><div class="small muted" style="margin-top:8px">ROI = Umsatz ÷ Kosten. Follower & Bekanntheit sind Zusatznutzen. Wer sich gelohnt hat, kannst du fest buchen: täglich gleichmäßiger Traffic ohne Flop-Risiko.</div>`:'';
+  body=`${partners}${camps}${hist}<div class="sec"><span>Neue Creator</span><span class="small muted">wechseln wöchentlich</span></div>
    <div class="grid g3">${S.infl.map(o=>`<div class="card"><div class="row sp"><b>${o.handle}</b><span class="pill">${ITIERS[o.tier].n}</span></div>
    <div class="small muted">${PLAT[o.plat].e} ${num(o.followers)} Follower · ${o.niche}</div>
    <div class="small" style="margin:6px 0">Engagement ${pc(o.eng)} · Match <b class="${o.fit>1.1?'good':o.fit<.8?'bad':''}">${Math.round(o.fit*100)} %</b></div>
-   <button class="btn primary" data-a="hire" data-id="${o.id}" ${S.cash<o.price?'disabled':''}>Buchen ${fmt(o.price)}</button></div>`).join('')}</div>
-   <div class="small muted" style="margin-top:10px">Ergebnisse schwanken (Flop bis Volltreffer, selten ein Skandal). Du brauchst genug Ware auf Lager. Zu viele Kampagnen kurz hintereinander verlieren an Wirkung.</div>`;
+   <button class="btn primary" data-a="hirei" data-id="${o.id}" ${S.cash<o.price?'disabled':''}>Buchen ${fmt(o.price)}</button></div>`).join('')}</div>
+   <div class="small muted" style="margin-top:10px">Ergebnisse schwanken (Flop bis Volltreffer, selten Skandal). Du brauchst genug Ware auf Lager. Zu viele Kampagnen kurz hintereinander verlieren an Wirkung.</div>`;
  }else{
   const can=S.promo.cool<=0&&S.promo.days<=0;
   body=`<div class="grid g2"><div class="card"><h3>🏷️ Rabatt-Aktion</h3><div class="small muted">3 Tage, alle Produkte. Senkt den Preis, erhöht Nachfrage & Conversion.</div>
    ${S.promo.days>0?`<div class="good" style="margin:8px 0">Läuft: −${Math.round(S.promo.pct*100)} % noch ${S.promo.days} Tag(e)</div>`:S.promo.cool>0?`<div class="muted" style="margin:8px 0">Cooldown: ${S.promo.cool} Tage</div>`:''}
-   <div class="row" style="margin-top:8px">${[.1,.2,.3].map(p=>`<button class="btn" data-a="promo" data-p="${p}" ${can?'':'disabled'}>−${p*100} %</button>`).join('')}</div></div>
-   <div class="card"><h3>📧 Newsletter</h3><div class="small muted">${num(S.email)} Abonnenten · sehr hohe Kaufabsicht. Kostet 15 €, 3 Tage Pause.${S.email<50?' Ab 50 Abonnenten verfügbar.':''}</div>
-   <div style="margin-top:8px"><button class="btn primary" data-a="mail" ${S.mailCool>0||S.email<50||S.cash<15?'disabled':''}>${S.mailCool>0?`Pause ${S.mailCool} T.`:'Newsletter senden'}</button></div></div></div>`;
+   <div class="row" style="margin-top:10px">${[.1,.2,.3].map(p=>`<button class="btn" data-a="promo" data-p="${p}" ${can?'':'disabled'}>−${Math.round(p*100)} %</button>`).join('')}</div></div>
+   <div class="card"><h3>📧 Newsletter</h3><div class="small muted">${num(S.email)} Abonnenten · sehr hohe Kaufabsicht. 15 €, danach 3 Tage Pause.${S.email<50?' Ab 50 Abonnenten verfügbar.':''}</div>
+   <div style="margin-top:10px"><button class="btn primary" data-a="mail" ${S.mailCool>0||S.email<50||S.cash<15?'disabled':''}>${S.mailCool>0?`Pause ${S.mailCool} T.`:'Newsletter senden'}</button></div></div></div>`;
  }
  return `<h2>📣 Marketing</h2>${awStrip()}<div class="tabs">${T.map(([k,l])=>`<button data-a="mtab" data-t="${k}" class="${ui.mtab===k?'on':''}">${l}</button>`).join('')}</div>${body}`;
 }
-function vTeam(){
- return `<h2>🛠️ Team</h2><div class="grid g2">${STAFF.map(s=>`<div class="card ${S.staff[s.k]?'hl':''}"><div class="row sp"><h3 style="margin:0">${s.e} ${s.n}</h3><span class="pill">${fmt(s.s)}/Monat</span></div><div class="small muted" style="margin:6px 0 10px">${s.d}</div>
-  <button class="btn ${S.staff[s.k]?'danger':'primary'}" data-a="staff" data-k="${s.k}">${S.staff[s.k]?'Kündigen':'Einstellen'}</button></div>`).join('')}</div>
- <h2 style="margin-top:22px">🔧 Ausbau & Infrastruktur</h2><div class="grid g3">${UPS.map(u=>{const has=S.up[u.k],reqOk=!u.req||S.up[u.req],needOk=!u.need||u.need();const dis=has||!reqOk||!needOk||S.cash<u.c;
-  return `<div class="card ${has?'hl':''}"><h3>${u.e} ${u.n}</h3><div class="small muted" style="margin-bottom:8px">${u.d}</div>${has?'<span class="good">✔ Aktiv</span>':`<button class="btn primary" data-a="up" data-k="${u.k}" ${dis?'disabled':''}>${fmt(u.c)}</button>${!reqOk?`<div class="small warn">Braucht: ${UPS.find(x=>x.k===u.req).n}</div>`:''}${!needOk?`<div class="small warn">Braucht: ${u.needTxt}</div>`:''}`}</div>`;}).join('')}</div>`;
+/* ---- Firma ---- */
+function effText(R,e){return R.fx(E(R.k));}
+function vFirma(){
+ const O=OFFICES[S.office],N=OFFICES[S.office+1],free=seatsMax()-seatsUsed();
+ const office=`<div class="card ${N?'':'hl'}"><div class="row sp"><h3 style="margin:0">${O.e} ${O.n}</h3><span class="pill">${O.rent?fmt(O.rent)+'/Monat':'mietfrei'}</span></div><div class="small muted" style="margin:6px 0">${O.d}</div>
+  <div class="row small"><span>🪑 ${seatsUsed()}/${O.seats} Plätze</span><span>📦 Lager ${num(stockCap())}</span></div>
+  ${N?`<hr><div class="row sp"><div style="flex:1;min-width:200px"><b>Nächste Stufe: ${N.e} ${N.n}</b><div class="small muted">${N.seats} Plätze · Lager ${num(N.cap*(S.up.tpl?3:1))} · ${fmt(N.rent)}/Monat</div></div><button class="btn primary" data-a="office" ${S.cash<N.cost?'disabled':''}>Umziehen ${fmt(N.cost)}</button></div>`:'<div class="small good" style="margin-top:8px">Höchste Stufe erreicht 🏰</div>'}</div>`;
+ const team=ROLES.map(R=>{const e=S.staff[R.k];
+  if(e){const T=TRAITS[e.trait],col=e.mood>66?'var(--mint)':e.mood>35?'var(--warn)':'var(--bad)';
+   return `<div class="card"><div class="emp"><div class="av">${e.av}</div><div style="min-width:0"><div class="row sp"><b>${esc(e.name)}</b><span class="stars">${stars(e.lvl)}</span></div><div class="small muted">${R.e} ${R.n} · <span class="pill">${T.n}</span></div></div></div>
+   <div class="small" style="margin:8px 0 4px">${effText(R,e)}</div><div class="row sp small"><span class="muted">Stimmung ${Math.round(e.mood)} %</span><span class="muted">${fmt(e.sal)}/Monat</span></div><div class="bar"><i style="width:${e.mood}%;background:${col}"></i></div>
+   <div class="small muted" style="margin-top:6px">${e.lvl<3?`Nächster Aufstieg in ~${Math.max(0,e.promoAt-S.day)} Tagen (bei guter Stimmung)`:'Maximales Level'}</div>
+   <div class="row" style="margin-top:10px"><button class="btn sm" data-a="raise" data-role="${R.k}" ${e.raise>=12?'disabled':''}>💸 Gehalt +10 %</button><button class="btn sm danger" data-a="fire" data-role="${R.k}">Kündigen</button></div></div>`;}
+  return `<div class="card" style="border-style:dashed"><div class="emp"><div class="av" style="opacity:.5">${R.e}</div><div><b>${R.n}</b><div class="small muted">${R.d}</div></div></div><div class="row sp" style="margin-top:10px"><span class="small muted">ab ca. ${fmt(R.base*.72)}/Monat</span><button class="btn sm primary" data-a="openhire" data-role="${R.k}" ${free<=0?'disabled':''}>${free<=0?'Kein Platz':'Bewerber ansehen'}</button></div></div>`;}).join('');
+ const perks=PERKS.map(p=>`<div class="card ${S.perks[p.k]?'hl':''}"><div class="row sp"><b>${p.e} ${p.n}</b>${p.up?`<span class="pill">${fmt(p.up)}/Monat</span>`:''}</div><div class="small muted" style="margin:4px 0 8px">Stimmung +${p.mood} für das ganze Team</div>${S.perks[p.k]?'<span class="good">✔ Eingebaut</span>':`<button class="btn sm primary" data-a="perk" data-k="${p.k}" ${S.cash<p.c?'disabled':''}>${fmt(p.c)}</button>`}</div>`).join('');
+ const evOn=(S.teamEvent||0)>S.day;
+ const ups=UPS.map(u=>{const has=S.up[u.k],reqOk=!u.req||S.up[u.req],needOk=!u.need||u.need(),dis=has||!reqOk||!needOk||S.cash<u.c;
+  return `<div class="card ${has?'hl':''}"><h3>${u.e} ${u.n}</h3><div class="small muted" style="margin-bottom:8px">${u.d}</div>${has?'<span class="good">✔ Aktiv</span>':`<button class="btn primary sm" data-a="up" data-k="${u.k}" ${dis?'disabled':''}>${fmt(u.c)}</button>${!reqOk?`<div class="small warn">Braucht: ${UPS.find(x=>x.k===u.req).n}</div>`:''}${!needOk?`<div class="small warn">Braucht: ${u.needTxt}</div>`:''}`}</div>`;}).join('');
+ return `<h2>👥 Firma</h2>${office}
+ <div class="sec"><span>Team</span><span class="small muted">${fmt(Object.values(S.staff).reduce((a,e)=>a+e.sal,0))}/Monat</span></div><div class="grid g2">${team}</div>
+ <div class="sec"><span>🛋️ Büro-Extras</span></div><div class="grid g3">${perks}
+  <div class="card"><b>🎳 Team-Event</b><div class="small muted" style="margin:4px 0 8px">Stimmung steigt sofort und bleibt 30 Tage erhöht.${evOn?' (läuft)':''}</div><div class="row"><button class="btn sm" data-a="teamevent" data-c="600" ${evOn||S.cash<600||!Object.keys(S.staff).length?'disabled':''}>Grillen 600 €</button><button class="btn sm" data-a="teamevent" data-c="2500" ${evOn||S.cash<2500||!Object.keys(S.staff).length?'disabled':''}>Offsite 2.500 €</button></div></div></div>
+ <div class="sec"><span>🔧 Ausbau</span></div><div class="grid g3">${ups}</div>`;
 }
+/* ---- Zahlen ---- */
 function vFin(){
- const rows=[['Umsatz','rev',1],['Wareneinsatz','cogs',-1],['Versand & Gebühren','fees',-1],['Werbung','ads',-1],['Content & Aktionen','mkt',-1],['Fixkosten (Gehälter, Tools, Zinsen)','fixed',-1]];
- const lim=5000+runRate()*.25,r=ROUNDS[S.rounds];
- return `<h2>💶 Finanzen</h2><div class="grid g2"><div class="card"><h3>GuV – letzte 30 Tage</h3><table>${rows.map(([l,k,s])=>`<tr><td>${l}</td><td class="${s<0?'bad':''}">${fmt(sum(30,k)*s)}</td></tr>`).join('')}<tr><td><b>Ergebnis</b></td><td><b class="${sum(30,'profit')>=0?'good':'bad'}">${fmt(sum(30,'profit'))}</b></td></tr></table>
- <div class="small muted" style="margin-top:8px">Wareneinkäufe werden beim Bestellen bezahlt, der Wareneinsatz erst beim Verkauf gebucht – deshalb kann dein Cash trotz Gewinn schrumpfen.</div></div>
- <div class="card"><h3>🏷️ Unternehmenswert</h3><b style="font-size:26px">${fmt(S.val)}</b><div class="small muted">Run-Rate ${fmt(runRate())}/Jahr × Multiple (Bekanntheit, Rating, Profitabilität) + Cash + Lager − Schulden</div>
-  <div style="margin:10px 0">${bar(S.val,GOAL)}</div><div class="small muted">Dein Anteil: ${pc(S.owned,0)} → ${fmt(S.val*S.owned)} bei Exit</div></div>
- <div class="card"><h3>🏦 Kredit</h3><div class="small muted">Offen: <b>${fmt(S.loan)}</b> · Limit ${fmt(lim)} · 1,5 % Zinsen pro Monat</div>
-  <div class="row" style="margin-top:8px">${LOANS.map(a=>`<button class="btn sm" data-a="loan" data-amt="${a}">+${fmt(a)}</button>`).join('')}</div>
-  <div class="row" style="margin-top:8px">${[1000,5000,20000].map(a=>`<button class="btn sm" data-a="repay" data-amt="${a}" ${S.loan<=0||S.cash<Math.min(a,S.loan)?'disabled':''}>Tilgen ${fmt(a)}</button>`).join('')}</div></div>
- <div class="card"><h3>📈 Investoren</h3>${r?`<div class="small muted">${r.n}-Runde: ${pc(r.pct,0)} der Anteile verkaufen ab ${fmt(r.min)} Unternehmenswert.</div><div style="margin-top:8px"><button class="btn primary" data-a="invest" ${S.val<r.min?'disabled':''}>${fmt(S.val*r.pct*.9)} einsammeln</button></div>${S.val<r.min?`<div class="small warn">Noch ${fmt(r.min-S.val)} bis zur Runde.</div>`:''}`:'<div class="muted">Alle Runden abgeschlossen.</div>'}</div></div>`;
+ const rows=[['Umsatz','rev',1],['Wareneinsatz','cogs',-1],['Versand & Gebühren','fees',-1],['Werbung','ads',-1],['Content & Aktionen','mkt',-1],['Fixkosten & Steuern','fixed',-1]];
+ const lim=5000+runRate()*.25,r=ROUNDS[S.rounds],L=billLines(),tot=L.reduce((a,x)=>a+x[1],0);
+ const det=(id,title,inner)=>`<details data-d="${id}" ${ui.open[id]?'open':''}><summary>${title}</summary><div style="margin-top:10px">${inner}</div></details>`;
+ return `<h2>💶 Zahlen</h2><div class="grid g2">
+ <div class="card"><h3>GuV · letzte 30 Tage</h3><table>${rows.map(([l,k,s])=>`<tr><td>${l}</td><td class="${s<0?'bad':''}">${fmt(sum(30,k)*s)}</td></tr>`).join('')}<tr><td><b>Ergebnis</b></td><td><b class="${sum(30,'profit')>=0?'good':'bad'}">${fmt(sum(30,'profit'))}</b></td></tr></table>
+ <div class="small muted" style="margin-top:8px">Wareneinkauf zahlst du beim Bestellen, gebucht wird er erst beim Verkauf. Deshalb kann Cash trotz Gewinn schrumpfen.</div></div>
+ <div class="card"><h3>🧾 Fixkosten pro Monat</h3><table>${L.map(([l,v])=>`<tr><td>${l}</td><td>${fmt(v)}</td></tr>`).join('')}<tr><td><b>Summe</b></td><td><b>${fmt(tot)}</b></td></tr></table><div class="small muted" style="margin-top:8px">Dazu kommen 20 % Steuern auf den Monatsgewinn. Abrechnung alle 30 Tage${S.bill?`, zuletzt Tag ${S.bill.day}: ${fmt(S.bill.total)}`:''}.</div></div>
+ <div class="card"><h3>🏷️ Unternehmenswert</h3><b style="font-family:var(--fd);font-weight:400;font-size:30px" class="coin">${fmt(S.val)}</b><div class="small muted">Run-Rate ${fmt(runRate())}/Jahr × Multiple (Bekanntheit, Rating, Profit) + Cash + Lager − Schulden</div><div style="margin:10px 0">${bar(S.val,GOAL)}</div><div class="small muted">Dein Anteil ${pc(S.owned,0)} → ${fmt(S.val*S.owned)} bei Exit (Ziel ${fmt(GOAL)})</div></div>
+ <div class="card"><h3>🏦 Kredit</h3><div class="small muted">Offen <b>${fmt(S.loan)}</b> · Limit ${fmt(lim)} · 1,5 % Zinsen pro Monat</div><div class="row" style="margin-top:10px">${LOANS.map(a=>`<button class="btn sm" data-a="loan" data-amt="${a}">+${fmt(a)}</button>`).join('')}</div><div class="row" style="margin-top:8px">${[1000,5000,20000].map(a=>`<button class="btn sm" data-a="repay" data-amt="${a}" ${S.loan<=0||S.cash<Math.min(a,S.loan)?'disabled':''}>Tilgen ${fmt(a)}</button>`).join('')}</div></div>
+ <div class="card"><h3>📈 Investoren</h3>${r?`<div class="small muted">${r.n}-Runde: ${pc(r.pct,0)} der Anteile ab ${fmt(r.min)} Unternehmenswert.</div><div style="margin-top:10px"><button class="btn primary" data-a="invest" ${S.val<r.min?'disabled':''}>${fmt(S.val*r.pct*.9)} einsammeln</button></div>${S.val<r.min?`<div class="small warn" style="margin-top:6px">Noch ${fmt(r.min-S.val)} bis zur Runde.</div>`:''}`:'<div class="muted">Alle Runden abgeschlossen.</div>'}</div></div>
+ ${det('ach',`🏆 Erfolge (${Object.keys(S.ach).length}/${ACH.length})`,ACH.map(a=>`<div class="small" style="padding:3px 0;${S.ach[a[0]]?'':'opacity:.4'}">${a[1]} ${a[2]}${S.ach[a[0]]?` <span class="muted">· Tag ${S.ach[a[0]]}</span>`:''}</div>`).join(''))}
+ ${det('how','❓ So funktioniert der Shop',`<div class="small muted"><b>Besucher</b> kommen über Social Media, Ads, Influencer, Newsletter & SEO. Die <b>Conversion</b> (Preis, Bewertungen, Shop-Design, Bekanntheit) macht daraus <b>Bestellungen</b>. Kunden kaufen <b>wieder</b> (Abo, Qualität). Ohne Ware verpufft jeder Besucher.<br><br>Gewinn = Preis − Herstellung − Versand − <b>CAC</b> (Kosten pro Neukunde) − Fixkosten. Dein Team kostet jeden Monat Geld, bringt aber Automatik und Boni. Zufriedene Mitarbeiter arbeiten besser und steigen auf.</div>`)}
+ ${det('set','⚙️ Einstellungen',`<div class="row"><button class="btn sm ${S.weekStop?'primary':''}" data-a="weekstop">📅 Wochen-Stopp: ${S.weekStop?'AN':'AUS'}</button><button class="btn sm" data-a="snd">${ui.sound?'🔊 Ton an':'🔇 Ton aus'}</button><button class="btn sm danger" data-a="newgame">Neues Spiel</button></div>`)}`;
 }
-function vErf(){
- return `<h2>🏆 Ziele & Hilfe</h2><div class="grid g2"><div class="card"><h3>🏁 Dein Ziel</h3><p class="muted">Baue ${S.brand} zu einer Marke mit <b>${fmt(GOAL)} Unternehmenswert</b> auf und gehe auf Exit – ohne vorher pleite zu gehen (10 Tage im Minus = Insolvenz).</p>
- <h3>So funktioniert der Shop</h3><div class="small muted">
- <b>Besucher</b> kommen über Social Media, Ads, Influencer, Newsletter & SEO →<br><b>Conversion</b> (Preis, Bewertungen, Shop-Design, Bekanntheit) macht daraus <b>Bestellungen</b> →<br>Kunden kaufen <b>wieder</b> (Abo, E-Mail, Qualität). Ohne Ware auf Lager verpufft jeder Besucher!<br><br>
- Gewinn = Preis − Herstellung − Versand − <b>CAC</b> (Kosten pro Neukunde). Wiederkäufe sind dein Hebel für Profit.</div>
- <div style="margin-top:14px"><button class="btn danger" data-a="newgame">Neues Spiel starten</button></div></div>
- <div class="card"><h3>Erfolge (${Object.keys(S.ach).length}/${ACH.length})</h3>${ACH.map(a=>`<div class="small" style="padding:3px 0;${S.ach[a[0]]?'':'opacity:.4'}">${a[1]} ${a[2]}${S.ach[a[0]]?` <span class="muted">· Tag ${S.ach[a[0]]}</span>`:''}</div>`).join('')}</div></div>`;
+/* ================= Sheets ================= */
+function openSheet(kind,lock){ui.sheetKind=kind;ui.sheetLock=lock===true?false:['event','start','win','over'].includes(kind);ui.modal=true;$('#sheet').classList.remove('hidden');renderSheet();}
+function closeSheet(){ui.modal=false;ui.sheetKind=null;$('#sheet').classList.add('hidden');$('#sheet').innerHTML='';}
+function renderSheet(){
+ const k=ui.sheetKind;if(!k)return;let h='';
+ if(k==='start'){
+  const nm=$('#sn')?$('#sn').value:'NovaFuel',sv=loadSave();
+  h=`<div class="title">BRAND TYCOON</div><p class="muted" style="text-align:center;margin:0 0 12px">Baue von der Garage aus eine Supplement-Marke auf: Produkte, Social Media, Influencer, Team, Büro bis zum Exit.</p>
+  <div class="small muted">Markenname</div><input type="text" id="sn" value="${esc(nm)}" maxlength="20" autocomplete="off">
+  <div class="small muted" style="margin-top:12px">Logo</div><div class="emo">${['🔥','💎','⚡','🌿','🦍','🧬','🏔️','🍋'].map(e=>`<button data-a="pe" data-e="${e}" class="${ui.pe===e?'on':''}">${e}</button>`).join('')}</div>
+  <div class="small muted" style="margin-top:12px">Markenfarbe</div><div class="sw">${['#ff6a3d','#35e0a8','#5cb9ff','#c77dff','#ffc83d','#ff4fa3'].map(c=>`<button data-a="pc" data-c="${c}" class="${ui.pcol===c?'on':''}" style="background:${c}" aria-label="Farbe"></button>`).join('')}</div>
+  <div class="small muted" style="margin-top:12px">Du</div><div class="emo">${['🧑‍💼','👩‍💼','👨‍💼','🧑‍🚀','👩‍🔬','👨‍🍳'].map(e=>`<button data-a="pf" data-e="${e}" class="${ui.pfo===e?'on':''}">${e}</button>`).join('')}</div>
+  <div class="small muted" style="margin-top:12px">Marken-Typ</div>
+  ${Object.keys(ARCH).map(k=>`<div class="opt ${ui.pa===k?'on':''}" data-a="pa" data-k="${k}"><div style="font-size:26px">${ARCH[k].e}</div><div><b>${ARCH[k].n}</b><div class="small muted">${ARCH[k].d}</div></div></div>`).join('')}
+  <div class="col" style="margin-top:16px"><button class="btn primary" data-a="start" style="font-size:17px">🚀 Gründen · 8.000 € Startkapital</button>${sv?`<button class="btn" data-a="cont">Spielstand laden</button>`:''}${S&&S.day>0&&!S.over?`<button class="btn" data-a="close">Abbrechen</button>`:''}</div>`;
+ }else if(k==='order'){
+  const id=ui.sh.id,P=PRODUCTS[id],p=S.prod[id],t=ui.sh.tier,bi=ui.sh.bi,q=BATCHES[bi].q,uc=unitCost(id,t,bi),cost=uc*q,after=stockTotal()+q;
+  h=`<div class="big">${P.e}</div><h2 style="text-align:center">${P.n} bestellen</h2>
+  <div class="small muted">Qualität</div><div class="seg" style="margin:6px 0 12px">${[1,2,3].map(x=>`<button data-a="ot" data-v="${x}" class="${t===x?'on':''}" ${x===3&&!S.up.lab?'disabled':''}>${TIERS[x].n}${x===3&&!S.up.lab?' 🔒':''}</button>`).join('')}</div>
+  <div class="small muted">Menge (größere Chargen sind günstiger pro Stück)</div><div class="seg" style="margin:6px 0 12px">${BATCHES.map((b,i)=>`<button data-a="ob" data-v="${i}" class="${bi===i?'on':''}">${num(b.q)}</button>`).join('')}</div>
+  <div class="card" style="background:var(--panel2)"><table><tr><td>Preis pro Stück</td><td>${fmt2(uc)}</td></tr><tr><td>Gesamt</td><td><b class="coin">${fmt(cost)}</b></td></tr><tr><td>Lieferung</td><td>in ${TIERS[t].lead} Tagen</td></tr><tr><td>Lager danach</td><td class="${after>stockCap()?'bad':''}">${num(after)} / ${num(stockCap())}</td></tr></table></div>
+  ${t===3&&!S.up.lab?'':''}<div class="col" style="margin-top:14px"><button class="btn primary" data-a="buy" ${S.cash<cost||after>stockCap()?'disabled':''}>Bestellen · ${fmt(cost)}</button><button class="btn" data-a="close">Abbrechen</button></div>
+  <div class="small muted" style="margin-top:8px">${S.staff.buyer?'Diese Auswahl gilt auch als Standard für den Einkäufer.':'Tipp: Mit „⚡“ bestellst du später per Klick dasselbe nochmal.'}</div>`;
+ }else if(k==='hire'){
+  const R=ROLES.find(r=>r.k===ui.sh.role),list=cands(R.k);
+  h=`<div class="big">${R.e}</div><h2 style="text-align:center">${R.n} einstellen</h2><div class="small muted" style="text-align:center;margin-bottom:6px">${R.d}</div>
+  ${list.map(c=>{const T=TRAITS[c.trait];return `<div class="cand"><div class="av">${c.av}</div><div style="min-width:0"><b>${esc(c.name)}</b> <span class="stars">${stars(c.lvl)}</span><div class="small"><span class="pill">${T.n}</span></div><div class="small muted">${T.d}</div><div class="small">${R.fx(LVLF[c.lvl]*T.eff*1.0)}</div></div><div style="text-align:right"><div class="small muted">${fmt(c.sal)}/Monat</div><button class="btn sm primary" data-a="hire" data-role="${R.k}" data-id="${c.id}" ${S.cash<c.sal?'disabled':''}>Einstellen</button></div></div>`;}).join('')}
+  <div class="small muted" style="margin-top:8px">Neue Bewerber alle 14 Tage. Hohes Level und gute Stimmung machen den Effekt stärker.</div><div class="col" style="margin-top:12px"><button class="btn" data-a="close">Schließen</button></div>`;
+ }else if(k==='event'){
+  const ev=ui.ev,em=ev.title.split(' ')[0],ti=ev.title.slice(em.length).trim();
+  h=`<div class="big">${em}</div><h2 style="text-align:center">${ti}</h2><p class="muted" style="text-align:center">${ev.text}</p>${ev.choices.map((c,i)=>`<button class="btn block" style="margin-top:8px" data-a="choice" data-i="${i}">${c.t}</button>`).join('')}`;
+ }else if(k==='win'){
+  h=`<div class="big">🦄</div><div class="title">EXIT!</div><p style="text-align:center">Ein Konzern kauft <b>${esc(S.brand)}</b>. Unternehmenswert <b class="coin">${fmt(S.val)}</b>.</p><p style="text-align:center">Dein Anteil (${pc(S.owned,0)}): <b class="good" style="font-size:22px">${fmt(S.val*S.owned)}</b></p><p class="muted small" style="text-align:center">Nach ${S.day} Tagen (${f1(S.day/360)} Jahren), ${num(S.totalOrders)} Bestellungen und ${fmt(S.totalRev)} Umsatz.</p><div class="col"><button class="btn primary" data-a="keep">Weiterspielen (Sandbox)</button><button class="btn" data-a="newgame">Neues Spiel</button></div>`;
+ }else if(k==='over'){
+  h=`<div class="big">💥</div><div class="title" style="color:var(--bad);text-shadow:none">INSOLVENZ</div><p style="text-align:center">${esc(S.brand)} war zu lange im Minus. Die Bank dreht den Geldhahn zu.</p><p class="muted small" style="text-align:center">${S.day} Tage · ${num(S.totalOrders)} Bestellungen · ${fmt(S.totalRev)} Umsatz.<br>Tipp: Halte Ware auf Lager, beobachte den ROAS und plane Cash für die Monatsabrechnung ein.</p><button class="btn primary block" data-a="newgame" style="text-align:center">Nochmal versuchen</button>`;
+ }else if(k==='log'){
+  h=`<h2>📜 Verlauf</h2>${S.log.slice(-40).reverse().map(l=>`<div class="small ${l.type}" style="padding:4px 0;border-bottom:1px solid var(--line)"><span class="muted">T${l.d}</span> ${l.msg}</div>`).join('')}<div class="col" style="margin-top:12px"><button class="btn" data-a="close">Schließen</button></div>`;
+ }
+ $('#sheet').innerHTML=`<div class="sbox">${h}</div>`;
+ if(k==='start'){const i=$('#sn');if(i&&document.activeElement!==i&&!ui.sheetTouched){}}
 }
-function renderMain(){
- const v={ueber:vOver,sort:vSort,mkt:vMkt,team:vTeam,fin:vFin,erf:vErf}[ui.tab];$('#main').innerHTML=weekBanner()+v();
+
+/* ================= Render ================= */
+function renderMain(force){
+ const m=$('#main'),wb=`<div id="wb">${weekBanner()}</div>`;
+ if(ui.tab==='home'){
+  const sig=homeSig();
+  if(!force&&ui.homeSig===sig&&$('#h-dyn')){$('#wb').innerHTML=weekBanner();$('#h-dyn').innerHTML=homeDyn();return;}
+  ui.homeSig=sig;m.innerHTML=wb+vHome();return;
+ }
+ const v={prod:vProd,mkt:vMkt,firma:vFirma,fin:vFin}[ui.tab];m.innerHTML=wb+v();
 }
 function render(force){
- if(!S)return;renderHeader();renderNav();renderLog();
- if(force||!ui.interacting)renderMain();
-}
-/* ================= Modals ================= */
-function showModal(h){const m=$('#modal');m.innerHTML=`<div class="box">${h}</div>`;m.classList.remove('hidden');ui.modal=true;}
-function hideModal(){$('#modal').classList.add('hidden');ui.modal=false;}
-function showStart(keep){
- if(!keep&&!ui.pa)ui.pa='hardcore';if(!ui.pe)ui.pe='🔥';
- const sv=loadSave(),name=($('#sn')&&$('#sn').value)||'NovaFuel';
- showModal(`<h2>🚀 Brand Tycoon</h2><p class="muted">Baue von der Garage aus eine Supplement-Marke auf: Produkte herstellen, Social Media bespielen, Influencer buchen, Ads schalten – bis zum Exit.</p>
- <div class="small muted">Markenname</div><input type="text" id="sn" value="${name.replace(/"/g,'')}" maxlength="22">
- <div class="emojis">${['🔥','💎','⚡','🌿','🦍','🧬','🏔️','🍋'].map(e=>`<button data-a="pe" data-e="${e}" class="${ui.pe===e?'on':''}">${e}</button>`).join('')}</div>
- <div class="small muted" style="margin-top:12px">Marken-Typ</div>
- ${Object.keys(ARCH).map(k=>`<div class="opt ${ui.pa===k?'on':''}" data-a="pa" data-k="${k}"><div style="font-size:24px">${ARCH[k].e}</div><div><b>${ARCH[k].n}</b><div class="small muted">${ARCH[k].d}</div></div></div>`).join('')}
- <div class="row" style="margin-top:16px"><button class="btn primary" data-a="start">Gründen (8.000 € Startkapital)</button>${sv&&!keep?`<button class="btn" data-a="cont">Spielstand laden</button>`:''}${keep&&S?`<button class="btn" data-a="keep">Abbrechen</button>`:''}</div>`);
-}
-function showWin(){
- showModal(`<h2>🦄 EXIT!</h2><p>Ein Konzern will <b>${S.brand}</b> kaufen. Unternehmenswert: <b>${fmt(S.val)}</b>.</p><p>Dein Anteil (${pc(S.owned,0)}): <b class="good">${fmt(S.val*S.owned+Math.max(0,S.cash)*0)}</b></p>
- <p class="muted">Nach ${S.day} Tagen (${(S.day/360).toFixed(1).replace('.',',')} Jahren), ${num(S.totalOrders)} Bestellungen und ${fmt(S.totalRev)} Umsatz.</p>
- <div class="row"><button class="btn primary" data-a="keep">Weiterspielen (Sandbox)</button><button class="btn" data-a="newgame">Neues Spiel</button></div>`);
-}
-function showOver(){
- showModal(`<h2>💥 Insolvenz</h2><p>${S.brand} war zu lange im Minus – die Bank dreht den Geldhahn zu.</p><p class="muted">${S.day} Tage · ${num(S.totalOrders)} Bestellungen · ${fmt(S.totalRev)} Umsatz.</p>
- <p class="small muted">Tipp: Halte Ware auf Lager, beobachte den ROAS und plane Cash für die Monatsabrechnung ein.</p><button class="btn primary" data-a="newgame">Nochmal versuchen</button>`);
+ if(!S)return;updateHud();renderNav();
+ if(ui.interacting)return;
+ renderMain(force);
+ if(ui.celebrate){ui.celebrate=0;confetti(24);sfx('win');}
 }
 
 /* ================= Game-Loop ================= */
-const SPEEDS=[0,2200,900,350,120];let timer=null;
+const SPEEDS=[0,2200,900,350];let timer=null;
 function schedule(){clearTimeout(timer);if(!S||ui.speed===0||S.over)return;timer=setTimeout(loop,SPEEDS[ui.speed]);}
 function loop(){
- if(!ui.modal&&S&&!S.over){stepDay();render();}
+ if(!ui.modal&&S&&!S.over){stepDay();dayFx();render();}
  schedule();
 }
 window.addEventListener('beforeunload',()=>{if(S&&!S.over)save();});
-
-/* ================= Start ================= */
-window.G={get S(){return S;},ACT,ui,stepDay,unitCost,hireInfl,genInfluencers,newState,setS(s){S=s;},valuation};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&ui.speed>0&&!ui.modal){setSpeed(0);}});
+window.G={get S(){return S;},ACT,ui,stepDay,unitCost,newState,setS(s){S=s;},valuation,render,misCur,misDone,migrate};
 (function init(){
- ui.pa='hardcore';ui.pe='🔥';
- const sv=loadSave();
- S=newState('NovaFuel','🔥','hardcore');genInfluencers();render(true);
- showStart();
+ try{ui.sound=localStorage.getItem('bt.sound')!=='0';}catch(e){}
+ ui.pa='hardcore';ui.pe='🔥';ui.pcol='#ff6a3d';ui.pfo='🧑‍💼';
+ S=newState('NovaFuel','🔥','hardcore');genInfluencers();
+ updateHud();render(true);openSheet('start');
 })();
+
 </script>
-</body>
-</html>
+</body></html>
