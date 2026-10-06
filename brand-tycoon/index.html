@@ -605,7 +605,7 @@ function stepDay(){
  for(const a of ACH){if(!S.ach[a[0]]&&a[3]()){S.ach[a[0]]=S.day;log(`${a[1]} Erfolg freigeschaltet: ${a[2]}`,'good',1);}}
  checkMis();
  if(S.cash<0)S.negDays++;else S.negDays=0;
- if(S.negDays>=10){S.over=true;ui.speed=0;openSheet('over');return;}
+ if(S.negDays>=21){S.over=true;ui.speed=0;openSheet('over');return;}
  if(!S.exited&&S.val>=GOAL){S.exited=true;ui.speed=0;openSheet('win');return;}
  if(S.day%360===324&&!S.last['bf'+Math.floor(S.day/360)]){S.last['bf'+Math.floor(S.day/360)]=1;openEvent(EVENTS.find(e=>e.k==='bf'));}
  else if(S.evCool>0)S.evCool--;
@@ -752,7 +752,7 @@ function alerts(){
  unlockedIds().forEach(id=>{const p=S.prod[id],N=PRODUCTS[id].n,tr=inTransit(id);
   if(p.stock<1&&S.totalOrders>0)a.push({t:`❗ ${N} ist ausverkauft`+(tr?' – Nachschub unterwegs':''),btn:tr?null:{a:'reorder',id,l:'Nachbestellen'}});
   else if(p.ema>0&&p.stock/p.ema<7&&!tr)a.push({t:`⚠️ ${N} reicht nur noch ~${Math.max(1,Math.floor(p.stock/p.ema))} Tage`,btn:{a:'reorder',id,l:'Nachbestellen'}});});
- if(S.cash<0)a.push({t:'🚨 Dein Konto ist im Minus! Nach 10 Tagen droht die Insolvenz.'});
+ if(S.cash<0)a.push({t:`🚨 Dein Konto ist im Minus! Nach 21 Tagen droht die Insolvenz (seit ${S.negDays}).`,btn:{a:'go',t:'fin',l:'Kredit holen'}});
  Object.values(S.staff).forEach(e=>{if(e.mood<30)a.push({t:`😟 ${e.name} ist unzufrieden – Gehalt, Büro-Extras oder Team-Event helfen.`,btn:{a:'go',t:'firma',l:'Zum Team'}});});
  return a;
 }
