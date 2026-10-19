@@ -39,6 +39,7 @@ Hinweis: Die Artifact-Variante wird aus `index.html` plus Rahmen und Farb-Tokens
 - **Regel-Erkennung:** Alle vier Beispielbriefe werden ohne KI korrekt gelesen. Das ist nur an eigenen Beispielen getestet, nicht an echten Briefen.
 
 ## Offene Punkte
+0. Neues Repo und Vercel-Projekt anlegen (beschlossen), dann Supabase (Datenbank, Login), siehe `PLAN-Livegang.pdf`. Wichtig vorher: KI-Endpunkte (`post-analyze`, `post-reply`, `post-letter`) sind noch ohne Login und müssen vor dem Livegang abgesichert werden.
 1. Echte, geschwärzte Briefe zum Testen der Regel-Erkennung beschaffen.
 2. E-Mail-Posteingang einrichten: Redis-Speicher (Vercel KV oder Upstash), E-Mail-Dienst (z. B. Postmark, Mailgun, Cloudflare), Variablen setzen, Caya-Weiterleitung konfigurieren.
 3. LetterXpress-Konto anlegen und nach Testmodus, Einschreiben und aktuellen Preisen fragen. Danach echten Versender anbinden.
@@ -50,6 +51,7 @@ Hinweis: Die Artifact-Variante wird aus `index.html` plus Rahmen und Farb-Tokens
 9. Preis und Marge für den Briefversand (Prepaid-Guthaben) festlegen, sobald Einkaufspreise feststehen.
 
 ## Entscheidungen
+- **Eigenes Repo und eigenes Vercel-Projekt (beschlossen 2026-10-19):** Postpilot zieht aus dem Repo `steuer-cockpit-landing` (Steuerbase-Landingpage mit eigenen Google-Zugängen) in ein neues Repo mit neuem Vercel-Projekt. Datenbank: Supabase (Region EU). Plan bis zum Livegang: `postpilot/PLAN-Livegang.pdf`. Noch nicht umgesetzt: Repo anlegen, Vercel-Projekt anlegen, Code übernehmen.
 - Zero-Touch mit einer Ausnahme: Bei Steuerbescheiden, Mahnungen und Behördenpost gibt es einen Ein-Tipp-Check, wegen der Folgen falscher Fristen.
 - Der Versand verlangt eine einzige Bestätigung, weil er Geld kostet und nicht rückholbar ist.
 - Daten liegen vorerst lokal im Browser. Der Posteingang geht über einen Redis-Eingangskorb.
