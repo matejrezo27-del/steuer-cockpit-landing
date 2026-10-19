@@ -270,7 +270,6 @@ function viewHeute() {
     const liste = gruppen.map(([name, test]) => [name, rest.filter((x) => test(Fristen.tageBis(x.d.frist?.datum)))]).filter(([, l]) => l.length);
     h += `<details class="more" open><summary>Weitere Aufgaben (${rest.length})</summary>${liste.map(([name, l]) => `<h2>${name}</h2>` + l.map(taskHtml).join('')).join('')}</details>`;
   }
-  if (db.docs.some((d) => d.frist?.datum)) h += `<div class="row" style="margin-top:18px"><button class="btn line" id="icsAll">Alle Fristen in meinen Kalender</button></div>`;
   return h;
 }
 function emptyStart() {
@@ -313,7 +312,6 @@ function bindView(v) {
     const [act, did] = el.dataset.fr.split(':'), d = db.docs.find((x) => x.id === did); if (!d) return;
     if (act === 'ok') { d.frage = null; save(); render(); toast('Bestätigt ✓'); } else if (d.frage.art === 'frist') openFristAendern(d); else openDoc(did);
   }));
-  $('#icsAll', v)?.addEventListener('click', () => exportIcs(db.docs.filter((d) => d.frist?.datum)));
   $('#scan2', v)?.addEventListener('click', () => $('#file').click());
   $('#demo', v)?.addEventListener('click', ladeDemo);
   v.querySelectorAll('[data-sub]').forEach((el) => el.addEventListener('click', () => { postSub = el.dataset.sub; render(); }));
