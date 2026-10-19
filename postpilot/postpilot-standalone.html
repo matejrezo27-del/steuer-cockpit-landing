@@ -71,6 +71,9 @@ textarea{min-height:120px;resize:vertical}
 .spin{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:r 1s linear infinite;margin:0 auto 14px}
 @keyframes r{to{transform:rotate(360deg)}}
 .toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;z-index:50;font-size:14px;max-width:90%}
+.seg{display:flex;background:var(--line);border-radius:12px;padding:3px;margin:2px 0 14px;gap:3px}
+.seg button{flex:1;padding:9px 6px;border-radius:10px;font-weight:600;font-size:14px;color:var(--muted);min-height:40px}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
 .hide{display:none!important}
 
 .paper{background:#fff;color:#1a1a1a;border-radius:6px;padding:22px 20px;font:14px/1.55 Georgia,"Times New Roman",serif;box-shadow:0 2px 6px rgba(0,0,0,.12),0 12px 32px rgba(0,0,0,.12);border:1px solid #e5e5e5}
@@ -259,16 +262,21 @@ function emptyStart() {
 }
 
 /* ---------- Ansicht: Post ---------- */
-function viewPost() {
-  if (!db.docs.length) return emptyStart();
-  return `<h2 style="margin-top:6px">Beispielbriefe zum Ausprobieren</h2>${briefListe()}<h2>Meine Post</h2>` + [...db.docs].sort((a, b) => b.erstellt - a.erstellt).map((d) => {
-    const u = dringlichkeit(d.frist?.datum), offen = d.aufgaben.filter((a) => !a.erledigt).length;
-    return `<button class="card item" data-doc="${d.id}"><div style="flex:1;min-width:0">
+let postSub = null; // 'meine' | 'beispiele'
+function postKarte(d) {
+  const u = dringlichkeit(d.frist?.datum), offen = d.aufgaben.filter((a) => !a.erledigt).length;
+  return `<button class="card item" data-doc="${d.id}"><div style="flex:1;min-width:0">
       <div class="t">${esc(d.felder.absender || 'Unbekannt')}</div>
       <div class="s">${esc(d.felder.betreff || TYPEN[d.felder.typ] || '')}</div>
       <div class="row" style="margin-top:6px"><span class="chip">${esc(TYPEN[d.felder.typ] || 'Sonstiges')}</span>${d.felder.betrag != null ? `<span class="chip">${fmtBetrag(d.felder.betrag)}</span>` : ''}${d.frist?.datum ? `<span class="chip ${u.cls}">${esc(u.text)}</span>` : ''}</div></div>
       <span class="s">${offen ? offen + ' offen' : '✓'}</span></button>`;
-  }).join('');
+}
+function viewPost() {
+  const sub = postSub || (db.docs.length ? 'meine' : 'beispiele');
+  const seg = `<div class="seg" role="tablist"><button role="tab" aria-selected="${sub === 'meine'}" class="${sub === 'meine' ? 'on' : ''}" data-sub="meine">Meine Post (${db.docs.length})</button><button role="tab" aria-selected="${sub === 'beispiele'}" class="${sub === 'beispiele' ? 'on' : ''}" data-sub="beispiele">Beispielbriefe</button></div>`;
+  if (sub === 'beispiele') return seg + `<p class="note">Öffne einen Brief und lass ihn auslesen. Danach landet er unter „Meine Post".</p>` + briefListe();
+  if (!db.docs.length) return seg + `<div class="empty card"><b>Noch keine Post</b>Scanne einen Brief mit dem blauen Button oder probiere die Beispielbriefe aus.<div class="row" style="justify-content:center;margin-top:14px"><button class="btn" data-sub="beispiele">Beispielbriefe ansehen</button></div></div>`;
+  return seg + [...db.docs].sort((a, b) => b.erstellt - a.erstellt).map(postKarte).join('');
 }
 
 /* ---------- Ansicht: Kalender ---------- */
@@ -306,6 +314,7 @@ function bindView(v) {
   $('#calAll', v)?.addEventListener('click', () => { calSel = null; render(); });
   $('#scan2', v)?.addEventListener('click', () => $('#file').click());
   $('#demo', v)?.addEventListener('click', ladeDemo);
+  v.querySelectorAll('[data-sub]').forEach((el) => el.addEventListener('click', () => { postSub = el.dataset.sub; render(); }));
   v.querySelectorAll('[data-brief]').forEach((el) => el.addEventListener('click', () => openBrief(+el.dataset.brief)));
 }
 
@@ -414,7 +423,7 @@ function pruefen(erg, thumb) {
     const frist = val('frist') ? { datum: val('frist'), erklaerung: $('#fristInfo', s).textContent } : null;
     if (!aufgaben.length && frist) aufgaben.push({ id: uid(), titel: 'Schreiben bearbeiten', art: 'pruefen', erledigt: false });
     const doc = { id: uid(), erstellt: Date.now(), thumb: thumb || null, felder, frist, aufgaben, zusammenfassung: f.zusammenfassung || null, antwortNoetig: !!erg.antwort_noetig, entwurf: '' };
-    db.docs.push(doc); save(); s.close(); toast('Gespeichert ✓'); if (frist) { calSel = null; calMonth = Fristen.parse(frist.datum); }
+    db.docs.push(doc); save(); postSub = 'meine'; s.close(); toast('Gespeichert ✓'); if (frist) { calSel = null; calMonth = Fristen.parse(frist.datum); }
   });
   drawA(); calc();
 }
@@ -574,7 +583,7 @@ function ladeDemo() {
     mk({ typ: 'mahnung', absender: 'Stadtwerke Beispielhausen', betreff: 'Zahlungserinnerung Strom', datum: tag(-3), kundennummer: 'K-88231', rechnungsnummer: 'R-2026-0412', betrag: 96.8, iban: 'DE02120300000000202051', verwendungszweck: 'K-88231 R-2026-0412' }, { frist_tage: 7 }, [['96,80 € überweisen', 'zahlen']], 'Zahlungserinnerung über 96,80 €. Zahlung innerhalb von 7 Tagen.'),
     mk({ typ: 'versicherung', absender: 'Beispiel Versicherung AG', betreff: 'Beitragsanpassung Haftpflicht', datum: tag(-10), kundennummer: 'V-5521-77', betrag: null }, { frist_datum: tag(35) }, [['Neue Beiträge prüfen', 'pruefen'], ['Ggf. Sonderkündigung schreiben', 'antworten']], 'Beitrag steigt. Sonderkündigungsrecht bis zum genannten Datum.'),
   );
-  save(); tab = 'heute'; render(); toast('Demo-Post geladen');
+  save(); postSub = 'meine'; tab = 'heute'; render(); toast('Demo-Post geladen');
 }
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') { /* PWA-Offline: später */ }
