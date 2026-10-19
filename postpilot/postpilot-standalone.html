@@ -70,10 +70,21 @@ textarea{min-height:120px;resize:vertical}
 .days button.has.late::after{background:var(--red)}.days button.sel::after{background:#fff}
 .spin{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:r 1s linear infinite;margin:0 auto 14px}
 @keyframes r{to{transform:rotate(360deg)}}
-.toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;z-index:50;font-size:14px;max-width:90%}
+.toast{position:fixed;left:50%;width:max-content;max-width:min(92vw,420px);bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;z-index:50;font-size:14px;max-width:90%}
 .seg{display:flex;background:var(--line);border-radius:12px;padding:3px;margin:2px 0 14px;gap:3px}
 .seg button{flex:1;padding:9px 6px;border-radius:10px;font-weight:600;font-size:14px;color:var(--muted);min-height:40px}
 .seg button.on{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+.toast{display:flex;align-items:center;gap:12px}
+.toast button{font-weight:700;color:inherit;text-decoration:underline;min-height:32px;padding:0 4px}
+.task{padding:14px;margin-bottom:10px}
+.task .tt{cursor:pointer}.task .tt .t{font-size:17px;line-height:1.3}
+.task .row{margin-top:12px}.task .btn{flex:1}
+.frage{background:var(--amber-soft);border-color:transparent;padding:13px 14px;margin-bottom:8px}
+.frage .t{font-weight:600}.frage .row{margin-top:10px}.frage .btn{flex:1;min-height:40px;padding:8px 12px}
+.more summary{cursor:pointer;color:var(--muted);font-weight:600;padding:10px 2px;list-style:none}
+.more summary::-webkit-details-marker{display:none}
+.big{width:100%;justify-content:flex-start;text-align:left;margin-bottom:8px;min-height:52px}
+.sum{display:grid;gap:0}.sum .fld{cursor:default}
 .hide{display:none!important}
 
 .paper{background:#fff;color:#1a1a1a;border-radius:6px;padding:22px 20px;font:14px/1.55 Georgia,"Times New Roman",serif;box-shadow:0 2px 6px rgba(0,0,0,.12),0 12px 32px rgba(0,0,0,.12);border:1px solid #e5e5e5}
@@ -89,8 +100,6 @@ textarea{min-height:120px;resize:vertical}
 @keyframes pulse{50%{opacity:.25}}
 .brief-card{display:flex;gap:12px;align-items:center;padding:12px 14px;margin-bottom:8px}
 .brief-card .ic{width:42px;height:54px;flex:none;background:#fff;border:1px solid var(--line);border-radius:4px;display:grid;place-items:center;font-size:20px}
-@media print{body>*:not(#print){display:none!important}#print{display:block!important;white-space:pre-wrap;font:12pt/1.5 Georgia,serif;color:#000;padding:20mm}}
-#print{display:none}
 </style>
 </head>
 <body>
@@ -107,7 +116,6 @@ textarea{min-height:120px;resize:vertical}
   <button data-tab="post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Post</button>
   <button data-tab="kalender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Kalender</button>
 </nav>
-<div id="print"></div>
 
 <script>
 /* Fristenlogik: deterministisch, ohne KI. Läuft im Browser und in Node. */
@@ -191,15 +199,24 @@ const ARTEN = { zahlen:'Zahlen', antworten:'Antworten', pruefen:'Prüfen', unter
 
 /* ---------- Speicher (lokal im Browser) ---------- */
 const KEY = 'postpilot.v1';
-let db = { docs: [], settings: { name: '', adresse: '', email: '' } };
+let db = { docs: [], settings: { name: '', adresse: '', rueck: '', email: '', inboxToken: '' } };
 try { const raw = JSON.parse(localStorage.getItem(KEY) || 'null'); if (raw) db = { ...db, ...raw }; } catch (e) {}
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(db)); }
   catch (e) { toast('Speicher voll – bitte alte Post löschen oder exportieren.'); }
 }
 function toast(msg) {
+  document.querySelectorAll('.toast').forEach((x) => x.remove());
   const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t);
   setTimeout(() => t.remove(), 2600);
+}
+
+function toastUndo(msg, undo) {
+  document.querySelectorAll('.toast').forEach((x) => x.remove());
+  const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = '<span></span><button type="button">Rückgängig</button>';
+  t.firstChild.textContent = msg; document.body.appendChild(t);
+  const weg = setTimeout(() => t.remove(), 6000);
+  t.querySelector('button').addEventListener('click', () => { clearTimeout(weg); t.remove(); undo(); });
 }
 
 /* ---------- Dringlichkeit ---------- */
@@ -230,28 +247,35 @@ function render() {
 }
 
 /* ---------- Ansicht: Aufgaben ---------- */
+const PRIO = { zahlen: 0, antworten: 1, pruefen: 2, unterschreiben: 2, einreichen: 2, aufbewahren: 3 };
+function offeneSortiert() {
+  const tage = (x) => { const t = Fristen.tageBis(x.d.frist?.datum); return t == null ? 9999 : t; };
+  return allTasks().filter((x) => !x.a.erledigt).sort((p, q) => tage(p) - tage(q) || (PRIO[p.a.art] ?? 5) - (PRIO[q.a.art] ?? 5));
+}
+const AKTION = { zahlen: ['Zahlen', 'pay'], antworten: ['Antworten', 'reply'], aufbewahren: ['Ablegen', 'done'], pruefen: ['Ansehen', 'open'] };
+function heldHtml({ a, d }) {
+  const u = dringlichkeit(d.frist?.datum), [label, act] = AKTION[a.art] || ['Erledigt', 'done'];
+  return `<div class="card task"><div class="tt" data-doc="${d.id}"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start"><div class="t">${esc(a.titel)}</div><span class="chip ${u.cls}">${esc(u.text)}</span></div><div class="s">${esc(d.felder.absender || 'Unbekannt')}${d.felder.betrag != null ? ' · ' + fmtBetrag(d.felder.betrag) : ''}</div></div>
+    <div class="row"><button class="btn" data-act="${act}:${d.id}:${a.id}">${label}</button>${act !== 'done' ? `<button class="btn line" data-act="done:${d.id}:${a.id}" aria-label="Als erledigt markieren">✓ Erledigt</button>` : ''}</div></div>`;
+}
 function taskHtml({ a, d }) {
   const u = dringlichkeit(d.frist?.datum);
   return `<div class="card item" data-doc="${d.id}">
-    <span class="check ${a.erledigt ? 'on' : ''}" data-toggle="${d.id}:${a.id}" role="checkbox" aria-checked="${a.erledigt}" tabindex="0">${a.erledigt ? '✓' : ''}</span>
-    <div style="flex:1;min-width:0"><div class="t" style="${a.erledigt ? 'text-decoration:line-through;color:var(--muted)' : ''}">${esc(a.titel)}</div>
-    <div class="s">${esc(d.felder.absender || 'Unbekannt')} · ${esc(ARTEN[a.art] || '')}</div></div>
+    <span class="check" data-toggle="${d.id}:${a.id}" role="checkbox" aria-checked="false" tabindex="0"></span>
+    <div style="flex:1;min-width:0"><div class="t">${esc(a.titel)}</div><div class="s">${esc(d.felder.absender || 'Unbekannt')} · ${esc(ARTEN[a.art] || '')}</div></div>
     <span class="chip ${u.cls}">${esc(u.text)}</span></div>`;
 }
+function frageHtml(d) {
+  return `<div class="card frage"><div class="t">${esc(d.felder.absender)}${d.felder.betreff ? ' · ' + esc(d.felder.betreff) : ''}</div><div class="s">${esc(d.frage.text)}</div>
+    <div class="row"><button class="btn" data-fr="ok:${d.id}">Passt</button><button class="btn line" data-fr="edit:${d.id}">${d.frage.art === 'frist' ? 'Frist ändern' : 'Ansehen'}</button></div></div>`;
+}
 function viewHeute() {
-  const offen = allTasks().filter((x) => !x.a.erledigt);
-  const done = allTasks().filter((x) => x.a.erledigt).length;
   if (!db.docs.length) return emptyStart();
-  const grp = { 'Überfällig': [], 'Diese Woche': [], 'Später': [], 'Ohne Frist': [] };
-  offen.forEach((x) => {
-    const t = Fristen.tageBis(x.d.frist?.datum);
-    (t == null ? grp['Ohne Frist'] : t < 0 ? grp['Überfällig'] : t <= 7 ? grp['Diese Woche'] : grp['Später']).push(x);
-  });
-  Object.values(grp).forEach((l) => l.sort((p, q) => (p.d.frist?.datum || '9').localeCompare(q.d.frist?.datum || '9')));
+  const fragen = db.docs.filter((d) => d.frage), offen = offeneSortiert(), top = offen.slice(0, 3), rest = offen.slice(3);
   let h = '';
-  for (const [k, l] of Object.entries(grp)) if (l.length) h += `<h2>${k} (${l.length})</h2>` + l.map(taskHtml).join('');
-  if (!offen.length) h = `<div class="empty card"><b>Alles erledigt 🎉</b>Keine offenen Aufgaben. Neue Post mit dem Scan-Button hinzufügen.</div>`;
-  if (done) h += `<p class="s" style="color:var(--muted);text-align:center;margin-top:14px">${done} erledigte Aufgabe${done > 1 ? 'n' : ''}</p>`;
+  if (fragen.length) h += `<h2>Kurz prüfen</h2>` + frageHtml(fragen[0]) + (fragen.length > 1 ? `<details class="more"><summary>Weitere Rückfragen (${fragen.length - 1})</summary>${fragen.slice(1).map(frageHtml).join('')}</details>` : '');
+  h += offen.length ? `<h2>Als Nächstes</h2>` + top.map(heldHtml).join('') : `<div class="empty card"><b>Alles erledigt</b>Keine offenen Aufgaben. Neue Post kommt automatisch hier an.</div>`;
+  if (rest.length) h += `<details class="more"><summary>Weitere Aufgaben (${rest.length})</summary>${rest.map(taskHtml).join('')}</details>`;
   return h;
 }
 function emptyStart() {
@@ -299,8 +323,8 @@ function viewKalender() {
   return `<div class="card cal"><div class="head"><button class="btn line" data-m="-1" aria-label="Vorheriger Monat">‹</button><b>${MONATE[mo]} ${y}</b><button class="btn line" data-m="1" aria-label="Nächster Monat">›</button></div><div class="days">${cells}</div></div>
   <h2>${calSel ? fmtDatum(calSel) : 'Anstehende Fristen'}</h2>
   ${list.length ? list.map(([k, d]) => `<button class="card item" data-doc="${d.id}"><div style="flex:1"><div class="t">${esc(d.felder.absender)}</div><div class="s">${esc(d.felder.betreff || '')}</div></div><span class="chip ${dringlichkeit(k).cls}">${esc(fmtDatum(k))}</span></button>`).join('') : '<div class="empty card">Keine Fristen.</div>'}
-  <div class="row" style="margin-top:14px"><button class="btn ghost" id="icsAll">Alle Fristen in meinen Kalender (.ics)</button>${calSel ? '<button class="btn line" id="calAll">Alle anzeigen</button>' : ''}</div>
-  <p class="note">Tipp: Die .ics-Datei öffnet sich in Apple, Google und Outlook Kalender und erinnert dich dort 7 und 1 Tag vorher.</p>`;
+  <div class="row" style="margin-top:14px"><button class="btn ghost" id="icsAll">Alle Fristen in den Kalender</button>${calSel ? '<button class="btn line" id="calAll">Alle anzeigen</button>' : ''}</div>
+  <p class="note">Im Kalender erinnert dich dein Handy rechtzeitig an jede Frist.</p>`;
 }
 function bindView(v) {
   v.querySelectorAll('[data-toggle]').forEach((el) => el.addEventListener('click', (e) => {
@@ -308,6 +332,15 @@ function bindView(v) {
     const task = db.docs.find((x) => x.id === d)?.aufgaben.find((x) => x.id === a); if (task) { task.erledigt = !task.erledigt; save(); render(); }
   }));
   v.querySelectorAll('[data-doc]').forEach((el) => el.addEventListener('click', () => openDoc(el.dataset.doc)));
+  v.querySelectorAll('[data-act]').forEach((el) => el.addEventListener('click', () => {
+    const [act, did, aid] = el.dataset.act.split(':'), d = db.docs.find((x) => x.id === did); if (!d) return;
+    if (act === 'pay') openZahlen(d, aid); else if (act === 'reply') openAntwort(d); else if (act === 'open') openDoc(did);
+    else { const a = d.aufgaben.find((x) => x.id === aid); a.erledigt = true; save(); render(); toastUndo('Erledigt', () => { a.erledigt = false; save(); render(); }); }
+  }));
+  v.querySelectorAll('[data-fr]').forEach((el) => el.addEventListener('click', () => {
+    const [act, did] = el.dataset.fr.split(':'), d = db.docs.find((x) => x.id === did); if (!d) return;
+    if (act === 'ok') { d.frage = null; save(); render(); toast('Bestätigt ✓'); } else if (d.frage.art === 'frist') openFristAendern(d); else openDoc(did);
+  }));
   v.querySelectorAll('[data-day]').forEach((el) => el.addEventListener('click', () => { calSel = calSel === el.dataset.day ? null : el.dataset.day; render(); }));
   v.querySelectorAll('[data-m]').forEach((el) => el.addEventListener('click', () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + +el.dataset.m, 1); render(); }));
   $('#icsAll', v)?.addEventListener('click', () => exportIcs(db.docs.filter((d) => d.frist?.datum)));
@@ -318,21 +351,21 @@ function bindView(v) {
   v.querySelectorAll('[data-brief]').forEach((el) => el.addEventListener('click', () => openBrief(+el.dataset.brief)));
 }
 
-/* ---------- Kalender-Export (.ics) ---------- */
+/* ---------- Kalender-Export ---------- */
 function exportIcs(docs) {
+  docs = docs.filter((d) => d.frist?.datum);
+  if (!docs.length) return toast('Keine Fristen vorhanden.');
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
-  const fold = (s) => s.replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n');
-  const ev = docs.map((d) => {
-    const day = d.frist.datum.replace(/-/g, ''), next = Fristen.iso(Fristen.addDays(Fristen.parse(d.frist.datum), 1)).replace(/-/g, '');
-    const title = `Frist: ${d.felder.absender || 'Post'}${d.felder.betreff ? ' – ' + d.felder.betreff : ''}`;
-    const desc = [d.felder.aktenzeichen && `Az: ${d.felder.aktenzeichen}`, d.felder.betrag != null && `Betrag: ${fmtBetrag(d.felder.betrag)}`, ...d.aufgaben.map((a) => `• ${a.titel}`)].filter(Boolean).join('\n');
-    return ['BEGIN:VEVENT', `UID:${d.id}@postpilot`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${day}`, `DTEND;VALUE=DATE:${next}`, `SUMMARY:${fold(title)}`, `DESCRIPTION:${fold(desc)}`,
-      'BEGIN:VALARM', 'TRIGGER:-P7D', 'ACTION:DISPLAY', 'DESCRIPTION:Frist in 7 Tagen', 'END:VALARM', 'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:Frist morgen', 'END:VALARM', 'END:VEVENT'].join('\r\n');
-  });
-  if (!ev.length) return toast('Keine Fristen vorhanden.');
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Postpilot//DE', ...ev, 'END:VCALENDAR'].join('\r\n');
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'postpilot-fristen.ics'; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  const fold = (t) => t.replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n');
+  const titel = (d) => `Frist: ${d.felder.absender || 'Post'}${d.felder.betreff ? ' – ' + d.felder.betreff : ''}`;
+  const beschr = (d) => [d.felder.aktenzeichen && `Az: ${d.felder.aktenzeichen}`, d.felder.betrag != null && `Betrag: ${fmtBetrag(d.felder.betrag)}`, ...d.aufgaben.map((a) => `• ${a.titel}`)].filter(Boolean).join('\n');
+  const tag = (iso) => iso.replace(/-/g, ''), nach = (iso) => tag(Fristen.iso(Fristen.addDays(Fristen.parse(iso), 1)));
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Postpilot//DE', ...docs.map((d) => ['BEGIN:VEVENT', `UID:${d.id}@postpilot`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${tag(d.frist.datum)}`, `DTEND;VALUE=DATE:${nach(d.frist.datum)}`, `SUMMARY:${fold(titel(d))}`, `DESCRIPTION:${fold(beschr(d))}`, 'BEGIN:VALARM', 'TRIGGER:-P7D', 'ACTION:DISPLAY', 'DESCRIPTION:Frist in 7 Tagen', 'END:VALARM', 'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:Frist morgen', 'END:VALARM', 'END:VEVENT'].join('\r\n')), 'END:VCALENDAR'].join('\r\n');
+  const gcal = (d) => `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titel(d))}&dates=${tag(d.frist.datum)}/${nach(d.frist.datum)}&details=${encodeURIComponent(beschr(d))}`;
+  const s = sheet('In den Kalender', `<p class="note">Jede Frist lässt sich mit einem Tipp in Google Kalender eintragen. Für Apple oder Outlook kopierst du den Kalendertext und speicherst ihn in einer Datei mit der Endung .ics.</p>
+    ${docs.map((d) => `<div class="card item" style="align-items:center"><div style="flex:1;min-width:0"><div class="t">${esc(d.felder.absender)}</div><div class="s">${esc(fmtDatum(d.frist.datum))}</div></div><a class="btn ghost" style="min-height:40px;padding:8px 14px;text-decoration:none" href="${esc(gcal(d))}" target="_blank" rel="noopener">Google Kalender</a></div>`).join('')}
+    <div class="row" style="margin-top:14px"><button class="btn line" id="icsCopy">Kalendertext (.ics) kopieren</button></div>`);
+  $('#icsCopy', s).addEventListener('click', () => kopieren(ics));
 }
 
 /* ---------- Upload & Analyse ---------- */
@@ -378,11 +411,44 @@ async function analysiere(files) {
       return pruefen({ typ: 'sonstiges', absender: '', betreff: '', unsicher: ['Alles manuell erfassen (KI nicht verbunden)'] }, thumb);
     }
     if (!r.ok) throw new Error(j.error || 'Analyse fehlgeschlagen');
-    pruefen(j.ergebnis, thumb);
+    uebernehmen(j.ergebnis, { thumb });
   } catch (e) { s.remove(); toast(e.message || 'Fehler beim Lesen'); }
 }
 
-/* ---------- Prüfen & Speichern ---------- */
+/* ---------- Automatisch speichern ---------- */
+const HOCH = ['steuerbescheid', 'mahnung', 'behoerde'];
+function dokumentAus(erg, opts = {}) {
+  const fr = Fristen.berechne({ datum: erg.datum, frist_datum: erg.frist_datum, frist_regel: erg.frist_regel, frist_tage: erg.frist_tage });
+  const felder = { typ: erg.typ || 'sonstiges', absender: erg.absender || 'Unbekannter Absender', absender_adresse: erg.absender_adresse || null, betreff: erg.betreff || null, datum: erg.datum || null,
+    aktenzeichen: erg.aktenzeichen || null, kundennummer: erg.kundennummer || null, steuernummer: erg.steuernummer || null, rechnungsnummer: erg.rechnungsnummer || null,
+    betrag: erg.betrag ?? null, iban: erg.iban || null, verwendungszweck: erg.verwendungszweck || null };
+  const aufgaben = (erg.aufgaben || []).map((a) => ({ id: uid(), titel: a.titel, art: a.art, erledigt: false }));
+  if (!aufgaben.length) aufgaben.push({ id: uid(), titel: 'Schreiben prüfen', art: 'pruefen', erledigt: false });
+  const unsicher = erg.unsicher || [];
+  // Nur nachfragen, wenn nötig: bei Unsicherheit oder bei Post mit Rechtsfolgen (ein Tipp)
+  let frage = null;
+  if (unsicher.length) frage = { art: 'unsicher', text: `Unsicher: ${unsicher.join(', ')}. Passt das so?` };
+  else if (HOCH.includes(felder.typ)) frage = { art: 'frist', text: fr.datum ? `Frist ${fmtDatum(fr.datum)}. Stimmt das?` : 'Keine Frist erkannt. Stimmt das?' };
+  return { id: uid(), erstellt: Date.now(), thumb: opts.thumb || null, quelle: opts.quelle || 'scan', felder, frist: fr.datum ? { datum: fr.datum, erklaerung: fr.erklaerung } : null,
+    aufgaben, zusammenfassung: erg.zusammenfassung || null, antwortNoetig: !!erg.antwort_noetig, frage, entwurf: '' };
+}
+function uebernehmen(erg, opts = {}) {
+  const doc = dokumentAus(erg, opts);
+  db.docs.push(doc); save(); postSub = 'meine';
+  if (doc.frist) { calSel = null; calMonth = Fristen.parse(doc.frist.datum); }
+  if (!opts.still) toastUndo(`${doc.felder.absender} gespeichert`, () => { db.docs = db.docs.filter((x) => x.id !== doc.id); save(); render(); });
+  render(); return doc;
+}
+function openFristAendern(d) {
+  const s = sheet('Frist ändern', `<div class="card" style="padding:4px 14px 14px"><label class="f" for="nf">Neue Frist</label><input id="nf" type="date" value="${esc(d.frist?.datum || '')}"></div>
+    <div class="row" style="margin-top:16px"><button class="btn" id="ok" style="flex:1">Speichern</button></div>`);
+  $('#ok', s).addEventListener('click', () => {
+    const v = $('#nf', s).value;
+    d.frist = v ? { datum: v, erklaerung: 'Manuell gesetzt.' } : null; d.frage = null; save(); s.close(); toast('Frist gespeichert ✓');
+  });
+}
+
+/* ---------- Prüfen & Speichern (manuelle Erfassung) ---------- */
 function pruefen(erg, thumb) {
   const f = { typ: 'sonstiges', ...erg };
   let aufgaben = (erg.aufgaben || []).map((a) => ({ id: uid(), titel: a.titel, art: a.art, erledigt: false }));
@@ -428,59 +494,158 @@ function pruefen(erg, thumb) {
   drawA(); calc();
 }
 
-/* ---------- Dokument-Detail & Antworten ---------- */
+/* ---------- Dokument-Detail, Zahlen & Antworten ---------- */
 const COPY = [['aktenzeichen', 'Aktenzeichen'], ['kundennummer', 'Kundennummer'], ['steuernummer', 'Steuernummer'], ['rechnungsnummer', 'Rechnungsnr.'], ['iban', 'IBAN'], ['verwendungszweck', 'Verwendungszweck']];
-const ANLIEGEN = ['Einspruch einlegen und Akteneinsicht erbitten', 'Um Fristverlängerung bitten', 'Zahlung bestätigen / Zahlungsnachweis senden', 'Ratenzahlung anfragen', 'Vertrag kündigen', 'Rechnung zurückweisen und Korrektur verlangen'];
+const kopieren = (text) => navigator.clipboard?.writeText(text).then(() => toast('Kopiert ✓'), () => toast('Kopieren nicht möglich'));
+function zweiKlick(btn, frage, aktion, normal) {
+  let scharf = false;
+  btn.addEventListener('click', () => {
+    if (!scharf) { scharf = true; btn.textContent = frage; setTimeout(() => { scharf = false; btn.textContent = normal; }, 4000); return; }
+    aktion();
+  });
+}
 function openDoc(id) {
   const d = db.docs.find((x) => x.id === id); if (!d) return;
-  const u = dringlichkeit(d.frist?.datum);
+  const u = dringlichkeit(d.frist?.datum), zahlen = d.aufgaben.find((a) => a.art === 'zahlen' && !a.erledigt);
   const s = sheet(d.felder.absender || 'Schreiben', `
     ${d.thumb ? `<img class="thumb" src="${d.thumb}" alt="Scan">` : ''}
     ${d.zusammenfassung ? `<div class="note">${esc(d.zusammenfassung)}</div>` : ''}
+    <div class="row" style="margin-bottom:10px">${zahlen ? '<button class="btn" id="pay" style="flex:1">Zahlen</button>' : ''}<button class="btn ${zahlen ? 'ghost' : ''}" id="reply" style="flex:1">Antworten</button></div>
+    ${d.antwort ? `<div class="note">Antwort vorbereitet am ${esc(new Date(d.antwort.am).toLocaleDateString('de-DE'))} (${esc(d.antwort.status)}).</div>` : ''}
     <div class="card item" style="align-items:center"><div style="flex:1"><div class="s">Frist</div><div class="t">${d.frist ? esc(fmtDatum(d.frist.datum)) : 'keine'}</div>${d.frist ? `<div class="s">${esc(d.frist.erklaerung || '')}</div>` : ''}</div>${d.frist ? `<span class="chip ${u.cls}">${esc(u.text)}</span>` : ''}</div>
     <h2>Daten (Tippen zum Kopieren)</h2>
     <div class="card">${[['Betrag', d.felder.betrag != null ? fmtBetrag(d.felder.betrag) : null, d.felder.betrag != null ? String(d.felder.betrag).replace('.', ',') : null], ...COPY.map(([k, l]) => [l, d.felder[k], d.felder[k]])].filter((r) => r[1]).map(([l, v, c]) => `<button class="fld" style="width:100%;text-align:left" data-copy="${esc(c)}"><span class="k">${l}</span><span class="v">${esc(v)}</span></button>`).join('') || '<div class="fld"><span class="k">Keine Daten erkannt</span></div>'}</div>
     <h2>Aufgaben</h2>
     ${d.aufgaben.map((a) => `<div class="card item" style="align-items:center"><span class="check ${a.erledigt ? 'on' : ''}" data-t="${a.id}" role="checkbox" aria-checked="${a.erledigt}" tabindex="0">${a.erledigt ? '✓' : ''}</span><div style="flex:1">${esc(a.titel)}</div></div>`).join('') || '<p class="s" style="color:var(--muted)">Keine Aufgaben.</p>'}
-    <h2>Antworten</h2>
-    <div class="card" style="padding:4px 14px 14px">
-      <div class="row" style="margin-top:10px">${ANLIEGEN.map((a) => `<button class="chip" data-an="${esc(a)}">${esc(a)}</button>`).join('')}</div>
-      <label class="f" for="anl">Was soll im Brief stehen?</label><textarea id="anl" placeholder="z. B. Ich bitte um Fristverlängerung bis zum …">${esc(d.anliegen || '')}</textarea>
-      <div class="row" style="margin-top:10px"><button class="btn" id="gen">Entwurf erstellen</button></div>
-      <div id="out" class="${d.entwurf ? '' : 'hide'}"><label class="f" for="brief">Entwurf (bearbeitbar)</label><textarea id="brief" style="min-height:260px">${esc(d.entwurf || '')}</textarea>
-        <div class="row" style="margin-top:10px"><button class="btn ghost" id="cp">Kopieren</button><button class="btn ghost" id="pr">Drucken / PDF</button><button class="btn ghost" id="ml">Per E-Mail</button></div>
-        <p class="note">Entwurf prüfen, bevor du ihn versendest. Kein Ersatz für Rechts- oder Steuerberatung.</p></div>
-    </div>
-    <div class="row" style="margin-top:22px">${d.frist ? '<button class="btn line" id="ics">In Kalender (.ics)</button>' : ''}<button class="btn danger" id="del">Löschen</button></div>`);
-  s.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => { navigator.clipboard?.writeText(b.dataset.copy).then(() => toast('Kopiert ✓'), () => toast('Kopieren nicht möglich')); }));
+    <div class="row" style="margin-top:22px">${d.frist ? '<button class="btn line" id="ics">In den Kalender</button>' : ''}<button class="btn danger" id="del">Löschen</button></div>`);
+  s.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => kopieren(b.dataset.copy)));
   s.querySelectorAll('[data-t]').forEach((c) => c.addEventListener('click', () => { const a = d.aufgaben.find((x) => x.id === c.dataset.t); a.erledigt = !a.erledigt; save(); c.classList.toggle('on', a.erledigt); c.textContent = a.erledigt ? '✓' : ''; }));
-  s.querySelectorAll('[data-an]').forEach((c) => c.addEventListener('click', () => { $('#anl', s).value = c.dataset.an; }));
   $('#ics', s)?.addEventListener('click', () => exportIcs([d]));
-  $('#del', s).addEventListener('click', () => { if (confirm('Dieses Schreiben samt Aufgaben löschen?')) { db.docs = db.docs.filter((x) => x.id !== d.id); save(); s.close(); } });
-  const brief = () => $('#brief', s).value;
-  $('#gen', s).addEventListener('click', async () => {
-    const anliegen = $('#anl', s).value.trim(); if (!anliegen) return toast('Bitte kurz das Anliegen nennen.');
-    const btn = $('#gen', s); btn.disabled = true; btn.textContent = 'Schreibe …';
-    d.anliegen = anliegen;
-    let text;
-    try {
-      const r = await fetch('/api/post-reply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dokument: d.felder, anliegen, absender: db.settings }) }).catch(() => ({ status: 503, ok: false }));
-      if (r.ok) text = (await r.json()).brief; else if (![404, 501, 503].includes(r.status)) throw new Error((await r.json().catch(() => ({}))).error || 'Fehler');
-    } catch (e) { toast(e.message); }
-    text ||= vorlage(d, anliegen);
-    d.entwurf = text; save(); $('#brief', s).value = text; $('#out', s).classList.remove('hide'); btn.disabled = false; btn.textContent = 'Neu erstellen';
-  });
-  $('#brief', s).addEventListener('input', () => { d.entwurf = brief(); save(); });
-  $('#cp', s).addEventListener('click', () => navigator.clipboard?.writeText(brief()).then(() => toast('Kopiert ✓')));
-  $('#pr', s).addEventListener('click', () => { $('#print').textContent = brief(); window.print(); });
-  $('#ml', s).addEventListener('click', () => { location.href = `mailto:?subject=${encodeURIComponent('Ihr Schreiben' + (d.felder.aktenzeichen ? ' ' + d.felder.aktenzeichen : ''))}&body=${encodeURIComponent(brief())}`; });
-}
-// Fallback ohne KI: einfache Vorlage mit den erkannten Daten
-function vorlage(d, anliegen) {
-  const st = db.settings, f = d.felder;
-  return `${st.name || '[Ihr Name]'}\n${st.adresse || '[Ihre Adresse]'}\n\n${f.absender || '[Empfänger]'}\n${f.absender_adresse || ''}\n\n${new Date().toLocaleDateString('de-DE')}\n\nBetreff: ${f.betreff || 'Ihr Schreiben'}${f.datum ? ' vom ' + new Date(f.datum).toLocaleDateString('de-DE') : ''}${f.aktenzeichen ? '\nAktenzeichen: ' + f.aktenzeichen : ''}${f.kundennummer ? '\nKundennummer: ' + f.kundennummer : ''}\n\nSehr geehrte Damen und Herren,\n\nbezugnehmend auf Ihr o. g. Schreiben möchte ich Folgendes mitteilen:\n\n${anliegen}\n\nFür Rückfragen stehe ich gern zur Verfügung.\n\nMit freundlichen Grüßen\n${st.name || '[Ihr Name]'}`;
+  $('#pay', s)?.addEventListener('click', () => openZahlen(d, zahlen.id));
+  $('#reply', s).addEventListener('click', () => openAntwort(d));
+  zweiKlick($('#del', s), 'Wirklich löschen? Nochmal tippen', () => { db.docs = db.docs.filter((x) => x.id !== d.id); save(); s.close(); }, 'Löschen');
 }
 
+function openZahlen(d, aufgabeId) {
+  const f = d.felder, vz = f.verwendungszweck || f.rechnungsnummer || f.aktenzeichen || '';
+  const zeilen = [['Empfänger', f.absender], ['Betrag', f.betrag != null ? fmtBetrag(f.betrag) : null, f.betrag != null ? String(f.betrag).replace('.', ',') : null], ['IBAN', f.iban], ['Verwendungszweck', vz]].filter((r) => r[1]);
+  const u = dringlichkeit(d.frist?.datum);
+  const s = sheet('Zahlen', `${d.frist ? `<p class="note">Frist: ${esc(fmtDatum(d.frist.datum))} (${esc(u.text)})</p>` : ''}
+    ${f.iban ? '' : '<p class="note warn">Keine Bankverbindung erkannt. Bitte im Brief nachsehen.</p>'}
+    <div class="card sum">${zeilen.map(([k, v, c]) => `<button class="fld" style="width:100%;text-align:left" data-copy="${esc(c ?? v)}"><span class="k">${k}</span><span class="v">${esc(v)}</span></button>`).join('')}</div>
+    <p class="note">Tippe auf eine Zeile, um sie zu kopieren, und füge sie in deiner Banking-App ein.</p>
+    <div class="row" style="margin-top:16px"><button class="btn" id="paid" style="flex:1">Bezahlt, erledigt</button></div>`);
+  s.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => kopieren(b.dataset.copy)));
+  $('#paid', s).addEventListener('click', () => {
+    const a = d.aufgaben.find((x) => x.id === aufgabeId); if (a) a.erledigt = true; save(); s.close();
+    toastUndo('Als bezahlt markiert', () => { if (a) a.erledigt = false; save(); render(); });
+  });
+}
+
+const INTENTS = {
+  steuerbescheid: ['Einspruch einlegen', 'Um Fristverlängerung bitten', 'Ratenzahlung vereinbaren'],
+  mahnung: ['Zahlung bestätigen und Nachweis senden', 'Ratenzahlung anfragen', 'Forderung bestreiten'],
+  rechnung: ['Rechnung beanstanden', 'Um längeres Zahlungsziel bitten', 'Zahlungsnachweis senden'],
+  versicherung: ['Sonderkündigung aussprechen', 'Beitragserhöhung widersprechen'],
+  kuendigung: ['Kündigung schriftlich bestätigen lassen'],
+};
+const INTENTS_STANDARD = ['Um Auskunft oder Rückruf bitten', 'Um Fristverlängerung bitten', 'Schreiben beanstanden'];
+// Textbausteine ohne KI: nur der Brieftext (Anrede bis letzter Absatz), Adressen und Betreff setzt das PDF
+const BAUSTEIN = {
+  'Einspruch einlegen': 'hiermit lege ich fristgerecht Einspruch gegen den oben genannten Bescheid ein. Eine Begründung reiche ich gesondert nach. Bitte bestätigen Sie mir den Eingang dieses Schreibens.',
+  'Um Fristverlängerung bitten': 'ich bitte Sie um eine Verlängerung der genannten Frist um [Anzahl] Tage bis zum [Datum]. Den Grund dafür teile ich Ihnen gern mit. Bitte bestätigen Sie mir die Verlängerung schriftlich.',
+  'Ratenzahlung vereinbaren': 'ich bitte Sie um Zustimmung zu einer Ratenzahlung. Ich schlage monatliche Raten von [Betrag] € ab dem [Datum] vor. Bitte teilen Sie mir mit, ob Sie damit einverstanden sind.',
+  'Ratenzahlung anfragen': 'ich bitte Sie um Zustimmung zu einer Ratenzahlung. Ich schlage monatliche Raten von [Betrag] € ab dem [Datum] vor. Bitte teilen Sie mir mit, ob Sie damit einverstanden sind.',
+  'Zahlung bestätigen und Nachweis senden': 'die offene Forderung habe ich am [Datum] in Höhe von [Betrag] € beglichen. Den Zahlungsnachweis füge ich bei. Ich bitte Sie, die Zahlung zu prüfen und mir den Ausgleich zu bestätigen.',
+  'Zahlungsnachweis senden': 'die Zahlung habe ich am [Datum] in Höhe von [Betrag] € veranlasst. Den Zahlungsnachweis füge ich bei. Bitte bestätigen Sie mir den Zahlungseingang.',
+  'Forderung bestreiten': 'ich widerspreche der geltend gemachten Forderung. Bitte legen Sie mir die Grundlage und eine nachvollziehbare Aufstellung der Forderung vor. Bis zur Klärung bitte ich, von weiteren Mahnmaßnahmen abzusehen.',
+  'Rechnung beanstanden': 'die oben genannte Rechnung kann ich so nicht nachvollziehen: [Grund der Beanstandung]. Ich bitte Sie, die Rechnung zu prüfen und mir eine korrigierte Rechnung zuzusenden.',
+  'Um längeres Zahlungsziel bitten': 'ich bitte Sie, das Zahlungsziel der oben genannten Rechnung bis zum [Datum] zu verlängern. Bitte bestätigen Sie mir das kurz schriftlich.',
+  'Sonderkündigung aussprechen': 'hiermit kündige ich den oben genannten Vertrag wegen der angekündigten Beitragsanpassung außerordentlich zum nächstmöglichen Zeitpunkt. Bitte bestätigen Sie mir die Kündigung und den Beendigungszeitpunkt schriftlich.',
+  'Beitragserhöhung widersprechen': 'der angekündigten Beitragserhöhung stimme ich nicht zu. Bitte teilen Sie mir mit, wie Sie damit weiter verfahren.',
+  'Kündigung schriftlich bestätigen lassen': 'ich bitte Sie, mir die Kündigung und den genauen Beendigungszeitpunkt schriftlich zu bestätigen.',
+  'Um Auskunft oder Rückruf bitten': 'zu Ihrem Schreiben habe ich Rückfragen. Bitte rufen Sie mich unter [Telefonnummer] zurück oder antworten Sie mir schriftlich.',
+  'Schreiben beanstanden': 'Ihr Schreiben kann ich in dieser Form nicht nachvollziehen: [Grund]. Ich bitte Sie um Prüfung und eine kurze Rückmeldung.',
+};
+function vorlage(d, anliegen) {
+  const f = d.felder, bezug = `Ihr Schreiben${f.datum ? ' vom ' + new Date(f.datum).toLocaleDateString('de-DE') : ''}${f.aktenzeichen ? ' (Aktenzeichen ' + f.aktenzeichen + ')' : ''}`;
+  const kern = BAUSTEIN[anliegen];
+  return `Sehr geehrte Damen und Herren,\n\n${kern ? 'bezugnehmend auf ' + bezug + ': ' + kern : 'bezugnehmend auf ' + bezug + ' teile ich Ihnen Folgendes mit: ' + anliegen}\n\nFür Rückfragen stehe ich Ihnen gern zur Verfügung.`;
+}
+async function entwurf(d, anliegen) {
+  try {
+    const r = await fetch('/api/post-reply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dokument: d.felder, anliegen, absender: db.settings }) }).catch(() => ({ ok: false, status: 503 }));
+    if (r.ok) return { text: (await r.json()).brief, ki: true };
+  } catch (e) {}
+  return { text: vorlage(d, anliegen), ki: false };
+}
+const zeilenAus = (t) => String(t || '').split('\n').map((x) => x.trim()).filter(Boolean);
+function briefDaten(d, anliegen, text) {
+  const st = db.settings, f = d.felder, rueck = zeilenAus(st.rueck || st.adresse);
+  return { absender: [st.name || '[Dein Name]', ...(rueck.length ? rueck : ['[Deine Adresse]'])], empfaenger: [f.absender, ...(f.absender_adresse || '').split(/,\s*/).filter(Boolean)],
+    datum: new Date().toLocaleDateString('de-DE'), betreff: `${anliegen}${f.betreff ? ' – ' + f.betreff : ''}`,
+    bezug: [f.aktenzeichen && `Aktenzeichen: ${f.aktenzeichen}`, f.kundennummer && `Kundennummer: ${f.kundennummer}`, f.datum && `Ihr Schreiben vom ${new Date(f.datum).toLocaleDateString('de-DE')}`].filter(Boolean),
+    text, unterschrift: st.name || '' };
+}
+function briefHtml(b) {
+  return `<div class="paper"><div class="abs">${esc(b.absender.join(' · '))}</div><p>${b.empfaenger.map(esc).join('<br>')}</p><div class="dt">${esc(b.datum)}</div>
+    ${b.bezug.length ? `<p style="font-size:12px;color:#555">${b.bezug.map(esc).join('<br>')}</p>` : ''}<h3>${esc(b.betreff)}</h3><p style="white-space:pre-wrap">${esc(b.text)}</p><p>Mit freundlichen Grüßen<br><br>${esc(b.unterschrift)}</p></div>`;
+}
+function openAntwort(d) {
+  const s = sheet('Antworten', ''), main = $('main', s), liste = INTENTS[d.felder.typ] || INTENTS_STANDARD;
+  let anliegen = '', text = '';
+  const auswahl = () => {
+    main.innerHTML = `<p class="note">Antwort an ${esc(d.felder.absender)}. Was möchtest du erreichen?</p>
+      ${liste.map((l, i) => `<button class="btn ghost big" data-i="${i}">${esc(l)}</button>`).join('')}
+      <label class="f" for="eig">Oder in eigenen Worten</label><textarea id="eig" style="min-height:80px" placeholder="z. B. Ich bitte um Zahlungsaufschub bis zum …"></textarea>
+      <div class="row" style="margin-top:10px"><button class="btn line" id="eigGo">Entwurf erstellen</button></div>`;
+    main.querySelectorAll('[data-i]').forEach((b) => b.addEventListener('click', () => erzeuge(liste[+b.dataset.i])));
+    $('#eigGo', main).addEventListener('click', () => { const v = $('#eig', main).value.trim(); if (v) erzeuge(v); else toast('Bitte kurz beschreiben.'); });
+  };
+  const erzeuge = async (a) => {
+    anliegen = a; main.innerHTML = '<div class="empty"><div class="spin"></div><b>Brief wird geschrieben</b></div>';
+    const r = await entwurf(d, a); text = r.text; vorschau(r.ki);
+  };
+  const vorschau = (ki) => {
+    const b = briefDaten(d, anliegen, text), fehlt = !db.settings.name || !(db.settings.rueck || db.settings.adresse);
+    main.innerHTML = `${fehlt ? '<p class="note warn">Trage Name und Adresse in den Einstellungen ein, damit sie im Briefkopf stehen.</p>' : ''}
+      ${briefHtml(b)}
+      <div id="ed" class="hide"><label class="f" for="txt">Brieftext</label><textarea id="txt" style="min-height:220px">${esc(text)}</textarea></div>
+      ${ki ? '' : '<p class="note">Einfacher Textbaustein. Mit verbundener KI formuliert die App den Brief individuell.</p>'}
+      <div class="row" style="margin-top:14px"><button class="btn" id="weiter" style="flex:1 1 100%">Weiter zum Versand</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn line" id="edit" style="flex:1">Bearbeiten</button><button class="btn line" id="cp" style="flex:1">Kopieren</button><button class="btn line" id="neu" style="flex:1">Anderes Anliegen</button></div>`;
+    $('#edit', main).addEventListener('click', () => {
+      const ed = $('#ed', main); if (!ed.classList.contains('hide')) { text = $('#txt', main).value; return vorschau(ki); }
+      ed.classList.remove('hide'); $('#edit', main).textContent = 'Fertig';
+    });
+    $('#cp', main).addEventListener('click', () => kopieren(b.text));
+    $('#neu', main).addEventListener('click', auswahl);
+    $('#weiter', main).addEventListener('click', () => { if (!$('#ed', main).classList.contains('hide')) text = $('#txt', main).value; versand(); });
+  };
+  const versand = () => {
+    const b = briefDaten(d, anliegen, text);
+    main.innerHTML = `<h2 style="margin-top:6px">Versand prüfen</h2>
+      <div class="card sum"><div class="fld"><span class="k">An</span><span class="v">${esc(b.empfaenger[0])}</span></div><div class="fld"><span class="k">Von</span><span class="v">${esc(b.absender[0])}</span></div>
+      <div class="fld"><span class="k">Rückantwort an</span><span class="v">${esc(b.absender.slice(1).join(', '))}</span></div><div class="fld"><span class="k">Versandart</span><span class="v">Standardbrief</span></div>
+      <div class="fld"><span class="k">Kosten</span><span class="v">noch offen</span></div></div>
+      <p class="note warn">Trockenlauf: Der Brief wird fertig erzeugt, aber noch nicht verschickt. Einschreiben und echter Versand folgen mit einem Postdienstleister.</p>
+      <div class="row" style="margin-top:14px"><button class="btn" id="send" style="flex:1">Trockenlauf starten</button><button class="btn line" id="zur">Zurück</button></div>`;
+    $('#zur', main).addEventListener('click', () => vorschau(true));
+    $('#send', main).addEventListener('click', async () => {
+      const btn = $('#send', main); btn.disabled = true; btn.textContent = 'Erzeuge …';
+      let info = 'Vorschau erstellt, nichts versendet.', pdf = null;
+      try {
+        const r = await fetch('/api/post-letter', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) }).catch(() => null);
+        if (r?.ok) { const j = await r.json(); pdf = j.pdf_base64; info = `Brief als PDF erzeugt (${j.seiten} Seite${j.seiten > 1 ? 'n' : ''}), nichts versendet.`; }
+      } catch (e) {}
+      d.antwort = { am: Date.now(), anliegen, text, status: 'Trockenlauf' }; save();
+      main.innerHTML = `<div class="empty card"><b>Trockenlauf fertig</b>${esc(info)}${pdf ? `<div class="row" style="justify-content:center;margin-top:14px"><a class="btn ghost" id="pdfLink" href="data:application/pdf;base64,${pdf}" target="_blank" rel="noopener" style="text-decoration:none">PDF ansehen</a></div>` : ''}</div>
+        <div class="row" style="margin-top:14px"><button class="btn" id="fertig" style="flex:1">Schließen</button></div>`;
+      $('#fertig', main).addEventListener('click', () => s.close());
+    });
+  };
+  if (d.antwort?.text) { anliegen = d.antwort.anliegen; text = d.antwort.text; vorschau(true); } else auswahl();
+}
 
 /* ---------- Beispielbriefe: öffnen → auslesen → Vorschläge ---------- */
 function beispielBriefe() {
@@ -546,14 +711,12 @@ function openBrief(i) {
     <div class="card status" id="st"><span class="dot"></span><span id="stt">Brief liegt bereit. Tippe auf „Auslesen“.</span></div>
     <div class="row"><button class="btn" id="go" style="flex:1">Brief auslesen</button></div>`);
   const marks = [...s.querySelectorAll('mark')], st = $('#st', s), stt = $('#stt', s), go = $('#go', s);
-  let running = false, fertig = false;
+  const warte = (ms) => new Promise((r) => setTimeout(r, ms));
   go.addEventListener('click', async () => {
-    if (fertig) { s.remove(); return pruefen(b.erg, null); }
-    if (running) return; running = true; go.disabled = true; st.className = 'card status run';
-    for (const m of marks) { m.classList.add('on'); stt.textContent = `Erkannt: ${m.dataset.l}`; m.scrollIntoView({ block: 'center', behavior: 'smooth' }); await new Promise((r) => setTimeout(r, 650)); }
-    const fr = Fristen.berechne({ datum: b.erg.datum, frist_datum: b.erg.frist_datum, frist_regel: b.erg.frist_regel, frist_tage: b.erg.frist_tage });
-    stt.textContent = `Fertig: ${marks.length} Felder erkannt${fr.datum ? ', Frist ' + fmtDatum(fr.datum) : ''}.`; st.className = 'card status done';
-    go.disabled = false; go.textContent = 'Vorschläge ansehen →'; fertig = true; running = false; go.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    go.disabled = true; st.className = 'card status run';
+    for (const m of marks) { m.classList.add('on'); stt.textContent = `Erkannt: ${m.dataset.l}`; m.scrollIntoView({ block: 'center', behavior: 'smooth' }); await warte(550); }
+    st.className = 'card status done'; stt.textContent = 'Fertig. Aufgaben und Frist werden angelegt …'; await warte(900);
+    s.remove(); tab = 'heute'; uebernehmen(b.erg, { quelle: 'demo' }); window.scrollTo(0, 0);
   });
 }
 
@@ -564,13 +727,16 @@ function openSettings() {
     <p class="note">Deine Daten liegen nur in diesem Browser. Beim Scannen wird das Bild zur Texterkennung an die KI gesendet und nicht von uns gespeichert.</p>
     <div class="card" style="padding:4px 14px 14px"><label class="f" for="s_name">Dein Name / Firma (für Briefe)</label><input id="s_name" value="${esc(st.name)}">
     <label class="f" for="s_adr">Adresse</label><textarea id="s_adr" style="min-height:80px">${esc(st.adresse)}</textarea>
-    <label class="f" for="s_mail">E-Mail</label><input id="s_mail" type="email" value="${esc(st.email)}"></div>
+    <label class="f" for="s_rueck">Rückantwort-Adresse (z. B. deine Caya-Postbox, optional)</label><textarea id="s_rueck" style="min-height:70px">${esc(st.rueck)}</textarea>
+    <label class="f" for="s_mail">E-Mail</label><input id="s_mail" type="email" value="${esc(st.email)}">
+    <label class="f" for="s_tok">Zugangscode für den Posteingang (optional)</label><input id="s_tok" type="password" autocomplete="off" value="${esc(st.inboxToken)}"></div>
+    <p class="note">Mit Zugangscode holt die App neue Post ab, die per E-Mail (z. B. aus Caya) eingeht.</p>
     <div class="row" style="margin-top:16px"><button class="btn" id="sv">Speichern</button></div>
-    <h2>Daten</h2><div class="row"><button class="btn ghost" id="demo2">Alle Demo-Daten laden</button><button class="btn ghost" id="exp">Alles exportieren (JSON)</button><button class="btn danger" id="wipe">Alles löschen</button></div>`);
-  $('#sv', s).addEventListener('click', () => { db.settings = { name: $('#s_name', s).value.trim(), adresse: $('#s_adr', s).value.trim(), email: $('#s_mail', s).value.trim() }; save(); s.close(); toast('Gespeichert ✓'); });
+    <h2>Daten</h2><div class="row"><button class="btn ghost" id="demo2">Alle Demo-Daten laden</button><button class="btn ghost" id="exp">Daten kopieren (JSON)</button><button class="btn danger" id="wipe">Alles löschen</button></div>`);
+  $('#sv', s).addEventListener('click', () => { db.settings = { name: $('#s_name', s).value.trim(), adresse: $('#s_adr', s).value.trim(), rueck: $('#s_rueck', s).value.trim(), email: $('#s_mail', s).value.trim(), inboxToken: $('#s_tok', s).value.trim() }; save(); s.close(); toast('Gespeichert ✓'); holePost(); });
   $('#demo2', s).addEventListener('click', () => { ladeDemo(); s.close(); });
-  $('#exp', s).addEventListener('click', () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' })); a.download = 'postpilot-export.json'; a.click(); });
-  $('#wipe', s).addEventListener('click', () => { if (confirm('Wirklich ALLE Daten in diesem Browser löschen?')) { db = { docs: [], settings: { name: '', adresse: '', email: '' } }; save(); s.close(); } });
+  $('#exp', s).addEventListener('click', () => kopieren(JSON.stringify({ ...db, settings: { ...db.settings, inboxToken: '' } }, null, 2)));
+  zweiKlick($('#wipe', s), 'Wirklich alles löschen? Nochmal tippen', () => { db = { docs: [], settings: { name: '', adresse: '', rueck: '', email: '', inboxToken: '' } }; save(); s.close(); }, 'Alles löschen');
 }
 function ladeDemo() {
   const heute = new Date(), tag = (n) => Fristen.iso(Fristen.addDays(heute, n));
@@ -586,7 +752,20 @@ function ladeDemo() {
   save(); postSub = 'meine'; tab = 'heute'; render(); toast('Demo-Post geladen');
 }
 
-if ('serviceWorker' in navigator && location.protocol === 'https:') { /* PWA-Offline: später */ }
+/* ---------- Posteingang: neue Post per E-Mail abholen ---------- */
+let holt = false;
+async function holePost() {
+  const tok = db.settings.inboxToken; if (!tok || holt) return; holt = true;
+  try {
+    const r = await fetch('/api/inbox', { headers: { authorization: 'Bearer ' + tok } });
+    if (!r.ok) return;
+    const { items = [] } = await r.json();
+    items.forEach((i) => uebernehmen(i.ergebnis, { quelle: 'mail', still: true }));
+    if (items.length) toast(`${items.length} neue Post`);
+  } catch (e) {} finally { holt = false; }
+}
+holePost(); setInterval(holePost, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) holePost(); });
 render();
 </script>
 </body>
