@@ -59,15 +59,6 @@ textarea{min-height:120px;resize:vertical}
 .note{font-size:13.5px;color:var(--muted);padding:10px 12px;border-radius:10px;background:var(--blue-soft);margin:10px 0}
 .warn{background:var(--amber-soft);color:var(--amber)}
 .thumb{width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:10px;border:1px solid var(--line)}
-.cal{padding:12px}
-.cal .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.cal .head b{font-size:17px}
-.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
-.days .w{font-size:12px;color:var(--muted);padding:4px 0}
-.days button{aspect-ratio:1;border-radius:10px;position:relative;font-size:15px}
-.days button.today{border:1.5px solid var(--blue)}.days button.sel{background:var(--blue);color:#fff}
-.days button.has::after{content:"";position:absolute;bottom:5px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--amber)}
-.days button.has.late::after{background:var(--red)}.days button.sel::after{background:#fff}
 .spin{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:r 1s linear infinite;margin:0 auto 14px}
 @keyframes r{to{transform:rotate(360deg)}}
 .toast{position:fixed;left:50%;width:max-content;max-width:min(92vw,420px);bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;z-index:50;font-size:14px;max-width:90%}
@@ -114,7 +105,6 @@ textarea{min-height:120px;resize:vertical}
 <nav id="nav">
   <button data-tab="heute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Aufgaben</button>
   <button data-tab="post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Post</button>
-  <button data-tab="kalender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Kalender</button>
 </nav>
 
 <script src="fristen.js"></script>
@@ -164,7 +154,7 @@ function dringlichkeit(isoDatum) {
 const allTasks = () => db.docs.flatMap((d) => d.aufgaben.map((a) => ({ a, d })));
 
 /* ---------- Navigation ---------- */
-let tab = 'heute', calMonth = new Date(), calSel = null;
+let tab = 'heute';
 function go(t) { tab = t; render(); window.scrollTo(0, 0); }
 $('#nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) go(b.dataset.tab); });
 $('#btnHelp').addEventListener('click', openSettings);
@@ -173,9 +163,9 @@ $('#file').addEventListener('change', async (e) => { const fs = [...e.target.fil
 
 function render() {
   document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
-  $('#title').textContent = { heute: 'Aufgaben', post: 'Post', kalender: 'Kalender' }[tab];
+  $('#title').textContent = { heute: 'Aufgaben', post: 'Post' }[tab];
   const v = $('#view');
-  v.innerHTML = tab === 'heute' ? viewHeute() : tab === 'post' ? viewPost() : viewKalender();
+  v.innerHTML = tab === 'heute' ? viewHeute() : viewPost();
   bindView(v);
 }
 
@@ -208,12 +198,17 @@ function viewHeute() {
   let h = '';
   if (fragen.length) h += `<h2>Kurz prüfen</h2>` + frageHtml(fragen[0]) + (fragen.length > 1 ? `<details class="more"><summary>Weitere Rückfragen (${fragen.length - 1})</summary>${fragen.slice(1).map(frageHtml).join('')}</details>` : '');
   h += offen.length ? `<h2>Als Nächstes</h2>` + top.map(heldHtml).join('') : `<div class="empty card"><b>Alles erledigt</b>Keine offenen Aufgaben. Neue Post kommt automatisch hier an.</div>`;
-  if (rest.length) h += `<details class="more"><summary>Weitere Aufgaben (${rest.length})</summary>${rest.map(taskHtml).join('')}</details>`;
+  if (rest.length) {
+    const gruppen = [['In den nächsten 30 Tagen', (t) => t != null && t <= 30], ['Später', (t) => t != null && t > 30], ['Ohne Frist', (t) => t == null]];
+    const liste = gruppen.map(([name, test]) => [name, rest.filter((x) => test(Fristen.tageBis(x.d.frist?.datum)))]).filter(([, l]) => l.length);
+    h += `<details class="more" open><summary>Weitere Aufgaben (${rest.length})</summary>${liste.map(([name, l]) => `<h2>${name}</h2>` + l.map(taskHtml).join('')).join('')}</details>`;
+  }
+  if (db.docs.some((d) => d.frist?.datum)) h += `<div class="row" style="margin-top:18px"><button class="btn line" id="icsAll">Alle Fristen in meinen Kalender</button></div>`;
   return h;
 }
 function emptyStart() {
   return `<div class="empty card" style="margin-top:16px"><b>Willkommen bei Postpilot</b>
-  Foto oder PDF deiner Post hochladen – Absender, Aktenzeichen, Beträge und Fristen werden erkannt und als Aufgaben in den Kalender gelegt.
+  Foto oder PDF deiner Post hochladen – Absender, Aktenzeichen, Beträge und Fristen werden erkannt und als Aufgaben mit Frist angelegt.
   <div class="row" style="justify-content:center;margin-top:16px"><button class="btn" id="scan2">Post scannen</button><button class="btn ghost" id="demo">Alle Demo-Daten laden</button></div></div>
   <h2>Beispielbriefe zum Ausprobieren</h2>${briefListe()}`;
 }
@@ -236,29 +231,6 @@ function viewPost() {
   return seg + [...db.docs].sort((a, b) => b.erstellt - a.erstellt).map(postKarte).join('');
 }
 
-/* ---------- Ansicht: Kalender ---------- */
-function fristenNachTag() {
-  const m = {};
-  db.docs.forEach((d) => { if (d.frist?.datum) (m[d.frist.datum] ||= []).push(d); });
-  return m;
-}
-function viewKalender() {
-  const y = calMonth.getFullYear(), mo = calMonth.getMonth(), map = fristenNachTag();
-  const first = new Date(y, mo, 1), lead = (first.getDay() + 6) % 7, days = new Date(y, mo + 1, 0).getDate();
-  const heute = Fristen.iso(new Date());
-  let cells = ['Mo','Di','Mi','Do','Fr','Sa','So'].map((w) => `<div class="w">${w}</div>`).join('') + '<span></span>'.repeat(lead);
-  for (let i = 1; i <= days; i++) {
-    const iso = `${y}-${String(mo + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    const has = map[iso]?.some((d) => d.aufgaben.some((a) => !a.erledigt));
-    cells += `<button data-day="${iso}" class="${iso === heute ? 'today' : ''} ${has ? 'has' : ''} ${has && iso < heute ? 'late' : ''} ${iso === calSel ? 'sel' : ''}">${i}</button>`;
-  }
-  const list = (calSel ? (map[calSel] || []).map((d) => [calSel, d]) : Object.entries(map).filter(([k]) => k >= heute).sort().flatMap(([k, ds]) => ds.map((d) => [k, d])));
-  return `<div class="card cal"><div class="head"><button class="btn line" data-m="-1" aria-label="Vorheriger Monat">‹</button><b>${MONATE[mo]} ${y}</b><button class="btn line" data-m="1" aria-label="Nächster Monat">›</button></div><div class="days">${cells}</div></div>
-  <h2>${calSel ? fmtDatum(calSel) : 'Anstehende Fristen'}</h2>
-  ${list.length ? list.map(([k, d]) => `<button class="card item" data-doc="${d.id}"><div style="flex:1"><div class="t">${esc(d.felder.absender)}</div><div class="s">${esc(d.felder.betreff || '')}</div></div><span class="chip ${dringlichkeit(k).cls}">${esc(fmtDatum(k))}</span></button>`).join('') : '<div class="empty card">Keine Fristen.</div>'}
-  <div class="row" style="margin-top:14px"><button class="btn ghost" id="icsAll">Alle Fristen in den Kalender</button>${calSel ? '<button class="btn line" id="calAll">Alle anzeigen</button>' : ''}</div>
-  <p class="note">Im Kalender erinnert dich dein Handy rechtzeitig an jede Frist.</p>`;
-}
 function bindView(v) {
   v.querySelectorAll('[data-toggle]').forEach((el) => el.addEventListener('click', (e) => {
     e.stopPropagation(); const [d, a] = el.dataset.toggle.split(':');
@@ -274,10 +246,7 @@ function bindView(v) {
     const [act, did] = el.dataset.fr.split(':'), d = db.docs.find((x) => x.id === did); if (!d) return;
     if (act === 'ok') { d.frage = null; save(); render(); toast('Bestätigt ✓'); } else if (d.frage.art === 'frist') openFristAendern(d); else openDoc(did);
   }));
-  v.querySelectorAll('[data-day]').forEach((el) => el.addEventListener('click', () => { calSel = calSel === el.dataset.day ? null : el.dataset.day; render(); }));
-  v.querySelectorAll('[data-m]').forEach((el) => el.addEventListener('click', () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + +el.dataset.m, 1); render(); }));
   $('#icsAll', v)?.addEventListener('click', () => exportIcs(db.docs.filter((d) => d.frist?.datum)));
-  $('#calAll', v)?.addEventListener('click', () => { calSel = null; render(); });
   $('#scan2', v)?.addEventListener('click', () => $('#file').click());
   $('#demo', v)?.addEventListener('click', ladeDemo);
   v.querySelectorAll('[data-sub]').forEach((el) => el.addEventListener('click', () => { postSub = el.dataset.sub; render(); }));
@@ -368,7 +337,6 @@ function dokumentAus(erg, opts = {}) {
 function uebernehmen(erg, opts = {}) {
   const doc = dokumentAus(erg, opts);
   db.docs.push(doc); save(); postSub = 'meine';
-  if (doc.frist) { calSel = null; calMonth = Fristen.parse(doc.frist.datum); }
   if (!opts.still) toastUndo(`${doc.felder.absender} gespeichert`, () => { db.docs = db.docs.filter((x) => x.id !== doc.id); save(); render(); });
   render(); return doc;
 }
@@ -422,7 +390,7 @@ function pruefen(erg, thumb) {
     const frist = val('frist') ? { datum: val('frist'), erklaerung: $('#fristInfo', s).textContent } : null;
     if (!aufgaben.length && frist) aufgaben.push({ id: uid(), titel: 'Schreiben bearbeiten', art: 'pruefen', erledigt: false });
     const doc = { id: uid(), erstellt: Date.now(), thumb: thumb || null, felder, frist, aufgaben, zusammenfassung: f.zusammenfassung || null, antwortNoetig: !!erg.antwort_noetig, entwurf: '' };
-    db.docs.push(doc); save(); postSub = 'meine'; s.close(); toast('Gespeichert ✓'); if (frist) { calSel = null; calMonth = Fristen.parse(frist.datum); }
+    db.docs.push(doc); save(); postSub = 'meine'; s.close(); toast('Gespeichert ✓');
   });
   drawA(); calc();
 }

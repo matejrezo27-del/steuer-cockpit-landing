@@ -53,4 +53,5 @@ Hinweis: Die Artifact-Variante wird aus `index.html` plus Rahmen und Farb-Tokens
 - Zero-Touch mit einer Ausnahme: Bei Steuerbescheiden, Mahnungen und Behördenpost gibt es einen Ein-Tipp-Check, wegen der Folgen falscher Fristen.
 - Der Versand verlangt eine einzige Bestätigung, weil er Geld kostet und nicht rückholbar ist.
 - Daten liegen vorerst lokal im Browser. Der Posteingang geht über einen Redis-Eingangskorb.
+- Kein eigener Kalender: Es gibt nur die Tabs „Aufgaben“ und „Post“. Fristen stehen in der Aufgabenliste (Als Nächstes, dann nach Frist gruppiert). Kalender-Export (Google-Link, .ics-Text) bleibt als kleine Funktion. Später: Kalender-Abo-Link und Erinnerungen per Mitteilung oder E-Mail.
 - Die KI rechnet keine Fristen. Sie liest nur Datum oder Regel, gerechnet wird in `fristen.js`.
