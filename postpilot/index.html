@@ -278,7 +278,7 @@ async function analysiere(files) {
         dateien.push({ mime: 'application/pdf', base64: await toBase64(f) });
       } else { const r = await resizeImage(f); dateien.push({ mime: r.mime, base64: r.base64 }); thumb ||= r.thumb; }
     }
-    const r = await fetch('/api/post-analyze', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dateien }) });
+    const r = await fetch('/api/post-analyze', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dateien }) }).catch(() => ({ status: 503, ok: false, json: async () => ({}) }));
     const j = await r.json().catch(() => ({}));
     s.remove();
     if ([404, 501, 503].includes(r.status)) {
@@ -372,7 +372,7 @@ function openDoc(id) {
     d.anliegen = anliegen;
     let text;
     try {
-      const r = await fetch('/api/post-reply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dokument: d.felder, anliegen, absender: db.settings }) });
+      const r = await fetch('/api/post-reply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dokument: d.felder, anliegen, absender: db.settings }) }).catch(() => ({ status: 503, ok: false }));
       if (r.ok) text = (await r.json()).brief; else if (![404, 501, 503].includes(r.status)) throw new Error((await r.json().catch(() => ({}))).error || 'Fehler');
     } catch (e) { toast(e.message); }
     text ||= vorlage(d, anliegen);
