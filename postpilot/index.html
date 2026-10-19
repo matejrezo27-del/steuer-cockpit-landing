@@ -72,6 +72,20 @@ textarea{min-height:120px;resize:vertical}
 @keyframes r{to{transform:rotate(360deg)}}
 .toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;z-index:50;font-size:14px;max-width:90%}
 .hide{display:none!important}
+
+.paper{background:#fff;color:#1a1a1a;border-radius:6px;padding:22px 20px;font:14px/1.55 Georgia,"Times New Roman",serif;box-shadow:0 2px 6px rgba(0,0,0,.12),0 12px 32px rgba(0,0,0,.12);border:1px solid #e5e5e5}
+.paper .abs{font-size:11px;color:#666;border-bottom:1px solid #ccc;display:inline-block;margin-bottom:12px}
+.paper .dt{text-align:right;margin:6px 0 14px}.paper p{margin-bottom:10px}.paper h3{font-size:15px;margin:8px 0 10px}
+.paper table{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:13.5px}.paper td{padding:3px 0;border-bottom:1px dotted #ccc}.paper td:last-child{text-align:right}
+.paper mark{background:none;color:inherit;border-radius:3px;transition:background .3s,box-shadow .3s}
+.paper mark.on{background:#fde68a;box-shadow:0 0 0 2px #fde68a}
+.scanbar{position:relative;overflow:hidden}
+.status{display:flex;align-items:center;gap:10px;padding:12px 14px;margin:14px 0}
+.status .dot{width:10px;height:10px;border-radius:50%;background:var(--blue);flex:none}
+.status.run .dot{animation:pulse 1s infinite}.status.done .dot{background:var(--green)}
+@keyframes pulse{50%{opacity:.25}}
+.brief-card{display:flex;gap:12px;align-items:center;padding:12px 14px;margin-bottom:8px}
+.brief-card .ic{width:42px;height:54px;flex:none;background:#fff;border:1px solid var(--line);border-radius:4px;display:grid;place-items:center;font-size:20px}
 @media print{body>*:not(#print){display:none!important}#print{display:block!important;white-space:pre-wrap;font:12pt/1.5 Georgia,serif;color:#000;padding:20mm}}
 #print{display:none}
 </style>
@@ -173,13 +187,14 @@ function viewHeute() {
 function emptyStart() {
   return `<div class="empty card" style="margin-top:16px"><b>Willkommen bei Postpilot</b>
   Foto oder PDF deiner Post hochladen – Absender, Aktenzeichen, Beträge und Fristen werden erkannt und als Aufgaben in den Kalender gelegt.
-  <div class="row" style="justify-content:center;margin-top:16px"><button class="btn" id="scan2">Post scannen</button><button class="btn ghost" id="demo">Demo-Post laden</button></div></div>`;
+  <div class="row" style="justify-content:center;margin-top:16px"><button class="btn" id="scan2">Post scannen</button><button class="btn ghost" id="demo">Alle Demo-Daten laden</button></div></div>
+  <h2>Beispielbriefe zum Ausprobieren</h2>${briefListe()}`;
 }
 
 /* ---------- Ansicht: Post ---------- */
 function viewPost() {
   if (!db.docs.length) return emptyStart();
-  return [...db.docs].sort((a, b) => b.erstellt - a.erstellt).map((d) => {
+  return `<h2 style="margin-top:6px">Beispielbriefe zum Ausprobieren</h2>${briefListe()}<h2>Meine Post</h2>` + [...db.docs].sort((a, b) => b.erstellt - a.erstellt).map((d) => {
     const u = dringlichkeit(d.frist?.datum), offen = d.aufgaben.filter((a) => !a.erledigt).length;
     return `<button class="card item" data-doc="${d.id}"><div style="flex:1;min-width:0">
       <div class="t">${esc(d.felder.absender || 'Unbekannt')}</div>
@@ -224,6 +239,7 @@ function bindView(v) {
   $('#calAll', v)?.addEventListener('click', () => { calSel = null; render(); });
   $('#scan2', v)?.addEventListener('click', () => $('#file').click());
   $('#demo', v)?.addEventListener('click', ladeDemo);
+  v.querySelectorAll('[data-brief]').forEach((el) => el.addEventListener('click', () => openBrief(+el.dataset.brief)));
 }
 
 /* ---------- Kalender-Export (.ics) ---------- */
@@ -389,6 +405,82 @@ function vorlage(d, anliegen) {
   return `${st.name || '[Ihr Name]'}\n${st.adresse || '[Ihre Adresse]'}\n\n${f.absender || '[Empfänger]'}\n${f.absender_adresse || ''}\n\n${new Date().toLocaleDateString('de-DE')}\n\nBetreff: ${f.betreff || 'Ihr Schreiben'}${f.datum ? ' vom ' + new Date(f.datum).toLocaleDateString('de-DE') : ''}${f.aktenzeichen ? '\nAktenzeichen: ' + f.aktenzeichen : ''}${f.kundennummer ? '\nKundennummer: ' + f.kundennummer : ''}\n\nSehr geehrte Damen und Herren,\n\nbezugnehmend auf Ihr o. g. Schreiben möchte ich Folgendes mitteilen:\n\n${anliegen}\n\nFür Rückfragen stehe ich gern zur Verfügung.\n\nMit freundlichen Grüßen\n${st.name || '[Ihr Name]'}`;
 }
 
+
+/* ---------- Beispielbriefe: öffnen → auslesen → Vorschläge ---------- */
+function beispielBriefe() {
+  const heute = new Date(), D = (n) => Fristen.iso(Fristen.addDays(heute, n));
+  const fm = (iso) => Fristen.parse(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const M = (t, k, l) => `<mark data-k="${k}" data-l="${l}">${t}</mark>`;
+  const kopf = (abs, adr) => `<div class="abs">${abs}</div><p>Max Mustermann<br>Beispielweg 12<br>12345 Musterstadt</p>`;
+  const b = [];
+
+  const d1 = D(-5);
+  b.push({ icon: '🏛️', titel: 'Finanzamt – Einkommensteuerbescheid', sub: 'Nachzahlung, Einspruchsfrist', html: `${kopf('Finanzamt Musterstadt · Amtsstr. 1 · 12345 Musterstadt')}
+    <div class="dt">${M(fm(d1), 'datum', 'Briefdatum')}</div>
+    <h3>${M('Einkommensteuerbescheid 2024', 'betreff', 'Betreff')}</h3>
+    <p>Steuernummer: ${M('123/456/78901', 'aktenzeichen', 'Steuernummer / Aktenzeichen')}</p>
+    <table><tr><td>Festgesetzte Einkommensteuer</td><td>14.820,00 €</td></tr><tr><td>Bereits geleistete Vorauszahlungen</td><td>13.535,50 €</td></tr><tr><td><b>Nachzahlung</b></td><td><b>${M('1.284,50 €', 'betrag', 'Betrag')}</b></td></tr></table>
+    <p>Der Betrag ist bis zum ${M(fm(D(9)), 'zahl', 'Zahlungsziel')} auf das Konto des Finanzamts zu überweisen. Verwendungszweck: ${M('123/456/78901 ESt 2024', 'vz', 'Verwendungszweck')}. IBAN: ${M('DE02 1203 0000 0000 2020 51', 'iban', 'IBAN')}.</p>
+    <p><b>Rechtsbehelfsbelehrung:</b> Gegen diesen Bescheid kann ${M('innerhalb eines Monats nach Bekanntgabe Einspruch', 'regel', 'Einspruchsfrist')} eingelegt werden.</p>`,
+    erg: { typ: 'steuerbescheid', absender: 'Finanzamt Musterstadt', absender_adresse: 'Amtsstr. 1, 12345 Musterstadt', betreff: 'Einkommensteuerbescheid 2024', datum: d1, aktenzeichen: '123/456/78901', steuernummer: '123/456/78901', betrag: 1284.5, iban: 'DE02120300000000202051', verwendungszweck: '123/456/78901 ESt 2024', frist_datum: null, frist_regel: 'einspruch_1m', frist_tage: null,
+      zusammenfassung: 'Einkommensteuer 2024: Du musst 1.284,50 € nachzahlen. Gegen den Bescheid kannst du innerhalb eines Monats Einspruch einlegen.',
+      aufgaben: [{ titel: 'Bescheid mit Steuererklärung abgleichen', art: 'pruefen' }, { titel: '1.284,50 € überweisen', art: 'zahlen' }, { titel: 'Ggf. Einspruch einlegen', art: 'antworten' }], antwort_noetig: false, unsicher: [] } });
+
+  const d2 = D(-2), z2 = D(5);
+  b.push({ icon: '⚡', titel: 'Stadtwerke – Zahlungserinnerung', sub: 'Strom, Zahlungsfrist 7 Tage', html: `${kopf('Stadtwerke Beispielhausen GmbH · Energieweg 5 · 54321 Beispielhausen')}
+    <div class="dt">${M(fm(d2), 'datum', 'Briefdatum')}</div>
+    <h3>${M('Zahlungserinnerung – Stromrechnung', 'betreff', 'Betreff')}</h3>
+    <p>Kundennummer: ${M('K-88231', 'kunde', 'Kundennummer')}<br>Rechnungsnummer: ${M('R-2026-0412', 'rnr', 'Rechnungsnummer')}</p>
+    <p>Sehr geehrter Herr Mustermann, wir konnten für die oben genannte Rechnung leider keinen Zahlungseingang feststellen. Offener Betrag: <b>${M('96,80 €', 'betrag', 'Betrag')}</b>.</p>
+    <p>Bitte überweisen Sie den Betrag ${M('bis zum ' + fm(z2), 'frist', 'Frist')} auf folgendes Konto: ${M('DE89 3704 0044 0532 0130 00', 'iban', 'IBAN')}, Verwendungszweck ${M('K-88231 R-2026-0412', 'vz', 'Verwendungszweck')}.</p>
+    <p>Andernfalls müssen wir Mahngebühren erheben.</p>`,
+    erg: { typ: 'mahnung', absender: 'Stadtwerke Beispielhausen GmbH', betreff: 'Zahlungserinnerung – Stromrechnung', datum: d2, kundennummer: 'K-88231', rechnungsnummer: 'R-2026-0412', betrag: 96.8, iban: 'DE89370400440532013000', verwendungszweck: 'K-88231 R-2026-0412', frist_datum: z2, frist_regel: null, frist_tage: null,
+      zusammenfassung: 'Die Stadtwerke haben keinen Zahlungseingang für 96,80 € gefunden und verlangen die Zahlung in wenigen Tagen, sonst drohen Mahngebühren.',
+      aufgaben: [{ titel: 'Prüfen, ob schon bezahlt', art: 'pruefen' }, { titel: '96,80 € überweisen', art: 'zahlen' }], antwort_noetig: false, unsicher: [] } });
+
+  const d3 = D(-8), z3 = D(30);
+  b.push({ icon: '🛡️', titel: 'Versicherung – Beitragserhöhung', sub: 'Sonderkündigungsrecht', html: `${kopf('Beispiel Versicherung AG · Versicherungsallee 3 · 80331 München')}
+    <div class="dt">${M(fm(d3), 'datum', 'Briefdatum')}</div>
+    <h3>${M('Anpassung Ihres Beitrags – Privathaftpflicht', 'betreff', 'Betreff')}</h3>
+    <p>Versicherungsnummer: ${M('V-5521-77', 'kunde', 'Versicherungsnummer')}</p>
+    <p>zum nächsten Fälligkeitstermin erhöht sich Ihr Jahresbeitrag von 62,40 € auf 74,90 €. Sie haben das Recht, den Vertrag ${M('innerhalb von 30 Tagen nach Zugang dieses Schreibens, spätestens bis zum ' + fm(z3), 'frist', 'Kündigungsfrist')}, in Textform zu kündigen.</p>
+    <p>Eine Kündigung wird zum Zeitpunkt des Wirksamwerdens der Erhöhung wirksam.</p>`,
+    erg: { typ: 'versicherung', absender: 'Beispiel Versicherung AG', betreff: 'Beitragsanpassung Privathaftpflicht', datum: d3, kundennummer: 'V-5521-77', betrag: null, frist_datum: z3, frist_regel: null, frist_tage: null,
+      zusammenfassung: 'Dein Beitrag steigt von 62,40 € auf 74,90 €. Bis zur genannten Frist kannst du kündigen und zu einem anderen Anbieter wechseln.',
+      aufgaben: [{ titel: 'Alternative Angebote vergleichen', art: 'pruefen' }, { titel: 'Ggf. Sonderkündigung senden', art: 'antworten' }], antwort_noetig: true, unsicher: ['Genaue Fristberechnung (Zugangsdatum)'] } });
+
+  const d4 = D(-4), z4 = D(10);
+  b.push({ icon: '📦', titel: 'Lieferant – Rechnung', sub: 'Für Selbstständige, 14 Tage Zahlungsziel', html: `${kopf('Büro & Mehr Großhandel KG · Industriestr. 44 · 70173 Stuttgart')}
+    <div class="dt">${M(fm(d4), 'datum', 'Rechnungsdatum')}</div>
+    <h3>${M('Rechnung Nr. 2026-10471', 'rnr', 'Rechnungsnummer')}</h3>
+    <p>Kundennummer: ${M('KD-30417', 'kunde', 'Kundennummer')}</p>
+    <table><tr><td>Büromaterial, Lieferung vom ${fm(D(-6))}</td><td>412,00 €</td></tr><tr><td>Umsatzsteuer 19 %</td><td>78,28 €</td></tr><tr><td><b>Gesamtbetrag</b></td><td><b>${M('490,28 €', 'betrag', 'Betrag')}</b></td></tr></table>
+    <p>Zahlbar ${M('innerhalb von 14 Tagen ohne Abzug', 'tage', 'Zahlungsziel')}. IBAN: ${M('DE44 5001 0517 5407 3249 31', 'iban', 'IBAN')}. Verwendungszweck: ${M('RE 2026-10471', 'vz', 'Verwendungszweck')}.</p>`,
+    erg: { typ: 'rechnung', absender: 'Büro & Mehr Großhandel KG', betreff: 'Rechnung Nr. 2026-10471', datum: d4, kundennummer: 'KD-30417', rechnungsnummer: '2026-10471', betrag: 490.28, iban: 'DE44500105175407324931', verwendungszweck: 'RE 2026-10471', frist_datum: null, frist_regel: null, frist_tage: 14,
+      zusammenfassung: 'Rechnung über 490,28 € für Büromaterial, zahlbar innerhalb von 14 Tagen. Als Betriebsausgabe für die Buchhaltung ablegen.',
+      aufgaben: [{ titel: 'Lieferung auf Vollständigkeit prüfen', art: 'pruefen' }, { titel: '490,28 € überweisen', art: 'zahlen' }, { titel: 'Beleg für Buchhaltung ablegen', art: 'aufbewahren' }], antwort_noetig: false, unsicher: [] } });
+  return b;
+}
+function briefListe() {
+  return beispielBriefe().map((b, i) => `<div class="card brief-card"><div class="ic">${b.icon}</div><div style="flex:1;min-width:0"><div class="t" style="font-weight:600">${esc(b.titel)}</div><div class="s" style="color:var(--muted);font-size:14px">${esc(b.sub)}</div></div><button class="btn" data-brief="${i}" style="min-height:40px;padding:8px 14px">Brief öffnen</button></div>`).join('');
+}
+function openBrief(i) {
+  const b = beispielBriefe()[i];
+  const s = sheet(b.titel, `<div class="paper">${b.html}</div>
+    <div class="card status" id="st"><span class="dot"></span><span id="stt">Brief liegt bereit. Tippe auf „Auslesen“.</span></div>
+    <div class="row"><button class="btn" id="go" style="flex:1">Brief auslesen</button></div>`);
+  const marks = [...s.querySelectorAll('mark')], st = $('#st', s), stt = $('#stt', s), go = $('#go', s);
+  let running = false, fertig = false;
+  go.addEventListener('click', async () => {
+    if (fertig) { s.remove(); return pruefen(b.erg, null); }
+    if (running) return; running = true; go.disabled = true; st.className = 'card status run';
+    for (const m of marks) { m.classList.add('on'); stt.textContent = `Erkannt: ${m.dataset.l}`; m.scrollIntoView({ block: 'center', behavior: 'smooth' }); await new Promise((r) => setTimeout(r, 650)); }
+    const fr = Fristen.berechne({ datum: b.erg.datum, frist_datum: b.erg.frist_datum, frist_regel: b.erg.frist_regel, frist_tage: b.erg.frist_tage });
+    stt.textContent = `Fertig: ${marks.length} Felder erkannt${fr.datum ? ', Frist ' + fmtDatum(fr.datum) : ''}.`; st.className = 'card status done';
+    go.disabled = false; go.textContent = 'Vorschläge ansehen →'; fertig = true; running = false; go.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+}
+
 /* ---------- Einstellungen, Demo, Export ---------- */
 function openSettings() {
   const st = db.settings;
@@ -398,7 +490,7 @@ function openSettings() {
     <label class="f" for="s_adr">Adresse</label><textarea id="s_adr" style="min-height:80px">${esc(st.adresse)}</textarea>
     <label class="f" for="s_mail">E-Mail</label><input id="s_mail" type="email" value="${esc(st.email)}"></div>
     <div class="row" style="margin-top:16px"><button class="btn" id="sv">Speichern</button></div>
-    <h2>Daten</h2><div class="row"><button class="btn ghost" id="demo2">Demo-Post laden</button><button class="btn ghost" id="exp">Alles exportieren (JSON)</button><button class="btn danger" id="wipe">Alles löschen</button></div>`);
+    <h2>Daten</h2><div class="row"><button class="btn ghost" id="demo2">Alle Demo-Daten laden</button><button class="btn ghost" id="exp">Alles exportieren (JSON)</button><button class="btn danger" id="wipe">Alles löschen</button></div>`);
   $('#sv', s).addEventListener('click', () => { db.settings = { name: $('#s_name', s).value.trim(), adresse: $('#s_adr', s).value.trim(), email: $('#s_mail', s).value.trim() }; save(); s.close(); toast('Gespeichert ✓'); });
   $('#demo2', s).addEventListener('click', () => { ladeDemo(); s.close(); });
   $('#exp', s).addEventListener('click', () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' })); a.download = 'postpilot-export.json'; a.click(); });
