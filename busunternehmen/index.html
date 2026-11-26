@@ -304,15 +304,15 @@ const RANKS=[[0,'Einzelkämpfer'],[200000,'Regionalverkehr'],[500000,'Verkehrsbe
 const MONTHS=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 const DAY_REAL=10;
 const SUBST=0.6;
-const FC_UTIL=1; // Anteil der Nachfrage, der real ankommt (kalibriert)
+const FC_UTIL=0.95; // Anteil der Nachfrage, der real ankommt (Werkstatt- und Pannenzeiten, kalibriert per Testlauf)
 const REF=0.08,PMIN=0.03,PMAX=0.20; // Referenz-Ticketpreis €/km und Grenzen
 const COSTKEYS=['fuel','toll','wage','ins','repair','depot','interest','other'];
 const COSTN={fuel:'Treibstoff & Strom',toll:'Maut',wage:'Fahrer',ins:'Versicherung',repair:'Reparaturen',depot:'Standorte',interest:'Zinsen',other:'Sonstiges'};
 const COSTC={fuel:'#ff9f5a',toll:'#c9a05a',wage:'#4da3ff',ins:'#7ee0d2',repair:'#ff6b6b',depot:'#b58cf0',interest:'#8da2b8',other:'#e8eef5'};
 const DIFF={
- easy:{n:'Leicht',cash:180000,dem:1.12,riv:0.8,wealth:5000,note:'180.000 € Startkapital, +12 % Nachfrage, langsamere Konkurrenz'},
+ easy:{n:'Leicht',cash:180000,dem:1.1,riv:0.8,wealth:5000,note:'180.000 € Startkapital, +10 % Nachfrage, langsamere Konkurrenz'},
  normal:{n:'Normal',cash:120000,dem:1,riv:1,wealth:3000,note:'120.000 € Startkapital, ausgewogen'},
- hard:{n:'Schwer',cash:80000,dem:0.9,riv:1.25,wealth:2000,note:'80.000 € Startkapital, −10 % Nachfrage, stärkere Konkurrenz'},
+ hard:{n:'Schwer',cash:90000,dem:0.92,riv:1.2,wealth:2000,note:'90.000 € Startkapital, −8 % Nachfrage, stärkere Konkurrenz'},
 };
 const MAINT_OPTS=[0,30,40,50,60];
 const WAGE_OPTS=[0.85,0.95,1,1.1,1.2,1.3];
@@ -558,6 +558,13 @@ function recSpec(L){
 }
 const maintKm=b=>b.wear*wearF()*b.list*0.0005*repairF(); // Verschleißkosten je km
 const breakKm=b=>0.0017*breakF()/(b.rel*b.rel)*350/b.speed; // erwartete Abschleppkosten je km
+/* Konkurrenz reagiert ab 40 % Marktanteil mit Preissenkungen: bei neuen Linien gleich mit einplanen */
+function settleComps(L,hyp){
+  L.comps=compsOf(L);
+  if(!L.comps.length)return;
+  const sh=forecast(L,L.rate||REF,hyp).share;
+  if(sh>0.4&&!(L.share>0.4)){L.share=sh;L.comps=compsOf(L);}
+}
 function hypoOf(L,sp,n){const st=bStats(sp);return{n:n||1,seats:st.seats,speed:st.speed,ckm:busCostKm(st,L)+maintKm(st)+breakKm(st),ins:st.list*0.0004,wage:st.wage,tollF:st.tollF,q:st.cmf};}
 const techScore=()=>tfx('planung')+tfx('ertrag')+tfx('crm');
 function attrUs(L,rate,nb,q){return Math.pow(lineQ(L,q)/5,1.2)*Math.pow(REF*L.cm/rate,1.8)*(1+0.18*Math.min(4,Math.max(0,nb-1)))*(0.7+S.rep/150)*(1+0.03*techScore())*(L.night?1.1:1);}
@@ -652,8 +659,10 @@ function forecast(L,rate,hyp){
   const served=Math.min(D*FC_UTIL,nb*a.seats*0.9*trips);
   const prem=(1+0.025*tfx('ertrag'))*(L.night?1.1:1);
   const rev=served*L.dist*rate*prem;
-  const need=Math.max(0.45,L.minLoad);
-  const km=Math.min(nb*a.speed*24*0.85,served/(a.seats*need)*L.dist);
+  // Abfahrten wie in der Simulation: nach Wendezeit, sobald die Mindestauslastung erreicht ist, spätestens nach 4 h
+  const need=L.minLoad>0?L.minLoad:0.05,perH=Math.max(0.05,served/2/24/nb);
+  const w=Math.max((L.intl?1:0.5),Math.min(4,need*a.seats/perH));
+  const km=Math.min(nb*a.speed*24*0.85,nb*L.dist*24/(L.dist/a.speed+w));
   const run=km*(a.ckm+L.toll*a.tollF);
   const fixed=nb*(a.wage*wageBase()*L.wm*(L.night?1.25:1)+a.ins+[0,25,60][L.svc||0]);
   return{D,served,rev,cost:run+fixed,profit:rev-run-fixed,share:shareAt(L,rate,nb,a.q),nb};
@@ -874,7 +883,7 @@ function acceptTender(id){
   if(!hasLic(o.a)||!hasLic(o.b))return say('Für diese Ausschreibung brauchst du beide Lizenzen.','bad');
   let L=lineOnPair(o.a,o.b);
   if(L&&(L.fr||L.tn))return say('Auf dieser Strecke läuft schon ein Vertrag.','bad');
-  if(!L){L=lineDefaults(o.a,o.b);S.lines.push(L);L.comps=compsOf(L);L.rate=Math.round(optimalRate(L,1)*200)/200;}
+  if(!L){L=lineDefaults(o.a,o.b);S.lines.push(L);settleComps(L);L.rate=Math.round(optimalRate(L,1)*200)/200;}
   L.tn={sub:o.sub,minBuses:o.minBuses,left:o.term,term:o.term,grace:4,miss:0,paid:0};
   T.offers=T.offers.filter(x=>x!==o);
   ui.selLine=L.id;ui.tab='lines';S.demT=-99;
@@ -932,7 +941,7 @@ function updateRivals(){
     if(!r.alive)continue;
     const sh=S.owned?regionShare(r.home):0;
     const P=r.fleet*180*(r.eff||0.6)*(1+0.05*Math.min(10,r.tech))*(1-Math.min(0.6,sh*0.8))*DIFF[S.diff||'normal'].riv;
-    const sat=Math.pow(1+r.value/6e6,-0.7);
+    const sat=r.net?Math.pow(1+r.value/8e6,-0.6):Math.pow(1+r.value/3e6,-0.9); // Regionale stoßen früher an Grenzen
     r.value=Math.max(55000,r.value+P*0.8*sat+r.value*rnd(-0.0012,0.0012));
     r.fleet=Math.max(2,Math.round(r.value/55000));
     r.tech+=0.0035*Math.sqrt(1+r.value/5e5);
@@ -951,13 +960,15 @@ function updateRivals(){
   }
   const alive=S.rivals.filter(r=>r.alive);
   // Fusionen
-  if(S.day>0&&S.day%45===0){
+  if(S.day>0&&S.day%60===0){
     const sorted=alive.slice().sort((a,b)=>b.value-a.value);
-    const big=sorted[0];
+    const net=alive.find(r=>r.net);
+    let big=net&&Math.random()<0.5?net:sorted[0];
+    if(big&&!big.net&&big.value>3.5e6)big=null; // Kartellamt: große Regionale dürfen nicht weiter zukaufen
     if(big&&big.value>1.2e6){
-      const prey=sorted.slice(1).filter(r=>r.value<big.value*0.5&&!r.net).sort(()=>Math.random()-0.5)[0];
+      const prey=sorted.filter(r=>r!==big&&r.value<big.value*0.4&&!r.net).sort(()=>Math.random()-0.5)[0];
       if(prey){
-        big.value+=prey.value*0.85;prey.cities.forEach(c=>{if(!big.cities.includes(c))big.cities.push(c);});big.tech=Math.max(big.tech,prey.tech);
+        big.value+=prey.value*0.6; // Integrationskosten: nicht der volle Wert kommt anprey.cities.forEach(c=>{if(!big.cities.includes(c))big.cities.push(c);});big.tech=Math.max(big.tech,prey.tech);
         prey.alive=false;
         const stake=S.inv.stakes[prey.id];if(stake){S.wealth+=stake*prey.value;delete S.inv.stakes[prey.id];}
         if(S.owned)say(`🏢 Fusion: ${big.name} übernimmt ${prey.name} und wächst auf ${eurK(big.value)}.`,'bad');
@@ -1262,7 +1273,7 @@ function createLine(a,b){
   if(S.lines.some(l=>(l.a===a&&l.b===b)||(l.a===b&&l.b===a)))return say('Diese Linie existiert bereits.','bad');
   const L=lineDefaults(a,b);
   if(L.dist>2200)return say('Linien über 2.200 km sind nicht möglich.','bad');
-  S.lines.push(L);L.comps=compsOf(L);
+  S.lines.push(L);settleComps(L);
   ui.selLine=L.id;ui.tab='lines';S.demT=-99;
   L.rate=Math.round(optimalRate(L,1)*200)/200;
   const cn=L.comps.length;
@@ -1303,8 +1314,8 @@ function suggestLines(budget){
   cand.sort((x,y)=>y.m-x.m);
   const out=[];
   for(const c of cand.slice(0,budget?160:45)){
-    c.L.comps=compsOf(c.L);
     const sp=recSpec(c.L),hy=hypoOf(c.L,sp);
+    settleComps(c.L,hy);
     if(budget&&unitPrice(sp,1)>budget)continue;
     const r=optimalRate(c.L,1.5,hy),f=forecast(c.L,r,hy);
     out.push({a:c.a,b:c.b,dist:c.L.dist,profit:f.profit,share:f.share,rate:r,comps:c.L.comps.length,cls:sp.cls,price:unitPrice(sp,1)});
@@ -2557,9 +2568,10 @@ panel.addEventListener('input',e=>{
     const fc=$('#fc');if(fc)fc.innerHTML=forecastHTML(L);
   }
 });
-panel.addEventListener('pointerdown',e=>{if(e.target.type==='range'){ui.hold=true;ui.holdT=performance.now();}});
+// Während ein Finger/Mauszeiger auf dem Panel liegt, nicht neu aufbauen: sonst landet der Klick auf einem ersetzten Element und geht verloren
+panel.addEventListener('pointerdown',()=>{ui.hold=true;ui.holdT=performance.now();});
 panel.addEventListener('focusin',e=>{if(e.target.tagName==='SELECT')ui.selT=performance.now();});
-['pointerup','pointercancel','touchend','touchcancel','mouseup','blur'].forEach(ev=>window.addEventListener(ev,()=>{if(ui.hold){ui.hold=false;render();}}));
+['pointerup','pointercancel','touchend','touchcancel','mouseup','blur'].forEach(ev=>window.addEventListener(ev,()=>{if(ui.hold){ui.hold=false;setTimeout(render,0);}}));
 panel.addEventListener('change',e=>{
   const el=e.target,id=+el.dataset.id;
   if(el.dataset.in==='minload'){lineById(id).minLoad=+el.value;}
@@ -2901,7 +2913,7 @@ window.addEventListener('unhandledrejection',e=>reportError(e.reason));
 window.__bus={get S(){return S;},recSpec,step,createLine,assign,tryAssign,lineById,dayEnd,buyBuses,cfgSpec,unitPrice,bStats,newBus,buyUsed,genUsed,upgradeArea,buySite,buyTech,buyCountry,takeover,acceptOffer,openSell,sellCompany,buyOffer,foundCompany,
   negotiate,lockFuel,buyFuel,forecast,optimalRate,ranking,installCompany,freshCompany,sellValue,partnerLevel,genPartnerOffers,compsOf,lineReq,busMeets,suggestLines,
   buyFund,sellFund,setStake,buyProp,sellProp,buyLux,sellLux,investWorth,landPrice,updateWorld,startIn,ui,TABS,CITIES,COUNTRIES,CLASSES,BRANDS,FEAT,hav,focusCity,cam,genOffers,createDesign,buyKonstruktion,toggleNight,exclusive,enforceReqs,
-  cap,areaCost,techCost,repairBus,repairAll,setDiff,DIFF,MISSIONS,checkMissions,genTenders,acceptTender,tendersDay,seasonCity,seasonLine,hypoOf,staffTarget,startCareer,careerFound,skipCareer,startCourse,careerLevel,careerDay,endCareer,exportSave,importSave,openLog,setLayer,layerData,fixSave,validSave,tabStats,tabCareer,restart,chooseDiff,lineBuses,companyValue,modalQ,demand,shareAt,marketBase,boosts};
+  view,sc,cap,areaCost,techCost,repairBus,repairAll,deleteLine,sellBus,setDiff,DIFF,MISSIONS,checkMissions,genTenders,acceptTender,tendersDay,seasonCity,seasonLine,hypoOf,staffTarget,startCareer,careerFound,skipCareer,startCourse,careerLevel,careerDay,endCareer,exportSave,importSave,openLog,setLayer,layerData,fixSave,validSave,tabStats,tabCareer,restart,chooseDiff,lineBuses,companyValue,modalQ,demand,shareAt,marketBase,boosts};
 start();
 
 </script>
