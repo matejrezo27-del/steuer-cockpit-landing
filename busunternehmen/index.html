@@ -122,7 +122,7 @@ textarea.save{width:100%;height:160px;background:#0b121b;color:var(--text);borde
 </head>
 <body>
 <header>
-  <h1>🚌 Bus-Imperium Europa <small style="font-weight:400;color:var(--mute);font-size:10px">v10.1</small></h1>
+  <h1>🚌 Bus-Imperium Europa <small style="font-weight:400;color:var(--mute);font-size:10px">v10.2</small></h1>
   <div class="stat"><small>Kasse</small><b id="hCash">–</b></div>
   <div class="stat"><small>Unternehmenswert</small><b id="hValue">–</b></div>
   <div class="stat"><small>Privat</small><b id="hWealth">–</b></div>
@@ -320,9 +320,9 @@ const WAGE_OPTS=[0.85,0.95,1,1.1,1.2,1.3];
 const CAREER_LV=[[0,'Fahrer'],[15,'Fernfahrer'],[40,'Disponent'],[70,'Teamleiter']];
 const SHIFTS={
  city:{n:'Stadtlinie',pay:150,fat:10,xp:1,lv:0,note:'Kurze Wege, wenig Stress'},
- long:{n:'Fernlinie',pay:230,fat:16,xp:1.5,lv:1,note:'Besser bezahlt, anstrengender'},
- night:{n:'Nachtfahrt',pay:270,fat:22,xp:1.3,lv:1,note:'Nachtzuschlag, sehr anstrengend'},
- dispo:{n:'Disposition',pay:260,fat:6,xp:2,lv:2,note:'Du planst Einsätze für andere'},
+ long:{n:'Fernlinie',pay:230,fat:16,xp:1.5,lv:0,note:'Besser bezahlt, anstrengender'},
+ night:{n:'Nachtfahrt',pay:270,fat:22,xp:1.3,lv:0,note:'Nachtzuschlag, sehr anstrengend'},
+ dispo:{n:'Disposition',pay:260,fat:6,xp:2,lv:1,note:'Du planst Einsätze für andere'},
  off:{n:'Freier Tag',pay:0,fat:-40,xp:0,lv:0,note:'Erholung, kein Lohn'},
 };
 const CAREER_COST=35; // Lebenshaltung pro Tag
@@ -1661,7 +1661,7 @@ function careerDay(){
   S.wealth+=pay;C.earned+=pay;
   if(careerLevel()>lv0){
     const lv=careerLevel();
-    say(`⭐ Beförderung: Du bist jetzt ${careerTitle()}!${lv===1?' Fernlinie, Nachtfahrt und der Unternehmerschein sind frei.':lv===2?' Disposition ist frei.':''}`,'good');
+    say(`⭐ Beförderung: Du bist jetzt ${careerTitle()}!${lv===1?' Disposition und der Unternehmerschein sind frei.':''}`,'good');
   }
   if(C.evCool>0)C.evCool--;
   else if(!ui.modalOpen&&work&&Math.random()<0.12){C.evCool=4;careerEvent();}
@@ -2357,8 +2357,8 @@ function tabCareer(){
    <div class="row small"><span>Müdigkeit</span><b class="${C.fat>65?'bad':''}">${Math.round(C.fat)} %</b></div>${bar(C.fat,C.fat>65?'var(--bad)':'var(--blue)')}
    <div class="row"><span>Erspartes</span><b>${eur(S.wealth)}</b></div>
    <div class="mute small">${C.course>0?`🎓 Im Kurs: noch ${C.course} Tage ohne Lohn.`:`Heute etwa ${eur(net)} netto (nach ${eur(CAREER_COST)} Lebenshaltung).`}</div></div>
-   <h2 class="s">Schicht wählen</h2><div class="card"><div class="chips">${Object.entries(SHIFTS).map(([k,sh])=>{const lock=lv<sh.lv;return `<button class="chip ${C.shift===k?'on':''}" data-act="shift" data-k="${k}" ${lock?'disabled':''}>${sh.n}${sh.pay?' '+eur(careerPay(k)):''}${lock?' 🔒':''}</button>`;}).join('')}</div>
-   <div class="mute small" style="margin-top:4px">${SHIFTS[C.shift].note}. ${lv<1?'Fernlinie und Nachtfahrt ab Fernfahrer, Disposition ab Disponent.':lv<2?'Disposition ab Disponent.':''} Über 65 % Müdigkeit passieren Fehler, ab 80 % nimmst du automatisch frei.</div>
+   <h2 class="s">Schicht wählen</h2><div class="card"><div class="chips">${Object.entries(SHIFTS).map(([k,sh])=>{const lock=lv<sh.lv;return `<button class="chip ${C.shift===k?'on':''}" data-act="shift" data-k="${k}">${sh.n}${sh.pay?' '+eur(careerPay(k)):''}${lock?' 🔒':''}</button>`;}).join('')}</div>
+   <div class="mute small" style="margin-top:4px">${SHIFTS[C.shift].note}. ${lv<1?'Disposition ab Fernfahrer.':''} Über 65 % Müdigkeit passieren Fehler, ab 80 % nimmst du automatisch frei.</div>
    <div class="row" style="margin-top:6px"><span>Überstunden <span class="mute small">(+40 % Lohn, müder, mehr Erfahrung)</span></span><button class="btn sm ${C.ot?'pri':''}" data-act="ot">${C.ot?'An':'Aus'}</button></div></div>
    <h2 class="s">Weg zum eigenen Unternehmen</h2><div class="card"><table class="small">
     ${ck(ok1,`Stufe ${CAREER_LV[CERT.lv][1]} erreichen`)}${ck(ok2,`Unternehmerschein (${eur(CERT.cost)}, ${CERT.days} Tage)`)}${ck(ok3,`${eur(CAREER_FOUND)} Erspartes`)}</table>
@@ -2552,7 +2552,7 @@ panel.addEventListener('click',e=>{
   else if(a==='tender')acceptTender(id);
   else if(a==='wage'){S.staff.wage=clamp(+d.v,0.85,1.3);say(`Lohnniveau auf ${Math.round(S.staff.wage*100)} % gesetzt.`);}
   else if(a==='gotoline'){ui.selLine=id;ui.tab='lines';}
-  else if(a==='shift'){if(S.career&&careerLevel()>=SHIFTS[d.k].lv)S.career.shift=d.k;}
+  else if(a==='shift'){if(S.career){if(careerLevel()>=SHIFTS[d.k].lv)S.career.shift=d.k;else say(`${SHIFTS[d.k].n} geht erst ab ${CAREER_LV[SHIFTS[d.k].lv][1]} (${CAREER_LV[SHIFTS[d.k].lv][0]} Erfahrung).`,'bad');}}
   else if(a==='ot'){if(S.career)S.career.ot=!S.career.ot;}
   else if(a==='course')startCourse();
   else if(a==='cfound')careerFound();
