@@ -145,7 +145,7 @@ textarea.save{width:100%;height:160px;background:#0b121b;color:var(--text);borde
   <div id="mapcol">
     <div id="mapwrap">
       <canvas id="cv"></canvas>
-      <div class="zoom"><button class="btn" id="zin" aria-label="Hineinzoomen">+</button><button class="btn" id="zout" aria-label="Herauszoomen">−</button><button class="btn" id="zhome" aria-label="Ganz Europa">⌂</button><button class="btn layerbtn" id="zlayer" aria-label="Kartenebene wechseln" title="Ebene: keine">◐</button></div>
+      <div class="zoom"><button class="btn" id="zin" aria-label="Hineinzoomen">+</button><button class="btn" id="zout" aria-label="Herauszoomen">−</button><button class="btn" id="zhome" aria-label="Ganz Europa">⌂</button><button class="btn layerbtn" id="zlayer" aria-label="Kartenebene wechseln" title="Ebene: keine">🗺</button></div>
       <div id="legend" hidden></div>
       <div id="hint"></div>
       <div id="tip"></div>
@@ -2348,7 +2348,7 @@ function tabCareer(){
   const lv=careerLevel(),nx=CAREER_LV[lv+1],emp=rivalById(C.emp);
   const net=careerPay()-CAREER_COST;
   const ok1=lv>=CERT.lv,ok2=C.cert,ok3=S.wealth>=CAREER_FOUND;
-  const ck=(ok,t)=>`<tr><td class="${ok?'good':'mute'}">${ok?'✓':'○'} ${t}</td></tr>`;
+  const ck=(ok,t)=>`<tr><td class="${ok?'good':'mute'}" style="text-align:left">${ok?'✓':'○'} ${t}</td></tr>`;
   let h=`<div class="card mis"><div class="row" style="margin-top:0"><b>🚌 ${careerTitle()} bei ${emp?emp.name:'?'}</b><span class="tag">Tag ${C.days+1}</span></div>
    <div class="mute small">${flagOf(C.home)} ${cname(C.home)} · Fahrer-Ruf ${Math.round(C.drep)} / 100${C.bonus?` · Lohnbonus +${Math.round(C.bonus*100)} %`:''}</div>
    <div class="row small"><span>Erfahrung ${num(C.xp,1)}${nx?` / ${nx[0]} bis ${nx[1]}`:''}</span></div>${bar(nx?C.xp/nx[0]*100:100,'var(--acc)')}
@@ -2435,6 +2435,7 @@ function updateHeader(){
 function renderCityCard(){
   const el=$('#cityCard');
   const c=ui.city&&S.owned?cityById(ui.city):null;
+  const lg=$('#legend');if(lg)lg.style.visibility=c?'hidden':'';
   if(!c){el.hidden=true;return;}
   el.hidden=false;
   const C=COUNTRIES[c.c],lic=S.lic.includes(c.c),st=S.sites.find(s=>s.city===c.id);
@@ -2727,7 +2728,7 @@ cv.addEventListener('wheel',e=>{
 $('#zin').onclick=()=>{zoomAt(view.W/2,view.H/2,1.5);};
 $('#zout').onclick=()=>{zoomAt(view.W/2,view.H/2,1/1.5);};
 $('#zhome').onclick=()=>{cam.x=MAP.w/2;cam.y=MAP.h/2;cam.k=1;};
-const LAYERS=[['none','keine','◐'],['riv','Konkurrenz','⚔'],['dem','Nachfrage','👥']];
+const LAYERS=[['none','keine','🗺'],['riv','Konkurrenz','⚔'],['dem','Nachfrage','👥']];
 function setLayer(k){
   ui.layer=k;const L=LAYERS.find(x=>x[0]===k)||LAYERS[0];
   const b=$('#zlayer');b.textContent=L[2];b.title='Ebene: '+L[1];b.setAttribute('aria-label','Kartenebene: '+L[1]+' (wechseln)');
