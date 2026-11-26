@@ -107,12 +107,22 @@ hr{border:0;border-top:1px solid var(--line);margin:8px 0}
 .zoom .btn{width:36px;height:36px;padding:0;font-size:18px;line-height:1}
 #cityCard{position:absolute;left:10px;bottom:10px;z-index:6;background:#0b121bf2;border:1px solid var(--acc);border-radius:12px;padding:10px 12px;max-width:min(340px,calc(100% - 70px))}
 table.small td{padding:1px 0}
+#log{cursor:pointer}
+.layerbtn{font-size:13px!important}
+#legend{position:absolute;right:10px;bottom:10px;z-index:5;background:#0b121bdd;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:11px;color:var(--mute);max-width:200px}
+.mis{border-color:var(--acc)}
+.mis .step{font-weight:700;color:var(--acc)}
+textarea.save{width:100%;height:160px;background:#0b121b;color:var(--text);border:1px solid var(--line);border-radius:8px;font:11px/1.3 ui-monospace,monospace;padding:6px;resize:vertical}
+.fulllog{max-height:60vh;overflow:auto;font-size:12px}
+.fulllog div{padding:2px 0;border-bottom:1px solid #1f2d3d}
+.tcard{border-color:#8a6cff}
+.scroll-x{overflow-x:auto}
 @media(max-width:860px){canvas{touch-action:none}}
 </style>
 </head>
 <body>
 <header>
-  <h1>🚌 Bus-Imperium Europa <small style="font-weight:400;color:var(--mute);font-size:10px">v9</small></h1>
+  <h1>🚌 Bus-Imperium Europa <small style="font-weight:400;color:var(--mute);font-size:10px">v10</small></h1>
   <div class="stat"><small>Kasse</small><b id="hCash">–</b></div>
   <div class="stat"><small>Unternehmenswert</small><b id="hValue">–</b></div>
   <div class="stat"><small>Privat</small><b id="hWealth">–</b></div>
@@ -126,6 +136,7 @@ table.small td{padding:1px 0}
     <button data-s="1">1×</button>
     <button data-s="2">2×</button>
     <button data-s="5">5×</button>
+    <button data-s="10">10×</button>
   </div>
   <button class="btn" id="bHelp" title="Anleitung">?</button>
   <button class="btn" id="bNew" title="Neues Spiel">↺</button>
@@ -134,7 +145,8 @@ table.small td{padding:1px 0}
   <div id="mapcol">
     <div id="mapwrap">
       <canvas id="cv"></canvas>
-      <div class="zoom"><button class="btn" id="zin" aria-label="Hineinzoomen">+</button><button class="btn" id="zout" aria-label="Herauszoomen">−</button><button class="btn" id="zhome" aria-label="Ganz Europa">⌂</button></div>
+      <div class="zoom"><button class="btn" id="zin" aria-label="Hineinzoomen">+</button><button class="btn" id="zout" aria-label="Herauszoomen">−</button><button class="btn" id="zhome" aria-label="Ganz Europa">⌂</button><button class="btn layerbtn" id="zlayer" aria-label="Kartenebene wechseln" title="Ebene: keine">◐</button></div>
+      <div id="legend" hidden></div>
       <div id="hint"></div>
       <div id="tip"></div>
       <div id="cityCard" hidden></div>
@@ -150,7 +162,9 @@ table.small td{padding:1px 0}
       <button data-tab="tech">Technik</button>
       <button data-tab="market">Markt</button>
       <button data-tab="firm">Firma</button>
+      <button data-tab="stats">Statistik</button>
       <button data-tab="wealth">Vermögen</button>
+      <button data-tab="career" hidden>Karriere</button>
       <button data-tab="nocomp" hidden>Unternehmen</button>
     </div>
     <div id="panel"></div>
@@ -251,11 +265,11 @@ const TECH={
  planung:{n:'Linienplanung (Software)',icon:'🗺',base:30000,desc:'3 % weniger Spritverbrauch je Stufe. Ab Stufe 1: Linienvorschläge mit Gewinnprognose.'},
  ertrag:{n:'Ertragsmanagement',icon:'📈',base:45000,desc:'+2,5 % Ticketeinnahmen je Stufe. Ab Stufe 1: Auto-Preis pro Linie.'},
  app:{n:'Buchungs-App',icon:'📱',base:35000,desc:'+4 % Nachfrage je Stufe.'},
- telematik:{n:'Fahrzeug-Telematik',icon:'📡',base:40000,desc:'6 % weniger Pannen, 4 % weniger Verschleiß je Stufe. Ab Stufe 2: automatische Wartung.'},
+ telematik:{n:'Fahrzeug-Telematik',icon:'📡',base:40000,desc:'6 % weniger Pannen, 4 % weniger Verschleiß und günstigere Reparaturen je Stufe. Kürzere Werkstattzeit (−15 % je Stufe).'},
  ki:{n:'Wartungs-KI',icon:'🧠',base:50000,desc:'Reparaturen 5 % günstiger je Stufe.'},
  crm:{n:'Kundenbindung',icon:'💬',base:30000,desc:'Ruf +2 je Stufe, mehr Stammkunden gegen die Konkurrenz.'},
  einkauf:{n:'Einkaufsmanagement',icon:'🤝',base:60000,desc:'1 % mehr Rabatt auf Busse und Diesel je Stufe.'},
- fahrer:{n:'Fahrerprogramm',icon:'👷',base:35000,desc:'3 % niedrigere Löhne je Stufe (zufriedenere Fahrer).'},
+ fahrer:{n:'Fahrerprogramm',icon:'👷',base:35000,desc:'3 % niedrigere Löhne je Stufe und zufriedenere Fahrer (weniger Streiks).'},
 };
 const AREAS={
  hall:{n:'Bushalle',icon:'🏠',base:40000,desc:'+8 Busplätze je Stufe.'},
@@ -290,8 +304,30 @@ const RANKS=[[0,'Einzelkämpfer'],[200000,'Regionalverkehr'],[500000,'Verkehrsbe
 const MONTHS=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 const DAY_REAL=10;
 const SUBST=0.6;
+const FC_UTIL=1; // Anteil der Nachfrage, der real ankommt (kalibriert)
 const REF=0.08,PMIN=0.03,PMAX=0.20; // Referenz-Ticketpreis €/km und Grenzen
 const COSTKEYS=['fuel','toll','wage','ins','repair','depot','interest','other'];
+const COSTN={fuel:'Treibstoff & Strom',toll:'Maut',wage:'Fahrer',ins:'Versicherung',repair:'Reparaturen',depot:'Standorte',interest:'Zinsen',other:'Sonstiges'};
+const COSTC={fuel:'#ff9f5a',toll:'#c9a05a',wage:'#4da3ff',ins:'#7ee0d2',repair:'#ff6b6b',depot:'#b58cf0',interest:'#8da2b8',other:'#e8eef5'};
+const DIFF={
+ easy:{n:'Leicht',cash:180000,dem:1.12,riv:0.8,wealth:5000,note:'180.000 € Startkapital, +12 % Nachfrage, langsamere Konkurrenz'},
+ normal:{n:'Normal',cash:120000,dem:1,riv:1,wealth:3000,note:'120.000 € Startkapital, ausgewogen'},
+ hard:{n:'Schwer',cash:80000,dem:0.9,riv:1.25,wealth:2000,note:'80.000 € Startkapital, −10 % Nachfrage, stärkere Konkurrenz'},
+};
+const MAINT_OPTS=[0,30,40,50,60];
+const WAGE_OPTS=[0.85,0.95,1,1.1,1.2,1.3];
+/* Karriere (vom Fahrer zum Unternehmer) */
+const CAREER_LV=[[0,'Fahrer'],[15,'Fernfahrer'],[40,'Disponent'],[70,'Teamleiter']];
+const SHIFTS={
+ city:{n:'Stadtlinie',pay:150,fat:10,xp:1,lv:0,note:'Kurze Wege, wenig Stress'},
+ long:{n:'Fernlinie',pay:230,fat:16,xp:1.5,lv:1,note:'Besser bezahlt, anstrengender'},
+ night:{n:'Nachtfahrt',pay:270,fat:22,xp:1.3,lv:1,note:'Nachtzuschlag, sehr anstrengend'},
+ dispo:{n:'Disposition',pay:260,fat:6,xp:2,lv:2,note:'Du planst Einsätze für andere'},
+ off:{n:'Freier Tag',pay:0,fat:-40,xp:0,lv:0,note:'Erholung, kein Lohn'},
+};
+const CAREER_COST=35; // Lebenshaltung pro Tag
+const CERT={cost:3000,days:5,lv:2}; // Unternehmerschein
+const CAREER_FOUND=12000; // nötiges Privatvermögen für die Gründung
 
 /* ===================== Hilfsfunktionen ===================== */
 const $=s=>document.querySelector(s);
@@ -311,7 +347,9 @@ function hav(a,b){const R=6371,r=Math.PI/180;
 function proj(c){return{x:(c.lon-MAP.lon0)*MAP.kx,y:(MAP.lat1-c.lat)*MAP.ky};}
 CITIES.forEach(c=>Object.assign(c,proj(c)));
 const cityById=id=>CITIES.find(c=>c.id===id);
-const zero=()=>({inc:0,fuel:0,toll:0,wage:0,ins:0,repair:0,depot:0,interest:0,other:0});
+const zero=()=>({inc:0,fuel:0,toll:0,wage:0,ins:0,repair:0,depot:0,interest:0,other:0,sub:0});
+const dateOf=d=>new Date(2025,2,3+d);
+const newMonAcc=d=>{const t=dateOf(d);return Object.assign(zero(),{pax:0,days:0,m:t.getMonth(),y:t.getFullYear()});};
 const sumCosts=d=>COSTKEYS.reduce((s,k)=>s+(d[k]||0),0);
 function nearest(id,k,filter){const H=cityById(id);return CITIES.filter(c=>c.id!==id&&(!filter||filter(c))).sort((a,b)=>hav(H,a)-hav(H,b)).slice(0,k).map(c=>c.id);}
 const cname=id=>cityById(id).name;
@@ -367,17 +405,20 @@ function freshCompany(home,name){
 }
 function mkSite(city,hq,cost){return{id:nextId(),city,hq,hall:0,werk:0,tank:0,verw:0,cost,idx0:(S.landIdx&&S.landIdx[city])||1};}
 function installCompany(c){
+  if(S.career&&S.career.on)endCareer();
   Object.assign(S,c,{owned:true,fx:{},today:zero(),week:[],hist:[],negDays:0,lostToday:0,
     tank:{l:0,avg:0},litToday:0,litHist:[],fuelDeal:{bonus:0,bonusLeft:0,cool:0,lock:null},
-    partner:{pts:0,offers:[],gen:-99},demT:-99,over:false,used:[],usedGen:-99,tpl:[]});
+    partner:{pts:0,offers:[],gen:-99},demT:-99,over:false,used:[],usedGen:-99,tpl:[],
+    staff:c.staff||{wage:1,sat:65},tenders:{offers:[],next:S.day+12},months:[],monAcc:newMonAcc(S.day),autoRep:{n:0,c:0},paxMark:S.totalPax});
   ui.selLine=null;ui.selBus=null;ui.selSite=S.sites[0].id;ui.mode=null;ui.first=null;ui.city=null;ui.sugg=null;
   S.lines.forEach(L=>{L.comps=compsOf(L);});
 }
 function newState(){
   S={v:3,t:6,day:0,owned:true,wealth:0,speed:1,nid:1,log:[],ach:{},exits:[],market:[],rivals:[],
     landIdx:Object.fromEntries(CITIES.map(c=>[c.id,1])),landHist:{},inv:newInv(),
-    over:false,fuel:1.6,energy:.22,winter:false,totalPax:0,totalKm:0,fuelU:1.6,autoFill:{on:true,below:0.3,to:0.9}};
-  S.rivals=makeRivals();
+    over:false,fuel:1.6,energy:.22,winter:false,totalPax:0,totalKm:0,fuelU:1.6,autoFill:{on:true,below:0.3,to:0.9},
+    diff:'normal',maint:40,mis:{done:{},hide:false,rep:0},career:null};
+  S.rivals=makeRivals();S.rivNid=S.rivals.length+1;
   installCompany(freshCompany('HAN','Mein Busunternehmen'));
   return S;
 }
@@ -386,6 +427,20 @@ function fixSave(s){
   s.autoFill=s.autoFill||{on:true,below:0.3,to:0.9};
   s.landIdx=s.landIdx||{};CITIES.forEach(c=>{if(!s.landIdx[c.id])s.landIdx[c.id]=1;});s.landHist=s.landHist||{};
   s.inv=s.inv||newInv();s.energy=s.energy||.22;s.used=s.used||[];s.tpl=s.tpl||[];s.designs=s.designs||[];s.bought=s.bought||{};s.tech=s.tech||{};
+  // v10
+  s.log=Array.isArray(s.log)?s.log:[];
+  s.diff=DIFF[s.diff]?s.diff:'normal';
+  if(!MAINT_OPTS.includes(s.maint))s.maint=40;
+  if(!s.mis||typeof s.mis!=='object')s.mis={done:{},hide:(s.lines||[]).length>=3,silent:true,rep:0};
+  s.mis.done=s.mis.done||{};s.mis.rep=s.mis.rep||0;
+  if(s.career===undefined)s.career=null;
+  if(!s.staff||!Number.isFinite(s.staff.wage)||!Number.isFinite(s.staff.sat))s.staff={wage:1,sat:65};
+  if(!s.tenders||!Array.isArray(s.tenders.offers))s.tenders={offers:[],next:(s.day||0)+12};
+  s.months=Array.isArray(s.months)?s.months:[];
+  if(!s.monAcc)s.monAcc=newMonAcc(s.day||0);
+  s.autoRep=s.autoRep||{n:0,c:0};
+  (s.lines||[]).forEach(L=>{if(!Array.isArray(L.h30))L.h30=(L.h||[]).slice();if(L.tn===undefined)L.tn=null;});
+  if(!Number.isFinite(s.rivNid))s.rivNid=Math.max(0,...(s.rivals||[]).map(r=>r.id||0))+1;
   return s;
 }
 function load(){
@@ -393,16 +448,13 @@ function load(){
     const raw=localStorage.getItem(KEY);
     if(raw){
       const s=JSON.parse(raw);
-      if(s&&s.v===3&&!s.over){
-        const ok=[s.t,s.day,s.cash,s.rep,s.fuel].every(Number.isFinite)&&Array.isArray(s.buses)&&Array.isArray(s.lines)&&Array.isArray(s.rivals);
-        if(ok)return fixSave(s);
-      }
+      if(s&&!s.over&&validSave(s))return fixSave(s);
     }
   }catch(e){console.error(e);}
   return null;
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
-function say(msg,cls){S.log.unshift({m:msg,c:cls||''});if(S.log.length>40)S.log.pop();renderLog();}
+function say(msg,cls){S.log.unshift({m:msg,c:cls||'',d:S.day});if(S.log.length>200)S.log.length=200;renderLog();}
 
 /* ===================== Modell ===================== */
 const lineById=id=>S.lines.find(l=>l.id===id);
@@ -416,11 +468,15 @@ const sumLv=a=>S.sites.reduce((n,s)=>n+(s[a]||0),0);
 const cap=()=>4+8*sumLv('hall');
 const hasLic=cid=>S.lic.includes(cityById(cid).c);
 const areaCost=(a,lv)=>Math.round(AREAS[a].base*Math.pow(1.35,lv)/1000)*1000;
-const wageBase=()=>Math.pow(0.97,tfx('fahrer'));
+const staffWage=()=>S.staff&&S.owned?S.staff.wage:1;
+const careerLv=()=>S.career&&S.career.done?S.career.done.lvl||0:0;
+const wageBase=()=>Math.pow(0.97,tfx('fahrer'))*staffWage()*(1-0.02*careerLv());
+const satF=()=>{const v=S.staff?S.staff.sat:65;return v<50?1+(50-v)/100:1-(v-50)/250;}; // Pannen-Faktor durch Fahrerzufriedenheit
+const svcTime=()=>Math.max(2,6*Math.pow(0.85,tl('telematik'))); // Werkstattzeit in Stunden
 const busWage=(b,L)=>b.wage*wageBase()*(L?L.wm*(L.night?1.25:1):COUNTRIES[cityById(S.hq).c].wage);
 const fuelUse=()=>Math.pow(0.97,tfx('planung'));
-const repairF=()=>Math.pow(0.88,fxs(sumLv('werk')))*Math.pow(0.95,tfx('ki'));
-const breakF=()=>Math.pow(0.93,fxs(sumLv('werk')))*Math.pow(0.94,tfx('telematik'));
+const repairF=()=>Math.pow(0.88,fxs(sumLv('werk')))*Math.pow(0.95,tfx('ki'))*Math.pow(0.96,tfx('telematik'));
+const breakF=()=>Math.pow(0.93,fxs(sumLv('werk')))*Math.pow(0.94,tfx('telematik'))*satF()*(1-0.03*careerLv());
 const wearF=()=>Math.pow(0.96,tfx('telematik'));
 const tankCap=()=>20000*sumLv('tank');
 const stationDisc=()=>Math.min(0.14,0.04*fxs(sumLv('tank')));
@@ -434,7 +490,7 @@ function siteVal(x){let t=landValue(x);for(const a of Object.keys(AREAS))for(let
 const landPrice=c=>Math.round(siteCost(c)*(S.landIdx[c.id]||1)/500)*500;
 function landTrend(id){const h=S.landHist[id]||[];return h.length>1?h[h.length-1]/h[0]-1:0;}
 function lineBuses(L){return S.buses.filter(b=>b.line===L.id);}
-function lineQ(L){const bs=lineBuses(L);return clamp((bs.length?avg(bs.map(comfort)):6)+(L.svc||0),1,13);}
+function lineQ(L,q){if(q)return clamp(q+(L.svc||0),1,13);const bs=lineBuses(L);return clamp((bs.length?avg(bs.map(comfort)):6)+(L.svc||0),1,13);}
 /* Anforderungen */
 function lineReq(L){
   const A=cityById(L.a),B=cityById(L.b),r=[];
@@ -467,7 +523,7 @@ function lineGeo(a,b){
   return{dist:Math.round(hav(A,B)*1.25),intl:A.c!==B.c,fm:(CA.fuel+CB.fuel)/2,wm:w,toll:(CA.toll+CB.toll)/2,dm:(CA.dem+CB.dem)/2,cm:clamp(0.78+0.22*w,0.85,1.15)};
 }
 function lineDefaults(a,b){
-  return Object.assign({id:nextId(),a,b,rate:REF,minLoad:0.5,svc:0,night:false,auto:false,excl:0,fr:null,comps:[],wait:[0,0],revDay:0,costDay:0,h:[],pax:0,pd:0,ph:[],lost:0,D:0,share:0},lineGeo(a,b));
+  return Object.assign({id:nextId(),a,b,rate:REF,minLoad:0.5,svc:0,night:false,auto:false,excl:0,fr:null,tn:null,comps:[],wait:[0,0],revDay:0,costDay:0,h:[],h30:[],pax:0,pd:0,ph:[],lost:0,D:0,share:0},lineGeo(a,b));
 }
 function marketBase(L){
   const A=cityById(L.a),B=cityById(L.b);
@@ -500,11 +556,13 @@ function recSpec(L){
   return{cls,brand:'iveko',drive:(zoneOn(L.a)||zoneOn(L.b))?'hybrid':'diesel',
     feat:reqs.filter(k=>k!=='komfort'||!reqs.includes('liege')),color:'#4da3ff'};
 }
-function hypoOf(L,sp){const st=bStats(sp);return{n:1,seats:st.seats,speed:st.speed,ckm:busCostKm(st,L),ins:st.list*0.0004,wage:st.wage,tollF:st.tollF};}
+const maintKm=b=>b.wear*wearF()*b.list*0.0005*repairF(); // Verschleißkosten je km
+const breakKm=b=>0.0017*breakF()/(b.rel*b.rel)*350/b.speed; // erwartete Abschleppkosten je km
+function hypoOf(L,sp,n){const st=bStats(sp);return{n:n||1,seats:st.seats,speed:st.speed,ckm:busCostKm(st,L)+maintKm(st)+breakKm(st),ins:st.list*0.0004,wage:st.wage,tollF:st.tollF,q:st.cmf};}
 const techScore=()=>tfx('planung')+tfx('ertrag')+tfx('crm');
-function attrUs(L,rate,nb){return Math.pow(lineQ(L)/5,1.2)*Math.pow(REF*L.cm/rate,1.8)*(1+0.18*Math.min(4,Math.max(0,nb-1)))*(0.7+S.rep/150)*(1+0.03*techScore())*(L.night?1.1:1);}
+function attrUs(L,rate,nb,q){return Math.pow(lineQ(L,q)/5,1.2)*Math.pow(REF*L.cm/rate,1.8)*(1+0.18*Math.min(4,Math.max(0,nb-1)))*(0.7+S.rep/150)*(1+0.03*techScore())*(L.night?1.1:1);}
 function attrComp(c){return Math.pow(c.q/5,1.2)*Math.pow(c.ref/c.price,1.8)*c.s*(1+0.03*c.tech);}
-function shareAt(L,rate,nb){const a=attrUs(L,rate,nb);const C=SUBST+L.comps.reduce((s,c)=>s+attrComp(c),0);return a/(a+C);}
+function shareAt(L,rate,nb,q){const a=attrUs(L,rate,nb,q);const C=SUBST+L.comps.reduce((s,c)=>s+attrComp(c),0);return a/(a+C);}
 function boosts(L){
   let m=1;
   if(S.fx.fest>0&&(S.fx.festCity===L.a||S.fx.festCity===L.b))m*=1.8;
@@ -513,11 +571,24 @@ function boosts(L){
   if(S.fx.border>0&&L.intl)m*=0.85;
   m*=1+0.04*tfx('app');
   if(L.night)m*=1.25;
+  m*=seasonLine(L)*DIFF[S.diff||'normal'].dem;
   let sb=0;
   for(const s of S.sites)if(s.city===L.a||s.city===L.b)sb=Math.max(sb,(s.hq?0.12:0.08)+Math.min(0.3,0.03*s.verw));
   return m*(1+sb);
 }
-function demandAt(L,rate,nb){return marketBase(L)*shareAt(L,rate,nb)*boosts(L);}
+/* Saison: Touristenziele im Sommer stärker, im Winter schwächer; Großstädte im Dezember */
+let seasonC={day:-1,m:0};
+function curMon(){if(seasonC.day!==S.day){seasonC={day:S.day,m:dateOf(S.day).getMonth()};}return seasonC.m;}
+function seasonCity(c,m){
+  if(m===undefined)m=curMon();
+  let f=1;
+  if(c.t){if(m>=5&&m<=7)f*=m===6?1.3:1.22;else if(m<=1)f*=0.8;else if(m===11)f*=0.9;}
+  if(c.pop>=1500&&m===11)f*=1.08;
+  return f;
+}
+function seasonLine(L){return (seasonCity(cityById(L.a))+seasonCity(cityById(L.b)))/2;}
+function seasonTxt(c){const f=seasonCity(c);return Math.abs(f-1)<0.005?'':`${f>1?'☀ Saison':'☁ Nebensaison'} ${f>1?'+':'−'}${Math.round(Math.abs(f-1)*100)} %`;}
+function demandAt(L,rate,nb,q){return marketBase(L)*shareAt(L,rate,nb,q)*boosts(L);}
 function demand(L){return L.fr?marketBase(L)*0.8*boosts(L):demandAt(L,L.rate,lineBuses(L).length);}
 function regionShare(id){
   let d=0,m=0;
@@ -558,8 +629,8 @@ function ranking(){
 const myRank=()=>ranking().findIndex(r=>r.me)+1;
 function earn(a,L){S.cash+=a;S.today.inc+=a;if(L)L.revDay+=a;}
 function spend(cat,a,L){S.cash-=a;S.today[cat]=(S.today[cat]||0)+a;if(L)L.costDay+=a;}
-function assign(b,L){b.line=L.id;b.state='wait';b.t=0;b.waited=0;b.load=0;b.dir=lineBuses(L).length%2;}
-function unassign(b){b.line=null;b.state='depot';b.t=0;b.load=0;}
+function assign(b,L){b.dir=lineBuses(L).length%2;b.line=L.id;b.state='wait';b.t=0;b.waited=0;b.load=0;if(S)S.demT=-99;}
+function unassign(b){b.line=null;b.state='depot';b.t=0;b.load=0;if(S)S.demT=-99;}
 function busPos(b){
   const L=lineById(b.line);if(!L)return null;
   const A=cityById(L.a),B=cityById(L.b);
@@ -570,22 +641,22 @@ function busPos(b){
 function busAvg(L,hyp){
   if(hyp)return hyp;
   const bs=lineBuses(L);
-  if(!bs.length)return{n:0,seats:50,speed:62,ckm:0.27*S.fuelU*L.fm,ins:45,wage:130,tollF:.9};
-  return{wage:avg(bs.map(b=>b.wage)),tollF:avg(bs.map(b=>b.tollF)),n:bs.length,seats:avg(bs.map(b=>b.seats)),speed:avg(bs.map(b=>b.speed)),ckm:avg(bs.map(b=>busCostKm(b,L))),ins:avg(bs.map(b=>b.list*0.0004))};
+  if(!bs.length)return hypoOf(L,recSpec(L)); // Beispielbus: der empfohlene Bus für diese Linie
+  return{wage:avg(bs.map(b=>b.wage)),tollF:avg(bs.map(b=>b.tollF)),n:bs.length,seats:avg(bs.map(b=>b.seats)),speed:avg(bs.map(b=>b.speed)),ckm:avg(bs.map(b=>busCostKm(b,L)+maintKm(b)+breakKm(b))),ins:avg(bs.map(b=>b.list*0.0004)),q:null};
 }
 function forecast(L,rate,hyp){
   const a=busAvg(L,hyp),nb=Math.max(1,a.n);
-  const D=demandAt(L,rate,nb);
+  const D=demandAt(L,rate,nb,a.q);
   const turn=1.5+(L.intl?1:0);
-  const trips=24/(L.dist/a.speed+turn);
-  const served=Math.min(D,nb*a.seats*0.9*trips);
+  const trips=24/(L.dist/(a.speed*(S.winter?0.93:1))+turn);
+  const served=Math.min(D*FC_UTIL,nb*a.seats*0.9*trips);
   const prem=(1+0.025*tfx('ertrag'))*(L.night?1.1:1);
   const rev=served*L.dist*rate*prem;
   const need=Math.max(0.45,L.minLoad);
   const km=Math.min(nb*a.speed*24*0.85,served/(a.seats*need)*L.dist);
   const run=km*(a.ckm+L.toll*a.tollF);
   const fixed=nb*(a.wage*wageBase()*L.wm*(L.night?1.25:1)+a.ins+[0,25,60][L.svc||0]);
-  return{D,served,rev,cost:run+fixed,profit:rev-run-fixed,share:shareAt(L,rate,nb),nb};
+  return{D,served,rev,cost:run+fixed,profit:rev-run-fixed,share:shareAt(L,rate,nb,a.q),nb};
 }
 function optimalRate(L,step,hyp){
   let best=REF,bp=-1e12;
@@ -604,11 +675,12 @@ function stepOps(dt){
   S.fuelU=fuelUnit();
   for(const k of ['fuelM','snow','strike','ad','fest','econ','border','evsub'])if(S.fx[k]>0)S.fx[k]-=dt/24;
   if(S.t-S.demT>=0.5){
-    for(const L of S.lines){L.D=demand(L);L.share=L.fr?0:shareAt(L,L.rate,lineBuses(L).length);}
+    for(const L of S.lines){L.nb=lineBuses(L).length;L.D=demand(L);L.share=L.fr?0:shareAt(L,L.rate,L.nb);}
     S.demT=S.t;
   }
   for(const L of S.lines){
     if(L.fr)continue;
+    if(!L.nb){L.wait[0]=0;L.wait[1]=0;continue;} // ohne Bus kein Angebot: niemand wartet, kein Rufverlust
     const capEnd=Math.max(12,L.D*1.2)/2;
     for(let i=0;i<2;i++){
       L.wait[i]+=L.D/2*dt/24;
@@ -631,9 +703,9 @@ function stepBus(b,dt){
         const take=Math.min(L.wait[b.dir],b.seats-b.load);
         if(take>0){L.wait[b.dir]-=take;b.load+=take;earn(take*L.dist*L.rate*(1+0.025*tfx('ertrag'))*(L.night?1.1:1),L);L.pax+=take;L.pd+=take;}
       }
-      if(tl('telematik')>=2&&b.cond<35){
+      if(S.maint>0&&b.cond<S.maint){
         const c=repairCost(b);
-        if(S.cash>c){spend('repair',c,L);b.cond=100;b.state='service';b.left=6;say(`Bus #${b.id} automatisch gewartet (${eur(c)}).`);break;}
+        if(S.cash>c+2000){spend('repair',c,L);b.cond=100;b.state='service';b.left=svcTime();S.autoRep.n++;S.autoRep.c+=c;S.mis.rep++;break;}
       }
       let ready;
       const turn=(L.intl?1:0.5)+(b.drive==='electric'?0.75:0);
@@ -688,7 +760,8 @@ function dayEnd(){
   S.winter=mon===11||mon===0||mon===1;
   updateRivals();
   updateWorld();
-  if(!S.owned)return;
+  if(!S.owned){if(S.career&&S.career.on)careerDay();return;}
+  staffDay();
   // Umweltzonen
   for(const [id,d] of Object.entries(ZONES)){
     if(S.day===d-30&&d>30)say(`🌱 In ${cname(id)} gilt in 30 Tagen eine Umweltzone: Diesel-Busse dürfen dann nicht mehr hinein.`,'bad');
@@ -710,8 +783,11 @@ function dayEnd(){
   if(fd.cool>0)fd.cool--;
   autoFuel();
   if(fd.lock){fd.lock.left--;if(fd.lock.left<=0){fd.lock=null;say('⛽ Dein Festpreis-Vertrag für Diesel ist ausgelaufen.');}}
+  tendersDay();
+  if(S.autoRep.n){say(`🛠 Automatische Wartung heute: ${S.autoRep.n} Bus${S.autoRep.n>1?'se':''} für ${eur(S.autoRep.c)}.`);S.autoRep={n:0,c:0};}
   for(const L of S.lines){
     L.h.push(L.revDay-L.costDay);if(L.h.length>7)L.h.shift();
+    if(!L.h30)L.h30=[];L.h30.push(L.revDay-L.costDay);if(L.h30.length>30)L.h30.shift();
     L.ph.push(L.pd);if(L.ph.length>7)L.ph.shift();
     L.revDay=0;L.costDay=0;L.pd=0;
     if(L.excl>0)L.excl--;
@@ -732,13 +808,14 @@ function dayEnd(){
     const cAvg=avg(act.map(comfort));
     const condAvg=avg(act.map(b=>b.cond));
     const rr=avg(free.map(L=>L.rate/(L.comps.length?avg(L.comps.map(c=>c.price)):REF*L.cm)))||1;
-    const target=35+cAvg*5+2*tfx('crm')+prestigeBonus()-clamp(lostR*40,0,25)-(condAvg<50?(50-condAvg)*0.4:0)-Math.max(0,rr-1.2)*20;
+    const target=35+cAvg*5+2*tfx('crm')+prestigeBonus()+(S.staff.sat-60)*0.08+careerLv()-clamp(lostR*40,0,25)-(condAvg<50?(50-condAvg)*0.4:0)-Math.max(0,rr-1.2)*20;
     S.rep=clamp(S.rep+(clamp(target,5,100)-S.rep)*0.06,5,100);
   }
   S.lostToday=0;
   S.fuel=clamp(S.fuel+(1.6-S.fuel)*0.05+rnd(-0.08,0.08),1.2,2.4);
   S.energy=clamp(S.energy+(0.22-S.energy)*0.05+rnd(-0.01,0.01),0.15,0.35);
   S.week.push(S.today);if(S.week.length>7)S.week.shift();
+  monthDay();
   S.hist.push(Math.round(companyValue()));if(S.hist.length>400)S.hist.shift();
   S.today=zero();
   if(S.day%7===0)for(const L of S.lines)L.lost=0;
@@ -747,9 +824,90 @@ function dayEnd(){
   S.negDays=S.cash<-25000?S.negDays+1:0;
   if(S.negDays===1)say('⚠ Kasse stark im Minus! Verkaufe Busse oder nimm einen Kredit auf.','bad');
   rollEvent();
-  checkAch();
+  checkAch();checkMissions();
   if(S.negDays>=10&&!S.over){S.over=true;showOver();}
   if(S.day%5===0)save();
+}
+/* Monatsberichte */
+function monthDay(){
+  const A=S.monAcc,T=S.today;
+  for(const k of ['inc','sub',...COSTKEYS])A[k]=(A[k]||0)+(T[k]||0);
+  if(!Number.isFinite(S.paxMark))S.paxMark=S.totalPax;
+  A.pax+=S.totalPax-S.paxMark;S.paxMark=S.totalPax;A.days++;
+  if(dateOf(S.day).getMonth()!==A.m){
+    S.months.push(A);if(S.months.length>24)S.months.shift();
+    S.monAcc=newMonAcc(S.day);
+    const p=A.inc-sumCosts(A);
+    say(`📊 Monatsbericht ${MONTHS[A.m]} ${A.y}: Gewinn ${eur(p)} (Reiter Statistik).`,p>=0?'good':'bad');
+  }
+}
+/* Personal */
+const staffTarget=()=>clamp(62+(S.staff.wage-1)*160+3*tfx('fahrer')+2*careerLv(),5,100);
+function staffDay(){const st=S.staff;st.sat=clamp(st.sat+(staffTarget()-st.sat)*0.04,0,100);}
+const strikeMult=()=>{const v=S.staff.sat;return v<50?1+(50-v)/12:v>70?0.35:1;};
+/* Öffentliche Ausschreibungen */
+const pairKey=(a,b)=>a<b?a+'-'+b:b+'-'+a;
+const lineOnPair=(a,b)=>S.lines.find(l=>(l.a===a&&l.b===b)||(l.a===b&&l.b===a));
+function genTenders(){
+  const T=S.tenders;T.next=S.day+Math.round(rnd(20,30));
+  const lic=CITIES.filter(c=>S.lic.includes(c.c)),pairs=[];
+  const taken=new Set(T.offers.map(o=>pairKey(o.a,o.b)));
+  for(let i=0;i<lic.length;i++)for(let j=i+1;j<lic.length;j++){
+    const a=lic[i].id,b=lic[j].id,L=lineOnPair(a,b);
+    if(taken.has(pairKey(a,b))||(L&&(L.fr||L.tn)))continue;
+    const g=lineGeo(a,b);
+    if(g.dist<50||g.dist>380)continue;
+    pairs.push({a,b,g});
+  }
+  if(!pairs.length)return;
+  pairs.sort(()=>Math.random()-0.5);
+  const n=Math.min(pairs.length,3-T.offers.length,1+(Math.random()<0.6?1:0)+(Math.random()<0.3?1:0));
+  for(const p of pairs.slice(0,Math.max(0,n))){
+    const mb=p.g.dist<120?1+(Math.random()<0.3?1:0):1+Math.floor(rnd(0,3));
+    const sub=Math.round(mb*(60+p.g.dist*0.5)*p.g.wm*rnd(0.85,1.15)/10)*10;
+    T.offers.push({id:nextId(),a:p.a,b:p.b,dist:p.g.dist,minBuses:mb,sub,term:Math.round(rnd(60,150)/10)*10,dl:S.day+8});
+  }
+  if(n>0)say(`🏛 Neue öffentliche Ausschreibung${n>1?'en':''} im Reiter Markt.`);
+}
+function acceptTender(id){
+  const T=S.tenders,o=T.offers.find(x=>x.id===id);if(!o)return;
+  if(!hasLic(o.a)||!hasLic(o.b))return say('Für diese Ausschreibung brauchst du beide Lizenzen.','bad');
+  let L=lineOnPair(o.a,o.b);
+  if(L&&(L.fr||L.tn))return say('Auf dieser Strecke läuft schon ein Vertrag.','bad');
+  if(!L){L=lineDefaults(o.a,o.b);S.lines.push(L);L.comps=compsOf(L);L.rate=Math.round(optimalRate(L,1)*200)/200;}
+  L.tn={sub:o.sub,minBuses:o.minBuses,left:o.term,term:o.term,grace:4,miss:0,paid:0};
+  T.offers=T.offers.filter(x=>x!==o);
+  ui.selLine=L.id;ui.tab='lines';S.demT=-99;
+  say(`🏛 Ausschreibung gewonnen: ${lname(L)}. ${eur(o.sub)} Zuschuss pro Tag, wenn mindestens ${o.minBuses} passende${o.minBuses>1?'':'r'} Bus${o.minBuses>1?'se':''} fahren. 4 Tage Anlaufzeit.`,'good');
+}
+const tenderOk=L=>lineBuses(L).filter(b=>b.state!=='charter'&&!busMeets(b,L).length).length;
+function tendersDay(){
+  const T=S.tenders;
+  for(const L of S.lines){
+    const t=L.tn;if(!t)continue;
+    t.left--;
+    if(tenderOk(L)>=t.minBuses){earn(t.sub,L);S.today.sub+=t.sub;t.paid+=t.sub;t.miss=0;}
+    else if(t.grace>0)t.grace--;
+    else{
+      const pen=Math.round(t.sub*0.6);spend('other',pen,L);S.rep=Math.max(5,S.rep-0.4);t.miss++;
+      if(t.miss===1||t.miss%3===0)say(`⚠ Ausschreibung ${lname(L)}: zu wenige passende Busse (${tenderOk(L)}/${t.minBuses}). Strafe ${eur(pen)} pro Tag.`,'bad');
+      if(t.miss>=7){spend('other',t.sub*5,L);S.rep=Math.max(5,S.rep-5);L.tn=null;say(`🏛 Vertrag ${lname(L)} entzogen: Strafe ${eur(t.sub*5)}, Ruf −5.`,'bad');continue;}
+    }
+    if(t.left<=0){L.tn=null;S.rep=Math.min(100,S.rep+2);say(`🏛 Ausschreibung ${lname(L)} erfüllt (${eur(t.paid)} Zuschuss). Ruf +2. Die Linie läuft normal weiter.`,'good');}
+  }
+  for(const o of T.offers.slice()){
+    if(o.dl>S.day)continue;
+    T.offers=T.offers.filter(x=>x!==o);
+    const A=cityById(o.a),B=cityById(o.b);
+    const dist=r=>Math.min(...r.cities.map(id=>Math.min(hav(cityById(id),A),hav(cityById(id),B))));
+    const r=S.rivals.filter(x=>x.alive&&!x.net).sort((x,y)=>dist(x)-dist(y))[0];
+    if(!r)continue;
+    r.value+=o.sub*o.term*0.12;
+    for(const c of [o.a,o.b])if(!r.cities.includes(c))r.cities.push(c);
+    const L=lineOnPair(o.a,o.b);if(L&&!L.fr){L.comps=compsOf(L);S.demT=-99;}
+    say(`🏛 Ausschreibung ${cname(o.a)} – ${cname(o.b)} ging an ${r.name}.`,'bad');
+  }
+  if(S.day>=T.next)genTenders();
 }
 /* Nachahmer: Rivalen kopieren profitable Linien */
 function copycats(){
@@ -773,7 +931,7 @@ function updateRivals(){
   for(const r of S.rivals){
     if(!r.alive)continue;
     const sh=S.owned?regionShare(r.home):0;
-    const P=r.fleet*180*(r.eff||0.6)*(1+0.05*Math.min(10,r.tech))*(1-Math.min(0.6,sh*0.8));
+    const P=r.fleet*180*(r.eff||0.6)*(1+0.05*Math.min(10,r.tech))*(1-Math.min(0.6,sh*0.8))*DIFF[S.diff||'normal'].riv;
     const sat=Math.pow(1+r.value/6e6,-0.7);
     r.value=Math.max(55000,r.value+P*0.8*sat+r.value*rnd(-0.0012,0.0012));
     r.fleet=Math.max(2,Math.round(r.value/55000));
@@ -809,7 +967,8 @@ function updateRivals(){
   // Neugründungen halten den Markt lebendig
   if(alive.length<16||(S.day%90===0&&Math.random()<0.5)){
     const c=pick(CITIES);
-    const r=mkRival(Math.max(...S.rivals.map(x=>x.id))+1,pick(NEW_RIVAL_NAMES)+' '+pick(['GmbH','S.A.','S.r.l.','B.V.']),c.id,false);
+    if(!Number.isFinite(S.rivNid))S.rivNid=Math.max(0,...S.rivals.map(x=>x.id))+1;
+    const r=mkRival(S.rivNid++,pick(NEW_RIVAL_NAMES)+' '+pick(['GmbH','S.A.','S.r.l.','B.V.']),c.id,false);
     S.rivals.push(r);
     if(S.owned)say(`🆕 Neuer Anbieter am Markt: ${r.name} (${c.name}).`);
   }
@@ -844,6 +1003,30 @@ const ACH=[
  {id:'pax',n:'Viel los',d:'100.000 Fahrgäste befördert',t:()=>S.totalPax>=1e5},
 ];
 
+/* Erste Schritte */
+const MISSIONS=[
+ {id:'line',n:'Erste Linie anlegen',hint:'Reiter Linien → „Neue Linie“, dann zwei Städte auf der Karte antippen. Kurz (unter 120 km) passt zum Kleinbus.',r:2000,t:()=>S.lines.length>=1},
+ {id:'assign',n:'Ersten Bus einsetzen',hint:'Wähle deine Linie und tippe „+ Bus“. Fehlt Ausstattung, hilft „Passenden Bus kaufen“.',r:3000,t:()=>S.buses.some(b=>b.line)},
+ {id:'pax',n:'1.000 Fahrgäste befördern',hint:'Lass die Zeit laufen (oben 2× oder 5×). Ein guter Preis bringt mehr Fahrgäste.',r:5000,t:()=>S.totalPax>=1000},
+ {id:'bus2',n:'Einen zweiten Bus kaufen',hint:'Reiter Flotte → Kaufen oder Gebraucht. Ein zweiter Bus auf einer vollen Linie holt verlorene Fahrgäste.',r:5000,t:()=>S.buses.length>=2},
+ {id:'rep',n:'Ersten Bus warten',hint:'Busse verschleißen. Repariere einen Bus (Flotte → Bus antippen) oder lass die automatische Wartung arbeiten.',r:3000,t:()=>S.mis.rep>=1},
+ {id:'lic2',n:'Zweite Länderlizenz kaufen',hint:'Reiter Markt → Länder & Lizenzen. Nachbarländer mit niedrigen Löhnen sind günstig.',r:8000,t:()=>S.lic.length>=2},
+ {id:'tech',n:'Erste Technik-Stufe',hint:'Reiter Technik. Die Linienplanung zeigt dir danach gute Linien mit Gewinnprognose.',r:6000,t:()=>Object.values(S.tech).some(v=>v>=1)},
+ {id:'site',n:'Standort ausbauen',hint:'Reiter Standorte → Bushalle, Werkstatt, Tankanlage oder Verwaltung ausbauen.',r:6000,t:()=>S.sites.some(x=>x.hall+x.werk+x.tank+x.verw>0)},
+ {id:'intl',n:'Erste internationale Linie',hint:'Mit zwei Lizenzen kannst du über die Grenze fahren. Internationale Linien brauchen etwas mehr Wendezeit.',r:8000,t:()=>S.lines.some(L=>L.intl)},
+ {id:'v250',n:'250.000 € Unternehmenswert',hint:'Wachse weiter: mehr Busse auf gute Linien, Verluste abstellen.',r:15000,t:()=>companyValue()>=250000},
+];
+function checkMissions(){
+  if(!S||!S.owned||!S.mis)return;
+  const M=S.mis,silent=M.silent;
+  for(const m of MISSIONS){
+    if(M.done[m.id]!==undefined||!m.t())continue;
+    M.done[m.id]=S.day;
+    if(!silent){earn(m.r);say(`✅ Erste Schritte: ${m.n} – Belohnung ${eur(m.r)}.`,'good');}
+  }
+  M.silent=false;
+}
+const openMission=()=>MISSIONS.find(m=>S.mis.done[m.id]===undefined);
 /* ===================== Partnerprogramm ===================== */
 function partnerLevel(){let l=1;FR_LEVELS.forEach((v,i)=>{if(S.partner.pts>=v)l=i+1;});return l;}
 function genPartnerOffers(){
@@ -892,9 +1075,17 @@ function endContract(L){
 }
 
 /* ===================== Ereignisse ===================== */
+function strikeEvent(){
+  const cost=Math.max(2500,300*S.buses.length);
+  modal('✊ Fahrerstreik!',`Die Fahrer fordern höhere Löhne (Zufriedenheit ${Math.round(S.staff.sat)} %). Zahlst du einen Bonus oder lässt du es auf einen Streik ankommen?<div class="mute small" style="margin-top:6px">Tipp: Ein höheres Lohnniveau im Reiter Firma macht Streiks seltener.</div>`,[
+    {label:`Bonus zahlen (${eur(cost)})`,cls:'pri',fn:()=>{spend('other',cost);S.staff.sat=Math.min(100,S.staff.sat+8);say('Streik abgewendet. Die Fahrer sind etwas zufriedener.');}},
+    {label:'Hart bleiben',fn:()=>{S.fx.strike=3;S.rep=Math.max(5,S.rep-4);S.staff.sat=Math.max(0,S.staff.sat-10);say('✊ Streik! Keine Abfahrten für 3 Tage.','bad');}}]);
+}
 function rollEvent(){
-  if(S.day<8||ui.modalOpen||Math.random()>0.09)return;
-  const ev=pick(['oil','fest','snow','strike','charter','sub','comp','comp','entry','boom','crisis','border','evsub']);
+  if(S.day<8||ui.modalOpen)return;
+  if(S.buses.length>=2&&Math.random()<0.0065*strikeMult()){strikeEvent();return;}
+  if(Math.random()>0.09)return;
+  const ev=pick(['oil','fest','snow','charter','sub','comp','comp','entry','boom','crisis','border','evsub']);
   const lic=CITIES.filter(c=>S.lic.includes(c.c));
   if(ev==='oil'){S.fx.fuelM=20;say('⛽ Ölpreis-Schock: Diesel ist 20 Tage lang 40 % teurer.','bad');}
   else if(ev==='fest'){const c=pick(lic);S.fx.fest=6;S.fx.festCity=c.id;S.demT=-99;say(`🎉 Großveranstaltung in ${c.name}! 6 Tage lang mehr Nachfrage.`,'good');}
@@ -904,12 +1095,6 @@ function rollEvent(){
   else if(ev==='border'){S.fx.border=10;S.demT=-99;say('🛂 Verschärfte Grenzkontrollen: 10 Tage lang weniger Fahrgäste auf internationalen Linien.','bad');}
   else if(ev==='evsub'){S.fx.evsub=30;say('🔋 EU-Förderprogramm: Elektrobusse sind 30 Tage lang 20 % günstiger.','good');}
   else if(ev==='sub'){if(S.rep>=40){earn(8000);say('🏛 Förderprogramm für ÖPNV: +'+eur(8000)+' Zuschuss.','good');}}
-  else if(ev==='strike'&&S.buses.length>=2){
-    const cost=Math.max(2500,300*S.buses.length);
-    modal('✊ Fahrerstreik!','Die Fahrer fordern höhere Löhne. Zahlst du einen Bonus oder lässt du es auf einen Streik ankommen?',[
-      {label:`Bonus zahlen (${eur(cost)})`,cls:'pri',fn:()=>{spend('other',cost);say('Streik abgewendet.');}},
-      {label:'Hart bleiben',fn:()=>{S.fx.strike=3;S.rep=Math.max(5,S.rep-4);say('✊ Streik! Keine Abfahrten für 3 Tage.','bad');}}]);
-  }
   else if(ev==='charter'){
     const cand=S.buses.filter(b=>b.seats>=40&&['depot','wait'].includes(b.state));
     if(!cand.length)return;
@@ -924,6 +1109,7 @@ function rollEvent(){
     const L=pick(ls),c0=L.comps.filter(x=>(S.inv.stakes[x.r]||0)<0.25);
     if(!c0.length)return;
     const c=pick(c0),r=rivalById(c.r);
+    if(!r||!r.alive)return;
     modal('⚔ Preisaktion',`${r.name} startet auf ${lname(L)} eine Preisaktion (−25 %) für 15 Tage. Ohne Reaktion verlierst du Fahrgäste an den Konkurrenten.`,[
       {label:'Eigenen Preis um 15 % senken',cls:'pri',fn:()=>{r.war=15;L.rate=clamp(L.rate*0.85,PMIN,PMAX);L.comps=compsOf(L);S.demT=-99;say(`Preis auf ${lname(L)} gesenkt.`);}},
       {label:'Ignorieren',fn:()=>{r.war=15;L.comps=compsOf(L);S.demT=-99;say(`${r.name} unterbietet dich auf ${lname(L)}.`,'bad');}}]);
@@ -935,7 +1121,7 @@ function rollEvent(){
     const have=new Set(L.comps.map(c=>c.r));
     const r=pick(S.rivals.filter(x=>x.alive&&!have.has(x.id)));
     if(!r)return;
-    r.cities.push(pick([L.a,L.b]));L.comps=compsOf(L);S.demT=-99;
+    const nc=pick([L.a,L.b]);if(!r.cities.includes(nc))r.cities.push(nc);L.comps=compsOf(L);S.demT=-99;
     say(`⚔ ${r.name} fährt jetzt auch auf ${lname(L)}.`,'bad');
   }
 }
@@ -1027,8 +1213,8 @@ function repairBus(id){
   if(b.state==='move')return say('Bus ist unterwegs – Reparatur erst am Endpunkt möglich.','bad');
   const c=repairCost(b);
   if(S.cash<c)return say('Nicht genug Geld für die Reparatur.','bad');
-  spend('repair',c,lineById(b.line));b.cond=100;
-  if(b.state==='wait'){b.state='service';b.left=6;}
+  spend('repair',c,lineById(b.line));b.cond=100;S.mis.rep++;
+  if(b.state==='wait'){b.state='service';b.left=svcTime();}
   say(`Bus #${id} repariert (${eur(c)}).`);
 }
 function repairAll(lim){
@@ -1036,8 +1222,8 @@ function repairAll(lim){
   for(const b of S.buses){
     if(b.cond>=lim||b.state==='move')continue;
     const c=repairCost(b);if(S.cash<c)break;
-    spend('repair',c,lineById(b.line));b.cond=100;if(b.state==='wait'){b.state='service';b.left=6;}
-    n++;tot+=c;
+    spend('repair',c,lineById(b.line));b.cond=100;if(b.state==='wait'){b.state='service';b.left=svcTime();}
+    n++;tot+=c;S.mis.rep++;
   }
   say(n?`${n} Bus(se) repariert (${eur(tot)}).`:'Kein Bus zu reparieren (oder unterwegs).',n?'':'bad');
 }
@@ -1085,6 +1271,7 @@ function createLine(a,b){
 function deleteLine(id){
   const L=lineById(id);if(!L)return;
   if(L.fr){S.rep=Math.max(5,S.rep-2);spend('other',2000);say('Partnervertrag vorzeitig gekündigt: 2.000 € Strafe, Ruf −2.','bad');}
+  if(L.tn){const pen=L.tn.sub*10;S.rep=Math.max(5,S.rep-3);spend('other',pen);say(`Ausschreibung vorzeitig abgebrochen: ${eur(pen)} Strafe, Ruf −3.`,'bad');}
   S.buses.filter(b=>b.line===id).forEach(unassign);
   S.lines=S.lines.filter(l=>l!==L);
   if(ui.selLine===id)ui.selLine=null;
@@ -1160,7 +1347,7 @@ function sellSite(id){
 const takeoverPrice=r=>Math.round(r.value*1.15/1000)*1000;
 function takeover(id){
   const r=rivalById(id);if(!r||!r.alive)return;
-  if(r.net||r.value>S.cash/1.15&&false)return;
+  if(r.net)return say('Das Fernbus-Netzwerk Fernflix kann nicht übernommen werden.','bad');
   const p=takeoverPrice(r);
   if(S.cash<p)return say(`Die Übernahme kostet ${eur(p)}.`,'bad');
   if(r.value>Math.max(1e6,companyValue()*1.5))return say('Der Rivale ist zu groß für eine Übernahme.','bad');
@@ -1302,12 +1489,14 @@ function buyOffer(i){
   say(`🏢 Du hast ${o.name} übernommen! Betriebskapital: ${eur(inj)}.`,'good');
   focusCity(S.hq);save();
 }
-function foundCompany(home){
-  if(S.wealth<35000)return say('Für eine Neugründung brauchst du mindestens 35.000 €.','bad');
-  S.wealth-=25000;
+function foundCompany(home,career){
+  const minW=career?CAREER_FOUND:35000,fee=career?1500:25000;
+  if(S.wealth<minW)return say(`Für eine Neugründung brauchst du mindestens ${eur(minW)}.`,'bad');
+  S.wealth-=fee;
   const cash=Math.min(S.wealth,120000);S.wealth-=cash;
-  const c=freshCompany(home,pick(['Neue Linie','Express','Mobil','Reisen'])+' '+cname(home));
+  const c=freshCompany(home,career?'Mein Busunternehmen':pick(['Neue Linie','Express','Mobil','Reisen'])+' '+cname(home));
   c.cash=cash;
+  if(career){const lv=careerLevel();c.rep=50+3*lv;}
   installCompany(c);S.market=[];ui.tab='ov';S.speed=1;
   say(`🏢 Neugründung in ${cname(home)}. Betriebskapital: ${eur(cash)}.`,'good');
   focusCity(home);save();
@@ -1413,6 +1602,99 @@ function sellLux(id){
 }
 
 
+/* ===================== Karriere ===================== */
+function employerFor(home){
+  const H=cityById(home),al=S.rivals.filter(r=>r.alive&&!r.net);
+  return al.find(r=>r.cities.includes(home))||al.sort((a,b)=>hav(H,cityById(a.home))-hav(H,cityById(b.home)))[0]||S.rivals.find(r=>r.alive);
+}
+function startCareer(home){
+  const emp=employerFor(home);
+  Object.assign(S,{owned:false,buses:[],lines:[],sites:[],lic:[],cash:0,loan:0,fx:{},week:[],hist:[],tank:{l:0,avg:0},tech:{},designs:[],bought:{},up:{},used:[],tpl:[],hq:home,rep:50});
+  S.wealth=DIFF[S.diff||'normal'].wealth;S.market=genOffers();
+  S.career={on:true,home,emp:emp.id,xp:0,drep:50,fat:0,shift:'city',ot:false,course:0,cert:false,days:0,earned:0,bonus:0,evCool:4,done:null};
+  ui.tab='career';ui.city=null;ui.mode=null;S.speed=1;
+  say(`🚌 Du fängst als Fahrer bei ${emp.name} in ${cname(home)} an. Ziel: Erfahrung, ${eur(CAREER_FOUND)} Erspartes und der Unternehmerschein.`,'good');
+  focusCity(home);
+}
+const careerLevel=()=>{const x=S.career?S.career.xp:0;let l=0;CAREER_LV.forEach(([v],i)=>{if(x>=v)l=i;});return l;};
+const careerTitle=()=>CAREER_LV[careerLevel()][1];
+function careerPay(k){
+  const C=S.career,sh=SHIFTS[k||C.shift];
+  return sh.pay*(1+0.1*careerLevel())*(0.85+C.drep/333)*(1+C.bonus)*(C.ot&&sh.pay>0?1.4:1);
+}
+function endCareer(){
+  const C=S.career;if(!C||!C.on)return;
+  C.on=false;C.done={emp:C.emp,lvl:careerLevel(),xp:Math.round(C.xp),days:C.days,earned:Math.round(C.earned)};
+}
+function careerDay(){
+  const C=S.career;C.days++;
+  let emp=rivalById(C.emp);
+  if(!emp||!emp.alive){emp=employerFor(C.home);C.emp=emp.id;say(`Dein Arbeitgeber gibt auf. Du fährst jetzt für ${emp.name}.`);}
+  S.wealth-=CAREER_COST;
+  if(C.course>0){
+    C.course--;C.fat=Math.max(0,C.fat-12);
+    if(C.course===0){C.cert=true;say('🎓 Unternehmerschein bestanden! Du darfst jetzt ein Busunternehmen gründen.','good');}
+    return;
+  }
+  const lv0=careerLevel();
+  if(lv0<SHIFTS[C.shift].lv)C.shift='city';
+  const sh=SHIFTS[C.shift],work=sh.pay>0;
+  let pay=work?careerPay():0;
+  C.fat=clamp(C.fat-12+sh.fat+(C.ot&&work?10:0),0,100);
+  if(work&&C.fat>65&&Math.random()<(C.fat-65)/70){
+    pay*=0.5;C.drep=Math.max(0,C.drep-6);
+    say('😴 Übermüdet: Du machst Fehler, der Chef kürzt dir den Lohn und dein Ruf als Fahrer leidet. Gönn dir einen freien Tag.','bad');
+  }else if(work){C.xp+=sh.xp+(C.ot?0.5:0);C.drep=Math.min(100,C.drep+0.3);}
+  S.wealth+=pay;C.earned+=pay;
+  if(careerLevel()>lv0){
+    const lv=careerLevel();
+    say(`⭐ Beförderung: Du bist jetzt ${careerTitle()}!${lv===1?' Fernlinie und Nachtfahrt sind frei.':lv===2?' Disposition und der Unternehmerschein sind frei.':''}`,'good');
+  }
+  if(C.evCool>0)C.evCool--;
+  else if(!ui.modalOpen&&work&&Math.random()<0.12){C.evCool=4;careerEvent();}
+}
+function careerEvent(){
+  const C=S.career,emp=rivalById(C.emp);
+  const ev=pick(['complaint','breakdown','tip','training',careerLevel()>=1?'offer':'tip']);
+  if(ev==='tip'){const t=Math.round(rnd(60,150));S.wealth+=t;say(`💶 Eine Reisegruppe gibt dir ${eur(t)} Trinkgeld.`,'good');}
+  else if(ev==='complaint')modal('😠 Beschwerde','Ein Fahrgast beschwert sich bei der Zentrale über deinen Fahrstil.',[
+    {label:'Entschuldigen und erklären',cls:'pri',fn:()=>{C.drep=Math.min(100,C.drep+3);say('Die Zentrale ist zufrieden mit deiner Antwort. Fahrer-Ruf +3.','good');}},
+    {label:'Ignorieren',fn:()=>{C.drep=Math.max(0,C.drep-4);say('Die Beschwerde bleibt in deiner Akte. Fahrer-Ruf −4.','bad');}}]);
+  else if(ev==='breakdown')modal('🔧 Panne unterwegs','Dein Bus bleibt mit einem Defekt liegen. Die Fahrgäste warten.',[
+    {label:'Selbst reparieren',cls:'pri',fn:()=>{C.xp+=3;C.fat=Math.min(100,C.fat+10);say('Du bekommst den Bus wieder flott. Erfahrung +3, aber du bist müde.','good');}},
+    {label:'Werkstatt rufen',fn:()=>{S.wealth-=30;say('Die Werkstatt kommt. Die Wartezeit kostet dich 30 € Lohn.');}}]);
+  else if(ev==='training')modal('📚 Fortbildung',`${emp?emp.name:'Dein Chef'} bietet eine Fortbildung zu Fahrgastrechten und Planung an. Eigenanteil 300 €.`,[
+    {label:'Teilnehmen (300 €)',cls:'pri',fn:()=>{if(S.wealth<300)return say('Dafür fehlt dir das Geld.','bad');S.wealth-=300;C.xp+=6;say('Fortbildung abgeschlossen. Erfahrung +6.','good');}},
+    {label:'Ablehnen',fn:()=>{}}]);
+  else{
+    const al=S.rivals.filter(r=>r.alive&&!r.net&&r.id!==C.emp);
+    const r=al.length?pick(al):null;if(!r)return;
+    modal('📨 Abwerbung',`${r.name} bietet dir 10 % mehr Lohn, wenn du wechselst.`,[
+      {label:'Wechseln',cls:'pri',fn:()=>{C.emp=r.id;C.bonus=Math.min(0.3,C.bonus+0.1);C.drep=Math.max(0,C.drep-3);say(`Du fährst jetzt für ${r.name} (+10 % Lohn).`,'good');}},
+      {label:'Bleiben',fn:()=>{C.drep=Math.min(100,C.drep+4);say('Dein Chef schätzt deine Treue. Fahrer-Ruf +4.','good');}}]);
+  }
+}
+function startCourse(){
+  const C=S.career;
+  if(!C||C.cert||C.course>0)return;
+  if(careerLevel()<CERT.lv)return say(`Den Unternehmerschein kannst du ab ${CAREER_LV[CERT.lv][1]} machen.`,'bad');
+  if(S.wealth<CERT.cost)return say(`Der Kurs kostet ${eur(CERT.cost)}.`,'bad');
+  S.wealth-=CERT.cost;C.course=CERT.days;
+  say(`🎓 Kurs für den Unternehmerschein gebucht (${eur(CERT.cost)}, ${CERT.days} Tage ohne Lohn).`);
+}
+function careerFound(){
+  const C=S.career;if(!C||!C.on)return;
+  if(!C.cert)return say('Dir fehlt noch der Unternehmerschein.','bad');
+  if(S.wealth<CAREER_FOUND)return say(`Du brauchst mindestens ${eur(CAREER_FOUND)} Erspartes.`,'bad');
+  const emp=rivalById(C.emp),home=C.home;
+  foundCompany(home,true);
+  if(S.owned)say(`🚌 Du kaufst deinem ehemaligen Arbeitgeber ${emp?emp.name:''} einen gebrauchten Kleinbus ab und bist jetzt Unternehmer! Deine Erfahrung als ${CAREER_LV[S.career.done.lvl][1]} senkt dauerhaft Löhne und Pannen ein wenig.`,'good');
+}
+function skipCareer(){
+  const C=S.career;if(!C)return;
+  const home=C.home;S.career=null;S.wealth=0;
+  startIn(home);
+}
 /* ===================== Modal ===================== */
 const modalQ=[];
 function modal(title,body,btns){modalQ.push({title,body,btns});if(!ui.modalOpen)nextModal();}
@@ -1427,8 +1709,21 @@ function nextModal(){
     e.onclick=()=>{try{b.fn&&b.fn();}finally{nextModal();render();updateHeader();}};bt.appendChild(e);});
   $('#modalbg').style.display='flex';
 }
+function setDiff(k){if(DIFF[k])S.diff=k;}
+function chooseDiff(){
+  modal('Neues Spiel: Schwierigkeit',`<p>Wie schwer soll es werden?</p><table class="small">${Object.values(DIFF).map(D=>`<tr><td><b>${D.n}</b></td><td class="mute" style="text-align:left;padding-left:8px">${D.note}</td></tr>`).join('')}</table>`,
+    Object.entries(DIFF).map(([k,D])=>({label:D.n,cls:k==='normal'?'pri':'',fn:()=>{setDiff(k);chooseMode();}})));
+}
+function chooseMode(){
+  modal('Wie fängst du an?',`<p><b>🏢 Direkt als Unternehmer:</b> Du startest mit einem gebrauchten Kleinbus und ${eur(DIFF[S.diff].cash)}.</p>
+   <p><b>🚌 Als Fahrer anfangen:</b> Du fährst erst für einen Rivalen, sammelst Erfahrung und Geld, machst den Unternehmerschein und gründest dann selbst. Dauert etwa 10 Minuten, du kannst jederzeit überspringen.</p>`,
+    [{label:'🏢 Direkt als Unternehmer',cls:'pri',fn:()=>chooseHQ(startIn)},{label:'🚌 Als Fahrer anfangen',fn:()=>chooseHQ(startCareer)},{label:'← Zurück',fn:()=>chooseDiff()}]);
+}
 function chooseHQ(next){
-  modal('Wo startest du?','Du beginnst bei null: mit einem gebrauchten Kleinbus und 120.000 €. Alle Konkurrenten starten ebenfalls klein. Wähle dein Heimatland, dort bekommst du die Lizenz kostenlos.',
+  const txt=next===startIn?`Du beginnst bei null: mit einem gebrauchten Kleinbus und ${eur(DIFF[S.diff].cash)}. Alle Konkurrenten starten ebenfalls klein. Wähle dein Heimatland, dort bekommst du die Lizenz kostenlos.`
+    :next===startCareer?'In welchem Land fährst du als Fahrer? Dort gründest du später dein Unternehmen.'
+    :'Wähle das Land für dein neues Unternehmen. Dort bekommst du die Lizenz kostenlos.';
+  modal('Wo startest du?',txt,
     Object.entries(COUNTRIES).map(([c,C])=>({label:`${C.flag} ${C.n}`,cls:'pri',fn:()=>chooseCity(c,next)})));
 }
 function chooseCity(c,next){
@@ -1436,7 +1731,9 @@ function chooseCity(c,next){
     CITIES.filter(x=>x.c===c).map(x=>({label:x.name,cls:'pri',fn:()=>next(x.id)})).concat([{label:'← Zurück',fn:()=>chooseHQ(next)}]));
 }
 function startIn(id){
-  installCompany(freshCompany(id,'Mein Busunternehmen'));
+  if(S.career&&S.career.on)S.career=null;
+  const c=freshCompany(id,'Mein Busunternehmen');c.cash=DIFF[S.diff||'normal'].cash;
+  installCompany(c);
   say(`Hauptstandort ${cname(id)}. Lege jetzt deine erste Linie an.`);
   focusCity(id);
   if(!S.helped){S.helped=true;showHelp();}
@@ -1459,7 +1756,11 @@ function showOver(){
   modal('💸 Insolvenz',`Die Kasse war zu lange im Minus. Dein Unternehmen musste Insolvenz anmelden.<br>Letzter Unternehmenswert: ${eur(companyValue())} · ${S.day} Tage durchgehalten.`,
     [{label:'Neues Spiel',cls:'pri',fn:()=>restart()}]);
 }
-function restart(){localStorage.removeItem(KEY);newState();ui.tab='ov';say('Neues Spiel gestartet.');chooseHQ(startIn);}
+function restart(){
+  modalQ.length=0; // alte Ereignis-Dialoge gehören nicht ins neue Spiel
+  try{localStorage.removeItem(KEY);}catch(e){}
+  newState();ui.tab='ov';say('Neues Spiel gestartet.');chooseDiff();
+}
 
 /* ===================== Panel ===================== */
 function bar(p,c){return `<div class="bar"><i style="width:${clamp(p,0,100)}%;${c?'background:'+c:''}"></i></div>`;}
@@ -1494,14 +1795,22 @@ function tabOv(){
   if(S.fx.border>0)fx.push(`🛂 Grenzkontrollen (${Math.ceil(S.fx.border)} T)`);
   if(S.fx.evsub>0)fx.push(`🔋 E-Bus-Förderung (${Math.ceil(S.fx.evsub)} T)`);
   if(S.winter)fx.push('☃ Winter (−7 % Tempo)');
+  const mo=curMon();
+  if(mo>=5&&mo<=7)fx.push(`☀ Hauptsaison: Touristenziele +${mo===6?30:22} % Nachfrage`);
+  else if(mo<=1)fx.push('☁ Nebensaison: Touristenziele −20 % Nachfrage');
+  if(mo===11)fx.push('🎄 Dezember: Großstädte +8 %, Touristenziele −10 %');
+  if(S.staff.sat<45)fx.push(`👷 Fahrer unzufrieden (${Math.round(S.staff.sat)} %): mehr Streiks und Pannen`);
+  const tnL=S.lines.filter(L=>L.tn);
+  if(tnL.length)fx.push(`🏛 ${tnL.length} Ausschreibung${tnL.length>1?'en':''} aktiv${tnL.some(L=>tenderOk(L)<L.tn.minBuses)?' – <span class="bad">Auflage nicht erfüllt!</span>':''}`);
   for(const [id,d] of Object.entries(ZONES)){if(S.day<d&&d-S.day<=60)fx.push(`🌱 Umweltzone ${cname(id)} in ${d-S.day} T`);}
   const row=(l,k)=>`<tr><td class="mute">${l}</td><td>${eur(-sum(k))}</td></tr>`;
   const next=MILESTONES.find(m=>m>v),prev=MILESTONES.filter(m=>m<=v).pop()||0;
   const rk=myRank(),nr=S.rivals.filter(r=>r.alive).length+1;
   const top=ranking()[0];
-  return `
+  return `${missionCard()}
   <div class="card"><div class="row"><b>${S.name}</b><span class="tag">${rankOf(v)}</span></div>
-   <div class="row small"><span class="mute">Platz ${rk} von ${nr} · Hauptstandort ${flagOf(S.hq)} ${cname(S.hq)} · Tag ${S.day+1}</span></div>
+   <div class="row small"><span class="mute">Platz ${rk} von ${nr} · Hauptstandort ${flagOf(S.hq)} ${cname(S.hq)} · Tag ${S.day+1} · ${DIFF[S.diff].n}</span></div>
+   ${S.career&&S.career.done?`<div class="mute small">Früher ${CAREER_LV[S.career.done.lvl][1]} bei ${(rivalById(S.career.done.emp)||{name:'?'}).name}: Löhne −${2*S.career.done.lvl} %, Pannen −${3*S.career.done.lvl} %</div>`:''}
    ${next?`<div class="row small"><span class="mute">Nächstes Ziel</span><span>${eurK(next)}</span></div>${bar((v-prev)/(next-prev)*100)}`:'<div class="good small">Alle Meilensteine erreicht – wachse weiter!</div>'}
    ${top&&!top.me?`<div class="mute small" style="margin-top:6px">Marktführer: ${top.name} (${eurK(top.value)})</div>`:'<div class="good small" style="margin-top:6px">Du bist Marktführer!</div>'}</div>
   <div class="grid2">
@@ -1517,6 +1826,7 @@ function tabOv(){
   <h2 class="s">Finanzen (Ø pro Tag, letzte 7 Tage)</h2>
   <div class="card"><table>
    <tr><td class="mute">Einnahmen</td><td class="good">${eur(sum('inc'))}</td></tr>
+   ${sum('sub')>0?`<tr><td class="mute small">davon Zuschüsse</td><td class="small">${eur(sum('sub'))}</td></tr>`:''}
    ${row('Treibstoff & Strom','fuel')}${row('Maut','toll')}${row('Fahrer','wage')}${row('Versicherung','ins')}${row('Reparaturen','repair')}${row('Standorte','depot')}${row('Zinsen','interest')}${row('Sonstiges','other')}
   </table></div>
   <h2 class="s">Kredit (9 % p. a.)</h2>
@@ -1528,13 +1838,23 @@ function tabOv(){
     <button class="btn sm" data-act="loan" data-amt="-25000" ${S.loan<=0||S.cash<25000?'disabled':''}>−25.000 €</button>
     <button class="btn sm" data-act="loan" data-amt="all" ${S.loan<=0||S.cash<S.loan?'disabled':''}>Alles tilgen</button>
    </div><div class="mute small" style="margin-top:4px">Maximal 500.000 €.</div>
-  </div>`;
+  </div>
+  ${S.mis.hide&&openMission()?'<button class="btn sm" data-act="misshow">🧭 Erste Schritte zeigen</button>':''}`;
+}
+function missionCard(){
+  const m=openMission();
+  if(!m||S.mis.hide)return '';
+  const n=MISSIONS.filter(x=>S.mis.done[x.id]!==undefined).length;
+  return `<div class="card mis"><div class="row" style="margin-top:0"><b>🧭 Erste Schritte ${n} / ${MISSIONS.length}</b><span><button class="btn sm" data-act="misall">${ui.misAll?'Weniger':'Alle'}</button> <button class="btn sm" data-act="mishide" title="Ausblenden">✕</button></span></div>
+   <div class="step">${m.n} <span class="tag">+${eur(m.r)}</span></div><div class="small mute">${m.hint}</div>
+   ${bar(n/MISSIONS.length*100,'var(--acc)')}
+   ${ui.misAll?`<table class="small" style="margin-top:6px">${MISSIONS.map(x=>{const d=S.mis.done[x.id]!==undefined;return `<tr><td class="${d?'good':x===m?'acc':'mute'}">${d?'✓':'○'} ${x.n}</td><td class="mute">${eur(x.r)}</td></tr>`;}).join('')}</table>`:''}</div>`;
 }
 /* ----- Linien ----- */
 function compTable(L,rate){
   const nb=Math.max(1,lineBuses(L).length);
   const a=attrUs(L,rate,nb);
-  const rows=L.comps.map(c=>({name:rivalById(c.r).name,price:c.price,q:c.q,a:attrComp(c),war:rivalById(c.r).war>0,tech:c.tech}));
+  const rows=L.comps.map(c=>{const r=rivalById(c.r)||{name:'?',war:0};return{name:r.name,price:c.price,q:c.q,a:attrComp(c),war:r.war>0,tech:c.tech};});
   const C=SUBST+rows.reduce((s,r)=>s+r.a,0),tot=a+C;
   let h=`<table><tr><th>Anbieter</th><th>Preis</th><th>Qual.</th><th>Anteil</th></tr>
    <tr class="me"><td>Du</td><td>${num(rate*100,1)} ct</td><td>${num(lineQ(L),1)}</td><td>${pct(a/tot)}</td></tr>`;
@@ -1562,7 +1882,7 @@ function forecastHTML(L){
   const f=forecast(L,L.rate),opt=optimalRate(L),fo=forecast(L,opt);
   const real=lineBuses(L).length>0;
   return `<h2 class="s" style="margin-top:10px">Wettbewerb auf dieser Strecke</h2>${compTable(L,L.rate)}
-   <h2 class="s">Preisrechner${real?'':' (mit 1 Beispielbus)'}</h2>
+   <h2 class="s">Preisrechner${real?'':` (mit 1 Beispielbus: ${CLASSES[recSpec(L).cls].n})`}</h2>
    <table>
     <tr><td class="mute">Fahrgäste pro Tag</td><td>${num(f.served)} <span class="mute">von ${num(f.D)} Nachfrage</span></td></tr>
     <tr><td class="mute">Umsatz / Tag</td><td>${eur(f.rev)}</td></tr>
@@ -1570,7 +1890,7 @@ function forecastHTML(L){
     <tr><td><b>Gewinn / Tag</b></td><td><b class="${f.profit>=0?'good':'bad'}">${eur(f.profit)}</b></td></tr>
    </table>
    <div style="margin-top:6px">${curveSvg(L)}</div>
-   <div class="mute small">Weiß = dein Preis, grün = bester Preis (${num(opt*100,1)} ct/km, ${eur(fo.profit)}/Tag).</div>
+   <div class="mute small">Weiß = dein Preis, grün = bester Preis (${num(opt*100,1)} ct/km, ${eur(fo.profit)}/Tag). Kosten inkl. Verschleiß, ohne Standortmiete.${L.tn?` Zuschuss ${eur(L.tn.sub)}/Tag kommt dazu.`:''}</div>
    <button class="btn sm pri" data-act="optprice" data-id="${L.id}" style="margin-top:6px" ${Math.abs(opt-L.rate)<0.003?'disabled':''}>Besten Preis übernehmen</button>`;
 }
 const rateTxt=L=>`${num(L.rate*100,1)} ct/km · Ticket ${eur(L.rate*L.dist)}`;
@@ -1580,6 +1900,13 @@ function lineEditor(L){
   const busBox=`<div class="row" style="margin-top:8px"><span>Busse auf der Linie</span>
     <span><button class="btn sm" data-act="rembus" data-id="${L.id}" ${n?'':'disabled'}>−</button> <b>${n}</b> <button class="btn sm" data-act="addbus" data-id="${L.id}">+ Bus</button></span></div>
     <button class="btn sm" data-act="buyfor" data-id="${L.id}" style="margin-top:4px">🛒 Passenden Bus kaufen</button>`;
+  const tnBox=L.tn?(()=>{const t=L.tn,ok=tenderOk(L);return `<div class="card tcard" style="margin:8px 0 0;padding:8px 10px"><div class="row" style="margin-top:0"><b>🏛 Öffentliche Ausschreibung</b><span class="tag">${t.left} T Rest</span></div>
+     <table class="small"><tr><td class="mute">Zuschuss</td><td>${eur(t.sub)} pro Tag</td></tr>
+      <tr><td class="mute">Auflage</td><td class="${ok>=t.minBuses?'good':'bad'}">${ok} / ${t.minBuses} passende Busse</td></tr>
+      <tr><td class="mute">Bisher erhalten</td><td>${eur(t.paid)}</td></tr>
+      ${t.grace>0&&ok<t.minBuses?`<tr><td class="mute">Anlaufzeit</td><td>noch ${t.grace} T ohne Strafe</td></tr>`:''}
+      ${t.miss?`<tr><td class="mute">Verfehlt in Folge</td><td class="bad">${t.miss} / 7 Tage</td></tr>`:''}</table>
+     <div class="mute small">Fehlt die Auflage, zahlst du ${eur(Math.round(t.sub*0.6))} pro Tag Strafe und verlierst Ruf. Nach 7 Tagen wird der Vertrag entzogen.</div></div>`;})():'';
   if(L.fr){
     const f=L.fr,lvl=partnerLevel();
     return `<hr>${reqs}<div class="row" style="margin-top:6px"><span>Partnervertrag Fernflix</span><span class="tag">Stufe ${lvl}</span></div>
@@ -1593,7 +1920,7 @@ function lineEditor(L){
      <button class="btn sm danger" data-act="delline" data-id="${L.id}" style="margin-top:6px">Vertrag kündigen (2.000 € Strafe)</button>`;
   }
   const exCost=Math.round(8000+L.dist*20);
-  return `<hr>${reqs}
+  return `<hr>${reqs}${tnBox}
    <div class="row" style="margin-top:8px"><span>Ticketpreis</span><b id="rateV">${rateTxt(L)}</b></div>
    <input type="range" min="0.03" max="0.20" step="0.0025" value="${L.rate}" data-in="rate" data-id="${L.id}" aria-label="Ticketpreis">
    <div class="row" style="margin-top:8px"><span>Abfahrt ab Auslastung</span>
@@ -1607,14 +1934,14 @@ function lineEditor(L){
    </div>${busBox}
    <div id="fc">${forecastHTML(L)}</div>
    <div class="mute small" style="margin-top:6px">Fahrgäste gesamt ${num(L.pax)} · verloren (Woche) ${num(L.lost)}</div>
-   <button class="btn sm danger" data-act="delline" data-id="${L.id}" style="margin-top:6px">Linie einstellen</button>`;
+   <button class="btn sm danger" data-act="delline" data-id="${L.id}" style="margin-top:6px">Linie einstellen${L.tn?` (Strafe ${eur(L.tn.sub*10)})`:''}</button>`;
 }
 function tabLines(){
   const sel=lineById(ui.selLine);
   const flt=ui.lineFilter||'all',so=ui.lineSort||'profit';
   const prof=L=>L.h.length?avg(L.h):0;
   const loss=S.lines.filter(L=>L.h.length&&prof(L)<0).length,nobus=S.lines.filter(L=>!lineBuses(L).length).length;
-  let list=S.lines.filter(L=>flt==='all'||(flt==='loss'&&L.h.length&&prof(L)<0)||(flt==='nobus'&&!lineBuses(L).length)||(flt==='fr'&&L.fr)||(flt==='intl'&&L.intl));
+  let list=S.lines.filter(L=>flt==='all'||(flt==='loss'&&L.h.length&&prof(L)<0)||(flt==='nobus'&&!lineBuses(L).length)||(flt==='fr'&&L.fr)||(flt==='tn'&&L.tn)||(flt==='intl'&&L.intl));
   list.sort(so==='name'?(a,b)=>lname(a).localeCompare(lname(b)):so==='dist'?(a,b)=>b.dist-a.dist:so==='buses'?(a,b)=>lineBuses(b).length-lineBuses(a).length:(a,b)=>prof(b)-prof(a));
   let h=`<button class="btn pri" data-act="newline" style="width:100%;margin-bottom:8px">${ui.mode==='newline'?'✖ Abbrechen':'＋ Neue Linie (zwei Städte auf der Karte anklicken)'}</button>`;
   if(tl('planung')>=1){
@@ -1624,17 +1951,17 @@ function tabLines(){
   }
   if(!S.lines.length)return h+'<div class="mute">Noch keine Linien. Tippe auf „Neue Linie“ und dann nacheinander auf zwei Städte deiner lizenzierten Länder. Mit einem Kleinbus fährst du am besten kurze Strecken (unter 120 km).</div>';
   h+=`<div class="mute small" style="margin-bottom:6px">${S.lines.length} Linien · <span class="${loss?'bad':''}">${loss} mit Verlust</span> · ${nobus} ohne Bus · Gesamtgewinn ${eur(S.lines.reduce((t,L)=>t+prof(L),0))}/Tag</div>
-   <div class="toolbar">${chips('lineFilter',[['all','Alle'],['loss','Verlust'],['nobus','Ohne Bus'],['intl','International'],['fr','Fernflix']],flt)}</div>
+   <div class="toolbar">${chips('lineFilter',[['all','Alle'],['loss','Verlust'],['nobus','Ohne Bus'],['intl','International'],['fr','Fernflix'],['tn','Ausschreibung']],flt)}</div>
    <div class="toolbar"><span class="mute small">Sortiert nach</span>${chips('lineSort',[['profit','Gewinn'],['name','Name'],['dist','Länge'],['buses','Busse']],so)}</div>`;
   if(sel&&!list.includes(sel))list.unshift(sel);
   if(!list.length)h+='<div class="mute small">Keine Linie passt zu diesem Filter.</div>';
   for(const L of list){
     const n=lineBuses(L).length,p=prof(L);
     if(L===sel){
-      h+=`<div class="card sel"><div class="row" data-act="sel" data-id="${L.id}" style="cursor:pointer"><b>${flagOf(L.a)} ${lname(L)} ${flagOf(L.b)}</b><span>${L.fr?'<span class="tag">Fernflix</span> ':''}<span class="tag">${L.dist} km</span></span></div>
+      h+=`<div class="card sel"><div class="row" data-act="sel" data-id="${L.id}" style="cursor:pointer"><b>${flagOf(L.a)} ${lname(L)} ${flagOf(L.b)}</b><span>${L.fr?'<span class="tag">Fernflix</span> ':''}${L.tn?'<span class="tag">Ausschreibung</span> ':''}<span class="tag">${L.dist} km</span></span></div>
        <div class="row"><span class="mute">${L.fr?'Partnerlinie':`Nachfrage ${num(L.D)}/Tag · Anteil ${pct(L.share)}`}</span><b class="${p>=0?'good':'bad'}">${eur(p)}/Tag</b></div>${lineEditor(L)}</div>`;
     }else{
-      h+=`<div class="lrow" data-act="sel" data-id="${L.id}"><span class="n">${L.fr?'🤝 ':''}${L.night?'🌙 ':''}${lname(L)}</span><span class="mute small">${n} 🚌</span><span class="mute small">${L.fr?'':pct(L.share)}</span><b class="${p>=0?'good':'bad'}" style="min-width:64px;text-align:right">${eur(p)}</b></div>`;
+      h+=`<div class="lrow" data-act="sel" data-id="${L.id}"><span class="n">${L.fr?'🤝 ':''}${L.tn?'🏛 ':''}${L.night?'🌙 ':''}${lname(L)}</span><span class="mute small">${n} 🚌</span><span class="mute small">${L.fr?'':pct(L.share)}</span><b class="${p>=0?'good':'bad'}" style="min-width:64px;text-align:right">${eur(p)}</b></div>`;
     }
   }
   return h;
@@ -1734,7 +2061,9 @@ function tabFleet(){
   list.sort(so==='cond'?(a,b)=>a.cond-b.cond:so==='id'?(a,b)=>a.id-b.id:so==='type'?(a,b)=>a.cls.localeCompare(b.cls)||a.id-b.id:(a,b)=>(a.line?0:1)-(b.line?0:1)||lnOf(a).localeCompare(lnOf(b))||a.id-b.id);
   h+=`<div class="toolbar">${chips('fleetFilter',[['all','Alle'],['run','Im Einsatz'],['depot','Im Depot'],['weak','Zustand &lt; 50 % ('+weak+')'],['broken','Panne/Werkstatt']],f)}</div>
    <div class="toolbar"><span class="mute small">Sortiert nach</span>${chips('fleetSort',[['line','Linie'],['cond','Zustand'],['type','Typ'],['id','Nr.']],so)}</div>
-   <div class="toolbar"><button class="btn sm" data-act="repairall" data-lim="50" ${weak?'':'disabled'}>Alle unter 50 % reparieren</button><button class="btn sm" data-act="repairall" data-lim="80">Alle unter 80 % reparieren</button></div>`;
+   <div class="toolbar"><button class="btn sm" data-act="repairall" data-lim="50" ${weak?'':'disabled'}>Alle unter 50 % reparieren</button><button class="btn sm" data-act="repairall" data-lim="80">Alle unter 80 % reparieren</button></div>
+   <div class="toolbar"><span class="small">🛠 Auto-Wartung unter</span><select data-in="maint" aria-label="Automatische Wartung">${MAINT_OPTS.map(v=>`<option value="${v}" ${S.maint===v?'selected':''}>${v?v+' % Zustand':'Aus'}</option>`).join('')}</select>
+    <span class="mute small">Werkstattzeit ${num(svcTime(),1)} h</span></div>`;
   if(!list.length)h+='<div class="mute small">Keine Busse für diesen Filter. Kaufe Busse im Reiter „Kaufen“ oder „Gebraucht“.</div>';
   let lastG=null;
   for(const b of list){
@@ -1818,7 +2147,8 @@ function tabMarket(){
   const sr=rivalById(ui.selRival);
   if(sr&&sr.alive){
     const p=takeoverPrice(sr),big=sr.value>Math.max(1e6,companyValue()*1.5);
-    h+=`<div class="card sel"><div class="row"><b>${flagOf(sr.home)} ${sr.name}</b><span class="tag">${sr.net?'Netzwerk':'Regional'}</span></div>
+    const exEmp=S.career&&S.career.done&&S.career.done.emp===sr.id;
+    h+=`<div class="card sel"><div class="row"><b>${flagOf(sr.home)} ${sr.name}</b><span>${exEmp?'<span class="tag">ehemaliger Arbeitgeber</span> ':''}<span class="tag">${sr.net?'Netzwerk':'Regional'}</span></span></div>
      <table><tr><td class="mute">Wert</td><td>${eurK(sr.value)}</td></tr><tr><td class="mute">Flotte</td><td>ca. ${sr.fleet} Busse</td></tr>
       <tr><td class="mute">Technik</td><td>Stufe ${num(sr.tech,1)}</td></tr><tr><td class="mute">Qualität</td><td>${num(sr.q+0.12*sr.tech,1)}</td></tr>
       <tr><td class="mute">Städte</td><td>${sr.cities.length} (${sr.cities.slice(0,5).map(cname).join(', ')}${sr.cities.length>5?' …':''})</td></tr>
@@ -1835,7 +2165,8 @@ function tabMarket(){
     const cp=L.comps.length?avg(L.comps.map(c=>c.price)):null;
     h+=`<tr><td>${lname(L)}</td><td>${pct(L.share)}</td><td>${L.comps.length}</td><td class="${cp&&L.rate>cp*1.15?'bad':''}">${cp?num(cp*100,1)+' ct':'–'}</td></tr>`;
   }
-  h+=`</table></div><h2 class="s">Fernflix-Partnerprogramm</h2><div class="card"><div class="row"><b>Partnerstufe</b><span class="tag">${lvl} / 5</span></div>
+  h+='</table></div>'+tendersHTML();
+  h+=`<h2 class="s">Fernflix-Partnerprogramm</h2><div class="card"><div class="row"><b>Partnerstufe</b><span class="tag">${lvl} / 5</span></div>
     <div class="mute small">Du fährst für das Fernbus-Netzwerk Fernflix und bekommst ${num(frRate(),2)} € je gefahrenem km, ohne Auslastungsrisiko. Pro 1.000 Partner-km gibt es einen Punkt.</div>
     ${nxt?`<div class="row small"><span class="mute">${num(pts)} / ${num(nxt)} Punkte bis Stufe ${lvl+1}</span><span>${num(FR_RATES[lvl],2)} €/km</span></div>${bar(pts/nxt*100)}`:'<div class="good small">Höchste Partnerstufe erreicht.</div>'}</div>`;
   if(!S.partner.offers.length)h+='<div class="mute small">Aktuell keine Angebote. Du brauchst Lizenzen für Städte mit mindestens 180 km Abstand.</div>';
@@ -1848,12 +2179,42 @@ function tabMarket(){
   h+='<h2 class="s">Erfolge</h2><div class="card">'+ACH.map(a=>`<div class="row" style="margin:2px 0"><span class="${S.ach[a.id]!==undefined?'good':'mute'}">${S.ach[a.id]!==undefined?'✓':'○'} ${a.n}</span><span class="mute small">${a.d}</span></div>`).join('')+'</div>';
   return h;
 }
+function tendersHTML(){
+  const T=S.tenders;
+  let h=`<h2 class="s">Öffentliche Ausschreibungen</h2><div class="card tcard"><div class="mute small">Städte vergeben Linien mit festem Zuschuss pro Tag. Den Zuschuss gibt es an jedem Tag, an dem genug passende Busse fahren, das Fahrgeld kommt dazu. Fehlen Busse, zahlst du Strafe. Was du nicht annimmst, bekommt ein Rivale. Anders als bei Fernflix legst du Preis und Takt selbst fest.</div>
+   <div class="mute small" style="margin-top:4px">Nächste Runde in etwa ${Math.max(0,T.next-S.day)} Tagen.</div></div>`;
+  for(const o of T.offers){
+    const tmp={a:o.a,b:o.b,dist:o.dist,fr:null,night:false};
+    const have=lineOnPair(o.a,o.b);
+    h+=`<div class="card tcard"><div class="row" style="margin-top:0"><b>🏛 ${flagOf(o.a)} ${cname(o.a)} – ${cname(o.b)} ${flagOf(o.b)}</b><span class="tag">${o.dist} km</span></div>
+     <div class="small">${eur(o.sub)} pro Tag · mind. ${o.minBuses} Bus${o.minBuses>1?'se':''} · ${o.term} Tage <span class="mute">(gesamt bis ${eur(o.sub*o.term)})</span></div>
+     <div class="chips" style="margin-top:4px">${reqChips(tmp)||'<span class="mute small">keine besonderen Anforderungen</span>'}</div>
+     <div class="row"><span class="mute small">Frist: noch ${Math.max(0,o.dl-S.day)} Tage${have?' · du fährst die Strecke schon':''}</span><button class="btn sm pri" data-act="tender" data-id="${o.id}" ${have&&(have.fr||have.tn)?'disabled':''}>Annehmen</button></div></div>`;
+  }
+  if(!T.offers.length)h+='<div class="mute small" style="margin-bottom:8px">Gerade keine offenen Ausschreibungen.</div>';
+  const run=S.lines.filter(L=>L.tn);
+  if(run.length)h+=`<div class="card"><b class="small">Laufende Verträge</b><table class="small">${run.map(L=>`<tr><td>${lname(L)}</td><td class="${tenderOk(L)>=L.tn.minBuses?'good':'bad'}">${tenderOk(L)}/${L.tn.minBuses} Busse · ${L.tn.left} T</td></tr>`).join('')}</table></div>`;
+  return h;
+}
 /* ----- Firma ----- */
 function tabFirm(){
   const fd=S.fuelDeal;
   const nextTier=[5000,15000,40000,80000,150000].find(v=>volLiters()>=0&&v>volLiters());
   const a=S.autoFill;
-  let h=`<h2 class="s" style="margin-top:0">Kraftstoff-Einkauf</h2><div class="card"><table>
+  const st=S.staff,tg=staffTarget(),sm=strikeMult(),bf=satF();
+  let h=`<h2 class="s" style="margin-top:0">Personal</h2><div class="card">
+   <div class="row" style="margin-top:0"><span>👷 ${S.buses.length} Fahrer · Zufriedenheit</span><b class="${st.sat<45?'bad':st.sat>=70?'good':''}">${Math.round(st.sat)} %</b></div>
+   ${bar(st.sat,st.sat<45?'var(--bad)':st.sat>=70?'':'var(--acc)')}
+   <div class="mute small">Ziel bei diesem Lohn: ${Math.round(tg)} % (bewegt sich langsam dorthin)</div>
+   <div class="small mute" style="margin:8px 0 2px">Lohnniveau (vom Marktlohn)</div>
+   <div class="chips">${WAGE_OPTS.map(v=>`<button class="chip ${Math.abs(st.wage-v)<0.001?'on':''}" data-act="wage" data-v="${v}">${Math.round(v*100)} %</button>`).join('')}</div>
+   <table class="small" style="margin-top:6px">
+    <tr><td class="mute">Lohnkosten</td><td>${eur(S.buses.reduce((t,b)=>t+busWage(b,lineById(b.line)),0))} pro Tag</td></tr>
+    <tr><td class="mute">Streikrisiko</td><td class="${sm>1.5?'bad':sm<1?'good':''}">${sm>1.5?'hoch':sm<1?'niedrig':'normal'}</td></tr>
+    <tr><td class="mute">Pannen</td><td class="${bf>1?'bad':'good'}">${bf>1?'+':'−'}${Math.round(Math.abs(bf-1)*100)} %</td></tr>
+    <tr><td class="mute">Ruf</td><td>${st.sat>=60?'+':'−'}${num(Math.abs(st.sat-60)*0.08,1)}</td></tr></table>
+   <div class="mute small" style="margin-top:4px">Das Fahrerprogramm (Reiter Technik) senkt Löhne und hebt die Zufriedenheit.</div></div>
+   <h2 class="s">Kraftstoff-Einkauf</h2><div class="card"><table>
     <tr><td class="mute">Marktpreis Diesel</td><td>${num(fuelBase(),2)} €/l${fd.lock?' <span class="tag">Festpreis</span>':''}</td></tr>
     <tr><td class="mute">Mengenrabatt (${num(volLiters())} l in 30 T)</td><td>${pct(volDisc())}</td></tr>
     <tr><td class="mute">Standort- &amp; Einkaufsrabatt</td><td>${pct(stationDisc()+0.01*tfx('einkauf'))}</td></tr>
@@ -1874,7 +2235,7 @@ function tabFirm(){
    <div class="mute small" style="margin-top:10px">Privatvermögen, Einlagen und Kapitalanlagen findest du im Reiter <b>Vermögen</b>.</div>
    <h2 class="s">Unternehmen verkaufen</h2><div class="card">
     <div class="mute small">Verkaufswert (inkl. Kundenstamm und Ruf): <b>${eur(sellValue())}</b>. Danach kannst du ein anderes Unternehmen kaufen oder neu gründen.</div>
-    <button class="btn sm danger" data-act="sellco" style="margin-top:6px">Verkaufsangebote einholen</button></div>`;
+    <button class="btn sm danger" data-act="sellco" style="margin-top:6px">Verkaufsangebote einholen</button></div>`+saveCard();
   return h;
 }
 function tabWealth(){
@@ -1929,6 +2290,72 @@ function tabWealth(){
   return h;
 }
 
+function saveCard(){
+  return `<h2 class="s">Spielstand</h2><div class="card"><div class="mute small">Sichere deinen Spielstand als Text, z. B. für ein anderes Gerät.</div>
+   <div class="chips" style="margin-top:6px"><button class="btn sm" data-act="export">Exportieren</button><button class="btn sm" data-act="import">Importieren</button><button class="btn sm" data-act="fulllog">Alle Meldungen</button></div></div>`;
+}
+/* ----- Statistik ----- */
+function barSvg(vals,labels,pos,neg,fmt){
+  const n=vals.length;if(!n)return '';
+  const W=300,mn=Math.min(0,...vals),mx=Math.max(0,...vals),rg=(mx-mn)||1;
+  const Y=v=>10+(1-(v-mn)/rg)*80,bw=W/n;
+  let g=`<line x1="0" x2="${W}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#2a3b50" stroke-width="1"/>`;
+  vals.forEach((v,i)=>{
+    const y=Math.min(Y(v),Y(0)),hh=Math.max(1,Math.abs(Y(v)-Y(0)));
+    g+=`<rect x="${(i*bw+bw*0.15).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.7).toFixed(1)}" height="${hh.toFixed(1)}" rx="2" fill="${v>=0?pos:neg}"><title>${labels[i]}: ${fmt(v)}</title></rect>`;
+    g+=`<text x="${(i*bw+bw/2).toFixed(1)}" y="106" font-size="9" fill="#8da2b8" text-anchor="middle">${labels[i]}</text>`;
+  });
+  g+=`<text x="2" y="9" font-size="9" fill="#8da2b8">${fmt(mx)}</text>`;
+  if(mn<0)g+=`<text x="2" y="98" font-size="9" fill="#8da2b8">${fmt(mn)}</text>`;
+  return `<svg viewBox="0 0 ${W} 110" width="100%" height="120" role="img">${g}</svg>`;
+}
+const kf=v=>Math.abs(v)>=1e6?num(v/1e6,1)+' Mio.':Math.abs(v)>=1000?num(v/1000,0)+' T€':num(v,0)+' €';
+function tabStats(){
+  const rows=S.months.slice(-12).concat([Object.assign({run:true},S.monAcc)]);
+  const lab=r=>MONTHS[r.m]+(r.run?'*':'');
+  const prof=r=>r.inc-sumCosts(r);
+  let h=`<h2 class="s" style="margin-top:0">Gewinn pro Monat</h2><div class="card">${barSvg(rows.map(prof),rows.map(lab),'#3ddc97','#ff6b6b',kf)}
+   <div class="mute small">* laufender Monat (${S.monAcc.days} Tage). Ein Bericht entsteht jeweils am Monatsende.</div></div>
+   <h2 class="s">Monatsberichte</h2><div class="card scroll-x"><table class="small"><tr><th>Monat</th><th>Einnahmen</th><th>Kosten</th><th>Fahrgäste</th><th>Gewinn</th></tr>`;
+  for(const r of rows.slice().reverse()){const p=prof(r);h+=`<tr><td>${MONTHS[r.m]} ${String(r.y).slice(2)}${r.run?'*':''}</td><td>${kf(r.inc)}</td><td>${kf(sumCosts(r))}</td><td>${num(r.pax)}</td><td class="${p>=0?'good':'bad'}">${kf(p)}</td></tr>`;}
+  h+='</table></div>';
+  const base=S.months.length?S.months[S.months.length-1]:S.monAcc,tot=sumCosts(base)||1;
+  h+=`<h2 class="s">Kostenaufteilung (${MONTHS[base.m]} ${base.y}${base===S.monAcc?', laufend':''})</h2><div class="card">
+   <svg viewBox="0 0 300 16" width="100%" height="16" preserveAspectRatio="none">${(()=>{let x=0,g='';for(const k of COSTKEYS){const w=(base[k]||0)/tot*300;if(w>0)g+=`<rect x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="16" fill="${COSTC[k]}"/>`;x+=w;}return g;})()}</svg>
+   <table class="small" style="margin-top:6px">${COSTKEYS.filter(k=>base[k]>0).sort((a,b)=>base[b]-base[a]).map(k=>`<tr><td><span style="color:${COSTC[k]}">■</span> ${COSTN[k]}</td><td>${eur(base[k])} · ${pct(base[k]/tot)}</td></tr>`).join('')||'<tr><td class="mute">Noch keine Kosten</td></tr>'}</table>
+   ${base.sub?`<div class="mute small">Zuschüsse aus Ausschreibungen: ${eur(base.sub)}</div>`:''}</div>
+   <h2 class="s">Fahrgäste pro Monat</h2><div class="card">${barSvg(rows.map(r=>r.pax),rows.map(lab),'#4da3ff','#4da3ff',v=>num(v))}</div>`;
+  const ls=S.lines.filter(L=>L.h30&&L.h30.length).map(L=>({L,p:L.h30.reduce((a,b)=>a+b,0),d:L.h30.length})).sort((a,b)=>b.p-a.p);
+  const lrow=x=>`<tr data-act="gotoline" data-id="${x.L.id}" style="cursor:pointer"><td>${x.L.fr?'🤝 ':''}${x.L.tn?'🏛 ':''}${lname(x.L)}<div class="mute small">${lineBuses(x.L).length} Busse · ${x.d} Tage</div></td><td class="${x.p>=0?'good':'bad'}">${eur(x.p)}</td></tr>`;
+  h+=`<h2 class="s">Beste Linien (Gewinn 30 Tage)</h2><div class="card"><table class="small">${ls.slice(0,5).map(lrow).join('')||'<tr><td class="mute">Noch keine Daten</td></tr>'}</table></div>`;
+  if(ls.length>5)h+=`<h2 class="s">Schwächste Linien</h2><div class="card"><table class="small">${ls.slice(-5).reverse().map(lrow).join('')}</table></div>`;
+  return h;
+}
+/* ----- Karriere ----- */
+function tabCareer(){
+  const C=S.career;if(!C||!C.on)return tabNoCompany();
+  const lv=careerLevel(),nx=CAREER_LV[lv+1],emp=rivalById(C.emp);
+  const net=careerPay()-CAREER_COST;
+  const ok1=lv>=CERT.lv,ok2=C.cert,ok3=S.wealth>=CAREER_FOUND;
+  const ck=(ok,t)=>`<tr><td class="${ok?'good':'mute'}">${ok?'✓':'○'} ${t}</td></tr>`;
+  let h=`<div class="card mis"><div class="row" style="margin-top:0"><b>🚌 ${careerTitle()} bei ${emp?emp.name:'?'}</b><span class="tag">Tag ${C.days+1}</span></div>
+   <div class="mute small">${flagOf(C.home)} ${cname(C.home)} · Fahrer-Ruf ${Math.round(C.drep)} / 100${C.bonus?` · Lohnbonus +${Math.round(C.bonus*100)} %`:''}</div>
+   <div class="row small"><span>Erfahrung ${num(C.xp,1)}${nx?` / ${nx[0]} bis ${nx[1]}`:''}</span></div>${bar(nx?C.xp/nx[0]*100:100,'var(--acc)')}
+   <div class="row small"><span>Müdigkeit</span><b class="${C.fat>65?'bad':''}">${Math.round(C.fat)} %</b></div>${bar(C.fat,C.fat>65?'var(--bad)':'var(--blue)')}
+   <div class="row"><span>Erspartes</span><b>${eur(S.wealth)}</b></div>
+   <div class="mute small">${C.course>0?`🎓 Im Kurs: noch ${C.course} Tage ohne Lohn.`:`Heute etwa ${eur(net)} netto (nach ${eur(CAREER_COST)} Lebenshaltung).`}</div></div>
+   <h2 class="s">Schicht wählen</h2><div class="card"><div class="chips">${Object.entries(SHIFTS).map(([k,sh])=>{const lock=lv<sh.lv;return `<button class="chip ${C.shift===k?'on':''}" data-act="shift" data-k="${k}" ${lock?'disabled':''}>${sh.n}${sh.pay?' '+eur(careerPay(k)):''}${lock?' 🔒':''}</button>`;}).join('')}</div>
+   <div class="mute small" style="margin-top:4px">${SHIFTS[C.shift].note}. ${lv<1?'Fernlinie und Nachtfahrt ab Fernfahrer, Disposition ab Disponent.':lv<2?'Disposition ab Disponent.':''} Über 65 % Müdigkeit passieren Fehler.</div>
+   <div class="row" style="margin-top:6px"><span>Überstunden <span class="mute small">(+40 % Lohn, müder, mehr Erfahrung)</span></span><button class="btn sm ${C.ot?'pri':''}" data-act="ot">${C.ot?'An':'Aus'}</button></div></div>
+   <h2 class="s">Weg zum eigenen Unternehmen</h2><div class="card"><table class="small">
+    ${ck(ok1,`Stufe ${CAREER_LV[CERT.lv][1]} erreichen`)}${ck(ok2,`Unternehmerschein (${eur(CERT.cost)}, ${CERT.days} Tage)`)}${ck(ok3,`${eur(CAREER_FOUND)} Erspartes`)}</table>
+    <div class="chips" style="margin-top:6px">${!C.cert?`<button class="btn sm" data-act="course" ${!ok1||C.course>0||S.wealth<CERT.cost?'disabled':''}>${C.course>0?'Kurs läuft …':'🎓 Kurs buchen'}</button>`:''}
+     <button class="btn sm pri" data-act="cfound" ${ok2&&ok3?'':'disabled'}>🏢 Unternehmen gründen</button></div>
+    <div class="mute small" style="margin-top:4px">Bei der Gründung kaufst du deinem Chef einen gebrauchten Kleinbus ab. Dein Erspartes (abzüglich 1.500 € Gebühren) wird Betriebskapital. Deine Erfahrung senkt dauerhaft Löhne und Pannen ein wenig.</div></div>
+   <button class="btn sm" data-act="cskip" style="margin-top:4px">Karriere überspringen und direkt gründen</button>
+   <div class="mute small" style="margin-top:4px">Dann startest du normal mit ${eur(DIFF[S.diff].cash)} Startkapital, aber ohne Erfahrungsbonus.</div>`;
+  return h;
+}
 function tabNoCompany(){
   let h=`<div class="card"><div class="row"><b>Du hast aktuell kein Unternehmen</b></div>
    <div class="row"><span>Privatvermögen</span><b>${eur(S.wealth)}</b></div>
@@ -1950,15 +2377,18 @@ function tabNoCompany(){
   if(S.exits.length)h+='<h2 class="s">Deine Verkäufe</h2><div class="card"><table>'+S.exits.map(e=>`<tr><td>${e.name} <span class="mute">an ${e.buyer}</span></td><td>${eur(e.price)}</td></tr>`).join('')+'</table></div>';
   return h;
 }
-const TABS={ov:tabOv,lines:tabLines,fleet:tabFleet,sites:tabSites,tech:tabTech,market:tabMarket,firm:tabFirm,wealth:tabWealth,nocomp:tabNoCompany};
+const TABS={ov:tabOv,lines:tabLines,fleet:tabFleet,sites:tabSites,tech:tabTech,market:tabMarket,firm:tabFirm,stats:tabStats,wealth:tabWealth,nocomp:tabNoCompany,career:tabCareer};
 function render(){
   if(!S)return;
   const owned=S.owned;
-  if(!owned&&!['wealth','nocomp'].includes(ui.tab))ui.tab='nocomp';
+  const car=!owned&&S.career&&S.career.on;
+  if(!owned&&!['wealth','nocomp','career'].includes(ui.tab))ui.tab=car?'career':'nocomp';
+  if(!car&&ui.tab==='career')ui.tab=owned?'ov':'nocomp';
   if(owned&&ui.tab==='nocomp')ui.tab='ov';
+  checkMissions();
   document.querySelectorAll('#tabs button').forEach(b=>{
     const t=b.dataset.tab;
-    b.hidden=owned?t==='nocomp':!(t==='wealth'||t==='nocomp');
+    b.hidden=owned?(t==='nocomp'||t==='career'):!(t==='wealth'||t==='nocomp'||(t==='career'&&car));
     b.classList.toggle('on',t===ui.tab);
   });
   const el=$('#panel');
@@ -1972,6 +2402,7 @@ function render(){
 }
 function renderLog(){
   $('#log').innerHTML=S.log.slice(0,4).map(l=>`<div class="${l.c}">${l.m}</div>`).join('');
+  $('#log').title='Alle Meldungen anzeigen';
 }
 function updateHeader(){
   if(!S)return;
@@ -1979,7 +2410,7 @@ function updateHeader(){
   $('#hCash').textContent=o?eur(S.cash):'–';$('#hCash').className=o&&S.cash<0?'bad':'';
   $('#hValue').textContent=o?eurK(companyValue()):'–';
   $('#hWealth').textContent=eur(S.wealth+investWorth());
-  $('#hRank').textContent=o?`${myRank()} / ${S.rivals.filter(r=>r.alive).length+1}`:'–';
+  $('#hRank').textContent=o?`${myRank()} / ${S.rivals.filter(r=>r.alive).length+1}`:S.career&&S.career.on?'🚌 '+careerTitle():'–';
   $('#hRep').textContent=o?Math.round(S.rep)+' / 100':'–';
   $('#hFuel').textContent=num(S.fuel*(S.fx.fuelM>0?1.4:1),2)+' €/l';
   const d=new Date(2025,2,3+S.day);
@@ -1996,12 +2427,14 @@ function renderCityCard(){
   if(!c){el.hidden=true;return;}
   el.hidden=false;
   const C=COUNTRIES[c.c],lic=S.lic.includes(c.c),st=S.sites.find(s=>s.city===c.id);
-  const rv=S.rivals.filter(r=>r.alive&&r.cities.includes(c.id)).slice(0,4).map(r=>r.name).join(', ');
+  const rvAll=S.rivals.filter(r=>r.alive&&r.cities.includes(c.id));
+  const rv=rvAll.slice(0,ui.layer==='riv'?8:4).map(r=>r.name).join(', ')+(rvAll.length>(ui.layer==='riv'?8:4)?' …':'');
   const w=S.lines.filter(L=>!L.fr&&(L.a===c.id||L.b===c.id)).reduce((s,L)=>s+L.wait[L.a===c.id?0:1],0);
   el.innerHTML=`<div class="row" style="margin:0"><b>${C.flag} ${c.name}</b><button class="btn sm" data-cc="close" aria-label="Schließen">✕</button></div>
    <div class="mute small">${num(c.pop)} Tsd. Einw. · ${C.n}${c.t?' · 🏖 Touristenziel':''}${zoneOn(c.id)?' · 🌱 Umweltzone':ZONES[c.id]!==undefined?' · 🌱 Umweltzone ab Tag '+ZONES[c.id]:''}</div>
    <div class="mute small">${lic?`Dein Marktanteil ${pct(regionShare(c.id))}${w>=1?' · Wartende '+Math.round(w):''}`:'Keine Lizenz für dieses Land'}</div>
    <div class="mute small">Rivalen: ${rv||'keine bekannt'}</div>
+   ${seasonTxt(c)?`<div class="small">${seasonTxt(c)} Nachfrage (${MONTHS[curMon()]})</div>`:''}
    <div class="chips" style="margin-top:6px">${lic?`<button class="btn sm pri" data-cc="line">Linie von hier</button>`:`<button class="btn sm pri" data-cc="lic">Lizenz ${eur(C.lic)}</button>`}
    ${lic?(st?`<button class="btn sm" data-cc="site">Standort</button>`:`<button class="btn sm" data-cc="buysite">Standort ${eur(landPrice(c))}</button>`):''}</div>`;
 }
@@ -2098,6 +2531,21 @@ panel.addEventListener('click',e=>{
   else if(a==='sellprop')sellProp(id);
   else if(a==='buylux')buyLux(d.k);
   else if(a==='selllux')sellLux(id);
+  else if(a==='mishide')S.mis.hide=true;
+  else if(a==='misshow')S.mis.hide=false;
+  else if(a==='misall')ui.misAll=!ui.misAll;
+  else if(a==='tender')acceptTender(id);
+  else if(a==='wage'){S.staff.wage=clamp(+d.v,0.85,1.3);say(`Lohnniveau auf ${Math.round(S.staff.wage*100)} % gesetzt.`);}
+  else if(a==='gotoline'){ui.selLine=id;ui.tab='lines';}
+  else if(a==='shift'){if(S.career&&careerLevel()>=SHIFTS[d.k].lv)S.career.shift=d.k;}
+  else if(a==='ot'){if(S.career)S.career.ot=!S.career.ot;}
+  else if(a==='course')startCourse();
+  else if(a==='cfound')careerFound();
+  else if(a==='cskip')modal('Karriere überspringen?','Du gründest sofort mit dem normalen Startkapital. Dein Erspartes und der Erfahrungsbonus verfallen.',[
+    {label:'Ja, direkt gründen',cls:'pri',fn:()=>skipCareer()},{label:'Abbrechen',fn:()=>{}}]);
+  else if(a==='export')exportSave();
+  else if(a==='import')importSave();
+  else if(a==='fulllog')openLog();
   render();updateHeader();
 });
 panel.addEventListener('input',e=>{
@@ -2117,6 +2565,7 @@ panel.addEventListener('change',e=>{
   if(el.dataset.in==='minload'){lineById(id).minLoad=+el.value;}
   else if(el.dataset.in==='propcity'){ui.propCity=el.value;}
   else if(el.dataset.in==='svc'){lineById(id).svc=+el.value;S.demT=-99;}
+  else if(el.dataset.in==='maint'){S.maint=+el.value;say(S.maint?`Automatische Wartung bei Zustand unter ${S.maint} %.`:'Automatische Wartung ausgeschaltet.');}
   else if(el.dataset.in==='assign'){
     const b=busById(id);
     if(el.value==='')unassign(b);else tryAssign(b,lineById(+el.value));
@@ -2135,6 +2584,34 @@ $('#cityCard').addEventListener('click',e=>{
   updateHeader();render();
 });
 
+$('#log').addEventListener('click',()=>{if(S)openLog();});
+const escH=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function fmtDay(d){const t=dateOf(d);return `${t.getDate()}. ${MONTHS[t.getMonth()]}`;}
+function openLog(){
+  modal('Alle Meldungen',`<div class="fulllog">${S.log.map(l=>`<div class="${l.c}">${l.d!==undefined?`<span class="mute">${fmtDay(l.d)}</span> `:''}${l.m}</div>`).join('')||'<div class="mute">Noch keine Meldungen.</div>'}</div>`,[{label:'Schließen',cls:'pri',fn:()=>{}}]);
+}
+function validSave(s){
+  return s&&s.v===3&&[s.t,s.day,s.cash,s.rep,s.fuel].every(Number.isFinite)&&Array.isArray(s.buses)&&Array.isArray(s.lines)&&Array.isArray(s.rivals);
+}
+function exportSave(){
+  let txt='';try{txt=JSON.stringify(S);}catch(e){}
+  modal('Spielstand exportieren',`<p class="small mute">Markiere den Text und kopiere ihn (oder tippe „Kopieren“). Über „Importieren“ im Reiter Firma lädst du ihn wieder.</p><textarea class="save" id="expTxt" readonly>${escH(txt)}</textarea><div class="mute small">${num(txt.length/1024,0)} KB</div>`,
+    [{label:'Kopieren',cls:'pri',fn:()=>{const t=document.getElementById('expTxt');try{t.select();navigator.clipboard&&navigator.clipboard.writeText(t.value).catch(()=>{});document.execCommand&&document.execCommand('copy');say('Spielstand in die Zwischenablage kopiert (falls dein Browser es erlaubt).');}catch(e){}}},{label:'Schließen',fn:()=>{}}]);
+  setTimeout(()=>{const t=document.getElementById('expTxt');if(t){t.focus();t.select();}},50);
+}
+function importSave(){
+  modal('Spielstand importieren','<p class="small mute">Füge hier einen exportierten Spielstand ein. Dein aktuelles Spiel wird ersetzt.</p><textarea class="save" id="impTxt" placeholder="Spielstand hier einfügen"></textarea>',
+    [{label:'Laden',cls:'pri',fn:()=>{
+      const t=document.getElementById('impTxt'),raw=t?t.value.trim():'';
+      let s=null;try{s=JSON.parse(raw);}catch(e){}
+      if(!validSave(s)){modal('Import fehlgeschlagen','Der Text ist kein gültiger Spielstand von Bus-Imperium Europa.',[{label:'OK',fn:()=>{}}]);return;}
+      modalQ.length=0;
+      S=fixSave(s);S.over=false;S.fuelU=S.fuelU||S.fuel;S.demT=-99;
+      Object.assign(ui,{selLine:null,selBus:null,selRival:null,mode:null,first:null,city:null,sugg:null,tab:S.owned?'ov':(S.career&&S.career.on?'career':'nocomp')});
+      ui.selSite=S.sites&&S.sites[0]?S.sites[0].id:null;
+      save();say('Spielstand importiert.','good');if(S.owned)focusCity(S.hq);
+    }},{label:'Abbrechen',fn:()=>{}}]);
+}
 /* ===================== Karte ===================== */
 const cv=$('#cv'),ctx=cv.getContext('2d');
 const view={W:300,H:300,dpr:1,s0:1};
@@ -2238,6 +2715,52 @@ cv.addEventListener('wheel',e=>{
 $('#zin').onclick=()=>{zoomAt(view.W/2,view.H/2,1.5);};
 $('#zout').onclick=()=>{zoomAt(view.W/2,view.H/2,1/1.5);};
 $('#zhome').onclick=()=>{cam.x=MAP.w/2;cam.y=MAP.h/2;cam.k=1;};
+const LAYERS=[['none','keine','◐'],['riv','Konkurrenz','⚔'],['dem','Nachfrage','👥']];
+function setLayer(k){
+  ui.layer=k;const L=LAYERS.find(x=>x[0]===k)||LAYERS[0];
+  const b=$('#zlayer');b.textContent=L[2];b.title='Ebene: '+L[1];b.setAttribute('aria-label','Kartenebene: '+L[1]+' (wechseln)');
+  b.classList.toggle('pri',k!=='none');
+  const lg=$('#legend');lg.hidden=k==='none';
+  lg.innerHTML=k==='riv'?'<b>⚔ Konkurrenz</b><br><span style="color:#ff6b6b">●</span> Rivalen vor Ort, Größe = Stärke, Zahl = Anzahl. Stadt antippen für Namen.'
+    :k==='dem'?'<b>👥 Nachfrage</b><br>Kreis = Marktgröße, Farbe = dein Marktanteil: <span style="color:#7c8ea3">grau 0 %</span> → <span style="color:#3ddc97">grün 50 %+</span>':'';
+  try{localStorage.setItem(KEY+'_layer',k);}catch(e){}
+}
+$('#zlayer').onclick=()=>{const i=LAYERS.findIndex(x=>x[0]===(ui.layer||'none'));setLayer(LAYERS[(i+1)%LAYERS.length][0]);};
+let layerC={k:'',d:{}};
+function layerData(){
+  const key=ui.layer+'|'+S.day+'|'+S.lines.length+'|'+S.lic.length+'|'+S.rivals.length+'|'+Math.floor(S.t*2);
+  if(layerC.k===key)return layerC.d;
+  const d={};
+  if(ui.layer==='riv'){
+    for(const c of CITIES){const rs=S.rivals.filter(r=>r.alive&&r.cities.includes(c.id));if(rs.length)d[c.id]={n:rs.length,s:rs.reduce((t,r)=>t+rivalS(r),0)};}
+  }else if(ui.layer==='dem'&&S.owned){
+    for(const c of CITIES){
+      if(!S.lic.includes(c.c))continue;
+      let m=0;for(const L of S.lines)if(!L.fr&&(L.a===c.id||L.b===c.id))m+=marketBase(L);
+      d[c.id]={sh:regionShare(c.id),m,has:m>0};
+    }
+  }
+  layerC={k:key,d};return d;
+}
+function drawLayer(px){
+  if(!ui.layer||ui.layer==='none')return;
+  const d=layerData();
+  ctx.textAlign='center';
+  for(const c of CITIES){
+    const x=d[c.id];if(!x)continue;
+    if(ui.layer==='riv'){
+      const r=(5+6*Math.sqrt(x.s))*px;
+      ctx.beginPath();ctx.arc(c.x,c.y,r,0,7);ctx.fillStyle='rgba(255,107,107,.22)';ctx.fill();ctx.strokeStyle='rgba(255,107,107,.85)';ctx.lineWidth=1.4*px;ctx.stroke();
+      ctx.font=`700 ${10*px}px system-ui,sans-serif`;ctx.fillStyle='#ffb3b3';ctx.fillText(String(x.n),c.x+r*0.75,c.y+r*0.75);
+    }else{
+      const r=(4+Math.sqrt(x.has?x.m:c.pop*0.05)/2.2)*px,sh=clamp(x.sh/0.5,0,1);
+      const col=x.has?`rgba(${Math.round(124-63*sh)},${Math.round(142+78*sh)},${Math.round(163-12*sh)},${0.3+0.4*sh})`:'rgba(124,142,163,.18)';
+      ctx.beginPath();ctx.arc(c.x,c.y,r,0,7);ctx.fillStyle=col;ctx.fill();
+      if(x.has){ctx.strokeStyle=sh>0.5?'#3ddc97':'#7c8ea3';ctx.lineWidth=1.2*px;ctx.stroke();
+        if(cam.k>=1.6){ctx.font=`600 ${9*px}px system-ui,sans-serif`;ctx.fillStyle='#e8eef5';ctx.fillText(pct(x.sh),c.x,c.y+r+9*px);}}
+    }
+  }
+}
 let mouse={x:0,y:0};
 function hover(e){
   if(e.pointerType==='touch')return;
@@ -2250,7 +2773,7 @@ function hover(e){
   if(h.k==='city'){
     const c=h.o,C=COUNTRIES[c.c],own=S.owned&&S.lic.includes(c.c);
     const rv=S.rivals.filter(x=>x.alive&&x.cities.includes(c.id)).length;
-    t=`<b>${C.flag} ${c.name}</b><br>${num(c.pop)} Tsd. Einwohner${c.t?' · 🏖':''}<br>${own?`Lizenz ✓${S.owned&&S.lines.length?` · Anteil ${pct(regionShare(c.id))}`:''}`:`<span class="mute">Keine Lizenz ${C.n}</span>`}<br><span class="mute">${rv} Rivalen vor Ort</span>`;
+    t=`<b>${C.flag} ${c.name}</b><br>${num(c.pop)} Tsd. Einwohner${c.t?' · 🏖':''}<br>${own?`Lizenz ✓${S.owned&&S.lines.length?` · Anteil ${pct(regionShare(c.id))}`:''}`:`<span class="mute">Keine Lizenz ${C.n}</span>`}<br><span class="mute">${rv} Rivalen vor Ort</span>${ui.layer==='riv'&&rv?'<br>'+S.rivals.filter(x=>x.alive&&x.cities.includes(c.id)).map(x=>escH(x.name)).join('<br>'):''}${seasonTxt(c)?'<br>'+seasonTxt(c):''}`;
   }else if(h.k==='bus'){const b=h.o;t=`<b>#${b.id} ${busName(b)}</b><br>${busStatus(b)}<br>Zustand ${Math.round(b.cond)} %`;}
   else{const L=h.o;t=`<b>${lname(L)}</b><br>${L.dist} km · ${lineBuses(L).length} Busse<br>${L.fr?'Partnerlinie Fernflix':`Nachfrage ${num(L.D)}/Tag · Anteil ${pct(L.share)}<br>${L.comps.length} Konkurrent(en)`}`;}
   tip.innerHTML=t;tip.style.display='block';
@@ -2295,6 +2818,7 @@ function drawMap(){
       ctx.strokeStyle='#ffc233';ctx.lineWidth=2*px;ctx.setLineDash([6*px,5*px]);ctx.stroke();ctx.setLineDash([]);
     }
   }
+  drawLayer(px);
   const lim=cam.k<1.6?1100:cam.k<3?450:0;
   ctx.textAlign='center';
   for(const c of CITIES){
@@ -2348,7 +2872,7 @@ function frameBody(now){
   const dt=Math.min(0.1,(now-last)/1000);last=now;
   if(S&&!ui.modalOpen&&!S.over&&S.speed>0){
     let h=dt*S.speed*24/DAY_REAL;
-    while(h>0){const s=Math.min(0.1,h);step(s);h-=s;}
+    while(h>0&&!ui.modalOpen){const s=Math.min(0.1,h);step(s);h-=s;}
   }
   if(S){
     drawMap();
@@ -2360,21 +2884,24 @@ function start(){
   initLand();
   const s=load();
   const first=!s;
-  if(s){S=s;S.fuelU=S.fuelU||S.fuel;}else newState();
+  if(s){S=s;S.fuelU=S.fuelU||S.fuel;if(S.mis&&S.mis.silent)checkMissions();}else newState();
   resize();
   if(first)say('Willkommen! Wähle dein Heimatland und deine Stadt.');
   else{say(S.owned?'Spielstand geladen.':'Spielstand geladen. Du hast kein Unternehmen.');if(S.owned)focusCity(S.hq);}
   renderLog();render();updateHeader();
   window.addEventListener('beforeunload',save);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
-  if(first)chooseHQ(startIn);
+  let lay='none';try{lay=localStorage.getItem(KEY+'_layer')||'none';}catch(e){}
+  setLayer(LAYERS.some(x=>x[0]===lay)?lay:'none');
+  if(first)chooseDiff();
   requestAnimationFrame(frame);
 }
 window.addEventListener('error',e=>reportError(e.error||e.message));
 window.addEventListener('unhandledrejection',e=>reportError(e.reason));
 window.__bus={get S(){return S;},recSpec,step,createLine,assign,tryAssign,lineById,dayEnd,buyBuses,cfgSpec,unitPrice,bStats,newBus,buyUsed,genUsed,upgradeArea,buySite,buyTech,buyCountry,takeover,acceptOffer,openSell,sellCompany,buyOffer,foundCompany,
   negotiate,lockFuel,buyFuel,forecast,optimalRate,ranking,installCompany,freshCompany,sellValue,partnerLevel,genPartnerOffers,compsOf,lineReq,busMeets,suggestLines,
-  buyFund,sellFund,setStake,buyProp,sellProp,buyLux,sellLux,investWorth,landPrice,updateWorld,startIn,ui,TABS,CITIES,COUNTRIES,CLASSES,BRANDS,FEAT,hav,focusCity,cam,genOffers,createDesign,buyKonstruktion,toggleNight,exclusive,enforceReqs};
+  buyFund,sellFund,setStake,buyProp,sellProp,buyLux,sellLux,investWorth,landPrice,updateWorld,startIn,ui,TABS,CITIES,COUNTRIES,CLASSES,BRANDS,FEAT,hav,focusCity,cam,genOffers,createDesign,buyKonstruktion,toggleNight,exclusive,enforceReqs,
+  cap,areaCost,techCost,repairBus,repairAll,setDiff,DIFF,MISSIONS,checkMissions,genTenders,acceptTender,tendersDay,seasonCity,seasonLine,hypoOf,staffTarget,startCareer,careerFound,skipCareer,startCourse,careerLevel,careerDay,endCareer,exportSave,importSave,openLog,setLayer,layerData,fixSave,validSave,tabStats,tabCareer,restart,chooseDiff,lineBuses,companyValue,modalQ,demand,shareAt,marketBase,boosts};
 start();
 
 </script>
