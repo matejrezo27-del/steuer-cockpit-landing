@@ -122,7 +122,7 @@ textarea.save{width:100%;height:160px;background:#0b121b;color:var(--text);borde
 </head>
 <body>
 <header>
-  <h1>🚌 Bus-Imperium Europa <small style="font-weight:400;color:var(--mute);font-size:10px">v10</small></h1>
+  <h1>🚌 Bus-Imperium Europa <small style="font-weight:400;color:var(--mute);font-size:10px">v10.1</small></h1>
   <div class="stat"><small>Kasse</small><b id="hCash">–</b></div>
   <div class="stat"><small>Unternehmenswert</small><b id="hValue">–</b></div>
   <div class="stat"><small>Privat</small><b id="hWealth">–</b></div>
@@ -326,7 +326,7 @@ const SHIFTS={
  off:{n:'Freier Tag',pay:0,fat:-40,xp:0,lv:0,note:'Erholung, kein Lohn'},
 };
 const CAREER_COST=35; // Lebenshaltung pro Tag
-const CERT={cost:3000,days:5,lv:2}; // Unternehmerschein
+const CERT={cost:3000,days:5,lv:1}; // Unternehmerschein
 const CAREER_FOUND=12000; // nötiges Privatvermögen für die Gründung
 
 /* ===================== Hilfsfunktionen ===================== */
@@ -1649,17 +1649,19 @@ function careerDay(){
   }
   const lv0=careerLevel();
   if(lv0<SHIFTS[C.shift].lv)C.shift='city';
-  const sh=SHIFTS[C.shift],work=sh.pay>0;
+  let sh=SHIFTS[C.shift];
+  if(sh.pay>0&&C.fat>=80&&C.autoRest!==false){sh=SHIFTS.off;say('😴 Du warst zu müde und hast heute frei genommen.');}
+  const work=sh.pay>0;
   let pay=work?careerPay():0;
   C.fat=clamp(C.fat-12+sh.fat+(C.ot&&work?10:0),0,100);
   if(work&&C.fat>65&&Math.random()<(C.fat-65)/70){
-    pay*=0.5;C.drep=Math.max(0,C.drep-6);
+    pay*=0.5;C.drep=Math.max(0,C.drep-6);C.xp+=sh.xp*0.5;
     say('😴 Übermüdet: Du machst Fehler, der Chef kürzt dir den Lohn und dein Ruf als Fahrer leidet. Gönn dir einen freien Tag.','bad');
   }else if(work){C.xp+=sh.xp+(C.ot?0.5:0);C.drep=Math.min(100,C.drep+0.3);}
   S.wealth+=pay;C.earned+=pay;
   if(careerLevel()>lv0){
     const lv=careerLevel();
-    say(`⭐ Beförderung: Du bist jetzt ${careerTitle()}!${lv===1?' Fernlinie und Nachtfahrt sind frei.':lv===2?' Disposition und der Unternehmerschein sind frei.':''}`,'good');
+    say(`⭐ Beförderung: Du bist jetzt ${careerTitle()}!${lv===1?' Fernlinie, Nachtfahrt und der Unternehmerschein sind frei.':lv===2?' Disposition ist frei.':''}`,'good');
   }
   if(C.evCool>0)C.evCool--;
   else if(!ui.modalOpen&&work&&Math.random()<0.12){C.evCool=4;careerEvent();}
@@ -2356,12 +2358,13 @@ function tabCareer(){
    <div class="row"><span>Erspartes</span><b>${eur(S.wealth)}</b></div>
    <div class="mute small">${C.course>0?`🎓 Im Kurs: noch ${C.course} Tage ohne Lohn.`:`Heute etwa ${eur(net)} netto (nach ${eur(CAREER_COST)} Lebenshaltung).`}</div></div>
    <h2 class="s">Schicht wählen</h2><div class="card"><div class="chips">${Object.entries(SHIFTS).map(([k,sh])=>{const lock=lv<sh.lv;return `<button class="chip ${C.shift===k?'on':''}" data-act="shift" data-k="${k}" ${lock?'disabled':''}>${sh.n}${sh.pay?' '+eur(careerPay(k)):''}${lock?' 🔒':''}</button>`;}).join('')}</div>
-   <div class="mute small" style="margin-top:4px">${SHIFTS[C.shift].note}. ${lv<1?'Fernlinie und Nachtfahrt ab Fernfahrer, Disposition ab Disponent.':lv<2?'Disposition ab Disponent.':''} Über 65 % Müdigkeit passieren Fehler.</div>
+   <div class="mute small" style="margin-top:4px">${SHIFTS[C.shift].note}. ${lv<1?'Fernlinie und Nachtfahrt ab Fernfahrer, Disposition ab Disponent.':lv<2?'Disposition ab Disponent.':''} Über 65 % Müdigkeit passieren Fehler, ab 80 % nimmst du automatisch frei.</div>
    <div class="row" style="margin-top:6px"><span>Überstunden <span class="mute small">(+40 % Lohn, müder, mehr Erfahrung)</span></span><button class="btn sm ${C.ot?'pri':''}" data-act="ot">${C.ot?'An':'Aus'}</button></div></div>
    <h2 class="s">Weg zum eigenen Unternehmen</h2><div class="card"><table class="small">
     ${ck(ok1,`Stufe ${CAREER_LV[CERT.lv][1]} erreichen`)}${ck(ok2,`Unternehmerschein (${eur(CERT.cost)}, ${CERT.days} Tage)`)}${ck(ok3,`${eur(CAREER_FOUND)} Erspartes`)}</table>
-    <div class="chips" style="margin-top:6px">${!C.cert?`<button class="btn sm" data-act="course" ${!ok1||C.course>0||S.wealth<CERT.cost?'disabled':''}>${C.course>0?'Kurs läuft …':'🎓 Kurs buchen'}</button>`:''}
+    <div class="chips" style="margin-top:6px">${!C.cert?`<button class="btn sm ${ok1&&S.wealth>=CERT.cost&&!C.course?'pri':''}" data-act="course" ${C.course>0?'disabled':''}>${C.course>0?'Kurs läuft …':'🎓 Kurs buchen'}</button>`:''}
      <button class="btn sm pri" data-act="cfound" ${ok2&&ok3?'':'disabled'}>🏢 Unternehmen gründen</button></div>
+    ${!C.cert&&!C.course?`<div class="small ${ok1&&S.wealth>=CERT.cost?'good':'bad'}" style="margin-top:4px">${!ok1?`Für den Kurs fehlen dir noch ${num(Math.max(0,CAREER_LV[CERT.lv][0]-C.xp),1)} Erfahrung bis ${CAREER_LV[CERT.lv][1]}.`:S.wealth<CERT.cost?`Für den Kurs fehlen dir noch ${eur(CERT.cost-S.wealth)}.`:'Du kannst den Kurs jetzt buchen.'}</div>`:''}
     <div class="mute small" style="margin-top:4px">Bei der Gründung kaufst du deinem Chef einen gebrauchten Kleinbus ab. Dein Erspartes (abzüglich 1.500 € Gebühren) wird Betriebskapital. Deine Erfahrung senkt dauerhaft Löhne und Pannen ein wenig.</div></div>
    <button class="btn sm" data-act="cskip" style="margin-top:4px">Karriere überspringen und direkt gründen</button>
    <div class="mute small" style="margin-top:4px">Dann startest du normal mit ${eur(DIFF[S.diff].cash)} Startkapital, aber ohne Erfahrungsbonus.</div>`;
